@@ -221,7 +221,7 @@ export default function AboutPage() {
               <div className="p-6 rounded-2xl border border-border bg-card">
                 <MapPin className="h-6 w-6 text-accent mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">Address</h3>
-                <p className="text-sm text-muted-foreground">123 Recruitment St, Makati City, Philippines</p>
+                <p className="text-sm text-muted-foreground">Philippines</p>
               </div>
               <div className="p-6 rounded-2xl border border-border bg-card">
                 <Mail className="h-6 w-6 text-accent mx-auto mb-3" />

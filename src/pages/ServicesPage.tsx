@@ -170,7 +170,7 @@ export default function ServicesPage() {
                 <Button variant="premium" size="xl" className="min-w-[200px]">Get Started<ArrowRight className="ml-2 h-5 w-5" /></Button>
               </Link>
               <Link to="/about">
-                <Button variant="outline" size="xl" className="min-w-[200px] border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground hover:text-primary">About Legaforce</Button>
+                <Button variant="outline" size="xl" className="min-w-[200px] border-primary-foreground/20 text-white hover:bg-primary-foreground hover:text-primary">About Legaforce</Button>
               </Link>
             </div>
           </motion.div>

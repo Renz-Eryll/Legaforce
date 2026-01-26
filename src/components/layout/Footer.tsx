@@ -52,45 +52,7 @@ export function Footer() {
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* CTA Section */}
-        <div className="py-16 lg:py-20 border-b border-primary-foreground/10 dark:border-border">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-primary-foreground dark:text-foreground mb-6">
-                Ready to Transform Your{" "}
-                <span className="text-accent">Recruitment Journey?</span>
-              </h2>
-              <p className="text-lg text-primary-foreground/70 dark:text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of workers and employers who trust Legaforce for
-                transparent, ethical, and efficient recruitment.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/register">
-                  <Button
-                    size="lg"
-                    className="group gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 px-8 transition-all duration-300"
-                  >
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Start Your Journey
-                    <ArrowUpRight className="w-5 h-5 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground hover:text-primary dark:border-border dark:text-foreground dark:hover:bg-muted px-8"
-                  >
-                    Contact Sales
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </div>
+       
 
         {/* Main Footer Content */}
         <div className="py-12 lg:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
@@ -138,9 +100,7 @@ export function Footer() {
                   <MapPin className="h-4 w-4" />
                 </div>
                 <span className="text-sm pt-2.5">
-                  123 Recruitment Building, Makati City,
-                  <br />
-                  Metro Manila, Philippines
+                  Philippines
                 </span>
               </div>
             </div>
