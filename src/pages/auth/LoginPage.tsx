@@ -13,6 +13,8 @@ import {
   Users,
   Building2,
   Shield,
+  Sparkles,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -35,19 +37,29 @@ const userTypes = [
     icon: Users,
     label: "Applicant",
     description: "Looking for job opportunities",
+    redirect: "/app/dashboard",
   },
   {
     type: "employer" as UserType,
     icon: Building2,
     label: "Employer",
     description: "Hiring skilled workers",
+    redirect: "/employer/dashboard",
   },
   {
     type: "admin" as UserType,
     icon: Shield,
     label: "Admin",
     description: "Platform administrator",
+    redirect: "/admin/dashboard",
   },
+];
+
+const features = [
+  "Real-time application tracking",
+  "AI-powered job matching",
+  "Secure document management",
+  "24/7 support access",
 ];
 
 export default function LoginPage() {
@@ -67,65 +79,81 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsLoading(false);
-    // Navigate to dashboard
-    navigate("/app/dashboard");
+    
+    // Navigate based on user type
+    const selectedType = userTypes.find((t) => t.type === userType);
+    navigate(selectedType?.redirect || "/app/dashboard");
   };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(var(--accent)/0.15),_transparent_50%)]" />
-        <div className="relative z-10 flex flex-col justify-between p-12">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent text-accent-foreground font-bold text-lg">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary dark:bg-card text-primary-foreground dark:text-foreground relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent text-accent-foreground font-bold text-xl">
               L
             </div>
-            <span className="font-bold text-xl tracking-tight">Legaforce</span>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-xl tracking-tight">Legaforce</span>
+              <span className="text-xs opacity-70">Recruitment Platform</span>
+            </div>
           </Link>
 
           <div className="max-w-md">
-            <h1 className="text-4xl font-bold mb-6">
+            <h1 className="text-4xl lg:text-5xl font-display font-bold mb-6">
               Welcome Back to Your{" "}
               <span className="text-accent">Global Career</span>
             </h1>
-            <p className="text-primary-foreground/70 text-lg leading-relaxed">
+            <p className="text-primary-foreground/70 dark:text-muted-foreground text-lg leading-relaxed mb-8">
               Access your dashboard to track applications, manage your profile,
               and discover new opportunities worldwide.
             </p>
+
+            {/* Features List */}
+            <div className="space-y-4">
+              {features.map((feature) => (
+                <div
+                  key={feature}
+                  className="flex items-center gap-3 text-primary-foreground/80 dark:text-foreground/80"
+                >
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-accent/20">
+                    <CheckCircle className="w-4 h-4 text-accent" />
+                  </div>
+                  <span className="text-sm">{feature}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-sm text-primary-foreground/70">
-              <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="font-medium text-primary-foreground">
-                  Secure & Protected
-                </p>
-                <p>Your data is encrypted and safe with us</p>
-              </div>
-            </div>
+          <div className="flex items-center gap-3 text-sm text-primary-foreground/60 dark:text-muted-foreground">
+            <Shield className="w-5 h-5" />
+            <span>Your data is encrypted and secure</span>
           </div>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-background">
         {/* Header */}
         <div className="flex items-center justify-between p-4 lg:p-6">
           <Link to="/" className="flex items-center gap-2 lg:hidden">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary dark:bg-accent text-primary-foreground dark:text-accent-foreground font-bold">
               L
             </div>
-            <span className="font-bold text-lg tracking-tight">Legaforce</span>
+            <span className="font-display font-bold text-lg tracking-tight">Legaforce</span>
           </Link>
           <div className="flex items-center gap-4 ml-auto">
             <ThemeToggle />
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               Don't have an account?{" "}
               <Link
                 to="/register"
@@ -145,39 +173,41 @@ export default function LoginPage() {
             className="w-full max-w-md"
           >
             <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">Sign In</h2>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-2">Sign In</h2>
               <p className="text-muted-foreground">
-                Enter your credentials to access your account
+                Choose your account type and enter your credentials
               </p>
             </div>
 
             {/* User Type Selector */}
-            <div className="grid grid-cols-3 gap-2 mb-8">
+            <div className="grid grid-cols-3 gap-3 mb-8">
               {userTypes.map((type) => (
                 <button
                   key={type.type}
                   type="button"
                   onClick={() => setUserType(type.type)}
                   className={cn(
-                    "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all",
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
                     userType === type.type
-                      ? "border-accent bg-accent/10"
-                      : "border-border hover:border-accent/50"
+                      ? "border-accent bg-accent/10 shadow-lg shadow-accent/10"
+                      : "border-border hover:border-accent/50 hover:bg-muted/50"
                   )}
                 >
-                  <type.icon
+                  <div
                     className={cn(
-                      "w-5 h-5",
+                      "flex items-center justify-center w-10 h-10 rounded-lg transition-colors",
                       userType === type.type
-                        ? "text-accent"
-                        : "text-muted-foreground"
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-muted text-muted-foreground"
                     )}
-                  />
+                  >
+                    <type.icon className="w-5 h-5" />
+                  </div>
                   <span
                     className={cn(
-                      "text-xs font-medium",
+                      "text-sm font-medium",
                       userType === type.type
-                        ? "text-accent"
+                        ? "text-foreground"
                         : "text-muted-foreground"
                     )}
                   >
@@ -188,7 +218,7 @@ export default function LoginPage() {
             </div>
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <div className="relative">
@@ -197,7 +227,7 @@ export default function LoginPage() {
                     id="email"
                     type="email"
                     placeholder="name@example.com"
-                    className="pl-10"
+                    className="pl-10 h-12"
                     {...register("email")}
                   />
                 </div>
@@ -224,7 +254,7 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-12"
                     {...register("password")}
                   />
                   <button
@@ -248,19 +278,19 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                variant="premium"
                 size="lg"
-                className="w-full"
+                className="w-full h-12 gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 transition-all"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     Signing in...
                   </div>
                 ) : (
                   <>
-                    Sign In
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Sign In as {userTypes.find((t) => t.type === userType)?.label}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
@@ -281,7 +311,7 @@ export default function LoginPage() {
 
             {/* Social Login */}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button" className="w-full">
+              <Button variant="outline" type="button" className="w-full h-12">
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -302,7 +332,7 @@ export default function LoginPage() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline" type="button" className="w-full">
+              <Button variant="outline" type="button" className="w-full h-12">
                 <svg
                   className="w-5 h-5 mr-2"
                   fill="currentColor"
@@ -313,6 +343,17 @@ export default function LoginPage() {
                 GitHub
               </Button>
             </div>
+
+            {/* Mobile Sign Up Link */}
+            <p className="text-center text-sm text-muted-foreground mt-6 sm:hidden">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="text-accent hover:underline font-medium"
+              >
+                Sign up
+              </Link>
+            </p>
           </motion.div>
         </div>
       </div>

@@ -3,20 +3,25 @@ import { Link } from "react-router-dom";
 import {
   Briefcase,
   Users,
-  FileText,
   TrendingUp,
-  Plus,
+  DollarSign,
   ArrowRight,
-  MapPin,
-  Calendar,
-  Eye,
   ChevronRight,
-  Star,
+  CheckCircle,
   Clock,
+  Calendar,
+  ArrowUpRight,
+  UserCheck,
+  Globe,
+  FileText,
+  Plus,
+  Eye,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 // Animation variants
 const fadeInUp = {
@@ -33,72 +38,66 @@ const staggerContainer = {
 };
 
 // Mock data
+const quickStats = [
+  { label: "Active Job Orders", value: "5", icon: Briefcase, trend: "+2 this month", color: "text-blue-500", bg: "bg-blue-500/10" },
+  { label: "Total Candidates", value: "128", icon: Users, trend: "+23 this week", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { label: "Interviews Scheduled", value: "12", icon: UserCheck, trend: "3 today", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { label: "Deployed Workers", value: "45", icon: Globe, trend: "+5 this month", color: "text-accent", bg: "bg-accent/10" },
+];
+
 const jobOrders = [
   {
     id: "1",
-    title: "Registered Nurses (10 positions)",
-    location: "Riyadh, Saudi Arabia",
-    applicants: 45,
+    title: "Registered Nurse (20 positions)",
+    department: "Nursing",
+    candidates: 45,
     shortlisted: 12,
+    interviewed: 8,
     status: "active",
-    postedDate: "Jan 10, 2026",
-    deadline: "Feb 10, 2026",
-  },
-  {
-    id: "2",
-    title: "ICU Nurses (5 positions)",
-    location: "Dubai, UAE",
-    applicants: 28,
-    shortlisted: 8,
-    status: "active",
-    postedDate: "Jan 15, 2026",
     deadline: "Feb 15, 2026",
   },
   {
-    id: "3",
-    title: "OR Nurses (3 positions)",
-    location: "Doha, Qatar",
-    applicants: 15,
-    shortlisted: 4,
-    status: "interviewing",
-    postedDate: "Jan 5, 2026",
-    deadline: "Feb 5, 2026",
-  },
-];
-
-const topCandidates = [
-  {
-    id: "1",
-    name: "Maria Santos",
-    role: "Registered Nurse",
-    experience: "8 years",
-    matchScore: 95,
-    status: "Available",
-  },
-  {
     id: "2",
-    name: "Jose Reyes",
-    role: "ICU Nurse",
-    experience: "6 years",
-    matchScore: 92,
-    status: "Available",
+    title: "Civil Engineer (5 positions)",
+    department: "Engineering",
+    candidates: 28,
+    shortlisted: 8,
+    interviewed: 4,
+    status: "active",
+    deadline: "Feb 20, 2026",
   },
   {
     id: "3",
-    name: "Anna Cruz",
-    role: "OR Nurse",
-    experience: "5 years",
-    matchScore: 88,
-    status: "Interviewing",
+    title: "Hotel Manager (2 positions)",
+    department: "Hospitality",
+    candidates: 15,
+    shortlisted: 5,
+    interviewed: 3,
+    status: "active",
+    deadline: "Mar 1, 2026",
   },
 ];
 
-const stats = [
-  { label: "Active Job Orders", value: "5", icon: Briefcase, color: "text-blue-500" },
-  { label: "Total Applicants", value: "128", icon: Users, color: "text-green-500" },
-  { label: "Shortlisted", value: "24", icon: FileText, color: "text-amber-500" },
-  { label: "Hired This Month", value: "8", icon: TrendingUp, color: "text-purple-500" },
+const recentCandidates = [
+  { name: "Maria Santos", position: "Registered Nurse", status: "interviewed", matchScore: 92 },
+  { name: "Jose Reyes", position: "Civil Engineer", status: "shortlisted", matchScore: 88 },
+  { name: "Anna Cruz", position: "Hotel Manager", status: "applied", matchScore: 85 },
+  { name: "Pedro Garcia", position: "Registered Nurse", status: "selected", matchScore: 95 },
 ];
+
+const upcomingInterviews = [
+  { candidate: "Maria Santos", position: "Registered Nurse", time: "Today, 2:00 PM", type: "Video Call" },
+  { candidate: "Jose Reyes", position: "Civil Engineer", time: "Today, 4:00 PM", type: "Video Call" },
+  { candidate: "Anna Cruz", position: "Hotel Manager", time: "Tomorrow, 10:00 AM", type: "Video Call" },
+];
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  applied: { label: "Applied", className: "status-applied" },
+  shortlisted: { label: "Shortlisted", className: "status-shortlisted" },
+  interviewed: { label: "Interviewed", className: "status-interviewed" },
+  selected: { label: "Selected", className: "status-selected" },
+  active: { label: "Active", className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+};
 
 export default function EmployerDashboard() {
   return (
@@ -108,46 +107,54 @@ export default function EmployerDashboard() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Header */}
+      {/* Welcome Section */}
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Employer Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
+            Welcome, ABC Company! 🏢
+          </h1>
           <p className="text-muted-foreground">
-            Manage your job orders and candidates
+            Manage your job orders and find the best Filipino talent
           </p>
         </div>
-        <Button variant="premium">
-          <Plus className="mr-2 h-4 w-4" />
-          Post New Job
-        </Button>
+        <Link to="/employer/job-orders">
+          <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 transition-all">
+            <Plus className="w-4 h-4 mr-2" />
+            Post New Job
+          </Button>
+        </Link>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Quick Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div
+        {quickStats.map((stat, index) => (
+          <motion.div
             key={stat.label}
-            className="p-4 sm:p-6 rounded-xl border border-border bg-card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="card-premium p-5"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
-                <stat.icon className="h-5 w-5" />
+            <div className="flex items-start justify-between mb-4">
+              <div className={cn("p-2.5 rounded-xl", stat.bg)}>
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-          </div>
+            <p className="text-2xl sm:text-3xl font-display font-bold mb-1">{stat.value}</p>
+            <p className="text-sm font-medium text-foreground mb-1">{stat.label}</p>
+            <p className="text-xs text-muted-foreground">{stat.trend}</p>
+          </motion.div>
         ))}
       </motion.div>
 
-      {/* Main Content */}
+      {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Job Orders */}
         <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Active Job Orders</h2>
+            <h2 className="text-lg font-display font-semibold">Active Job Orders</h2>
             <Link
-              to="/employer/jobs"
+              to="/employer/job-orders"
               className="text-sm text-accent hover:underline flex items-center gap-1"
             >
               View all
@@ -155,58 +162,52 @@ export default function EmployerDashboard() {
             </Link>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {jobOrders.map((job, index) => (
               <motion.div
                 key={job.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-4 sm:p-5 rounded-xl border border-border bg-card hover:shadow-md transition-shadow"
+                className="card-premium p-5"
               >
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-start justify-between">
-                    <div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{job.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-4 w-4" />
-                        {job.location}
-                      </div>
+                      <Badge className={statusConfig[job.status].className}>
+                        {statusConfig[job.status].label}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={job.status === "active" ? "success" : "warning"}
-                    >
-                      {job.status === "active" ? "Active" : "Interviewing"}
-                    </Badge>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {job.department}
+                      <span className="text-border">•</span>
+                      <Calendar className="h-4 w-4" />
+                      Deadline: {job.deadline}
+                    </p>
                   </div>
+                  <Link to={`/employer/job-orders/${job.id}`}>
+                    <Button variant="outline" size="sm">
+                      Manage
+                      <ArrowUpRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Applicants</p>
-                      <p className="font-semibold">{job.applicants}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Shortlisted</p>
-                      <p className="font-semibold">{job.shortlisted}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Posted</p>
-                      <p className="font-semibold">{job.postedDate}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Deadline</p>
-                      <p className="font-semibold">{job.deadline}</p>
-                    </div>
+                {/* Pipeline Progress */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 rounded-xl bg-muted/50">
+                    <p className="text-2xl font-display font-bold text-blue-500">{job.candidates}</p>
+                    <p className="text-xs text-muted-foreground">Candidates</p>
                   </div>
-
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Applicants
-                    </Button>
-                    <Button variant="subtle" size="sm">
-                      Edit
-                    </Button>
+                  <div className="text-center p-3 rounded-xl bg-muted/50">
+                    <p className="text-2xl font-display font-bold text-amber-500">{job.shortlisted}</p>
+                    <p className="text-xs text-muted-foreground">Shortlisted</p>
+                  </div>
+                  <div className="text-center p-3 rounded-xl bg-muted/50">
+                    <p className="text-2xl font-display font-bold text-purple-500">{job.interviewed}</p>
+                    <p className="text-xs text-muted-foreground">Interviewed</p>
                   </div>
                 </div>
               </motion.div>
@@ -214,94 +215,104 @@ export default function EmployerDashboard() {
           </div>
         </motion.div>
 
-        {/* Top Candidates */}
-        <motion.div variants={fadeInUp} className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Top Candidates</h2>
-            <Link
-              to="/employer/candidates"
-              className="text-sm text-accent hover:underline"
-            >
-              View all
+        {/* Right Column */}
+        <motion.div variants={fadeInUp} className="space-y-6">
+          {/* Upcoming Interviews */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-accent" />
+                Upcoming Interviews
+              </h3>
+              <Badge variant="secondary">{upcomingInterviews.length} today</Badge>
+            </div>
+            <div className="space-y-3">
+              {upcomingInterviews.map((interview, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/50"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 text-accent font-semibold text-sm shrink-0">
+                    {interview.candidate.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{interview.candidate}</p>
+                    <p className="text-xs text-muted-foreground">{interview.position}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs font-medium text-accent">{interview.time.split(",")[0]}</p>
+                    <p className="text-xs text-muted-foreground">{interview.time.split(",")[1]}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link to="/employer/interviews" className="block mt-4">
+              <Button variant="outline" size="sm" className="w-full">
+                View All Interviews
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {topCandidates.map((candidate, index) => (
-              <motion.div
-                key={candidate.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-4 rounded-xl border border-border bg-card"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/10 text-accent font-semibold text-sm">
-                    {candidate.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium truncate">{candidate.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {candidate.role}
-                        </p>
-                      </div>
-                      <Badge variant="secondary" className="shrink-0">
-                        {candidate.status}
-                      </Badge>
+          {/* Recent Candidates */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <Users className="h-4 w-4 text-accent" />
+                Recent Candidates
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {recentCandidates.map((candidate, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary dark:text-foreground font-semibold text-xs">
+                      {candidate.name.split(" ").map(n => n[0]).join("")}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-sm">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {candidate.experience}
-                      </div>
-                      <div className="flex items-center gap-1 text-accent">
-                        <Star className="h-3 w-3" />
-                        {candidate.matchScore}% match
-                      </div>
+                    <div>
+                      <p className="font-medium text-sm">{candidate.name}</p>
+                      <p className="text-xs text-muted-foreground">{candidate.position}</p>
                     </div>
                   </div>
+                  <Badge className={statusConfig[candidate.status].className}>
+                    {statusConfig[candidate.status].label}
+                  </Badge>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
+            <Link to="/employer/candidates" className="block mt-4">
+              <Button variant="outline" size="sm" className="w-full">
+                View All Candidates
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
 
-          {/* Hiring Progress */}
-          <div className="p-4 rounded-xl border border-border bg-muted/30">
-            <h3 className="font-medium mb-4">Hiring Pipeline</h3>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Screening</span>
-                  <span className="font-medium">45</span>
-                </div>
-                <Progress value={100} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Shortlisted</span>
-                  <span className="font-medium">24</span>
-                </div>
-                <Progress value={53} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Interviewing</span>
-                  <span className="font-medium">12</span>
-                </div>
-                <Progress value={27} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Selected</span>
-                  <span className="font-medium">8</span>
-                </div>
-                <Progress value={18} className="h-2" />
-              </div>
+          {/* Quick Actions */}
+          <div className="card-premium p-5">
+            <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <Link to="/employer/job-orders">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Job Order
+                </Button>
+              </Link>
+              <Link to="/employer/candidates">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Browse Candidates
+                </Button>
+              </Link>
+              <Link to="/employer/reports">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Reports
+                </Button>
+              </Link>
             </div>
           </div>
         </motion.div>

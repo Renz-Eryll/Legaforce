@@ -3,20 +3,25 @@ import { Link } from "react-router-dom";
 import {
   Users,
   Building2,
-  FileText,
-  AlertTriangle,
+  Briefcase,
   TrendingUp,
-  Clock,
-  CheckCircle,
-  XCircle,
+  ArrowRight,
   ChevronRight,
-  ArrowUpRight,
-  ArrowDownRight,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Globe,
   DollarSign,
+  FileCheck,
+  ArrowUpRight,
+  Activity,
+  Shield,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 // Animation variants
 const fadeInUp = {
@@ -33,104 +38,57 @@ const staggerContainer = {
 };
 
 // Mock data
-const stats = [
-  {
-    label: "Total Applicants",
-    value: "12,458",
-    change: "+12%",
-    trend: "up",
-    icon: Users,
-  },
-  {
-    label: "Active Employers",
-    value: "234",
-    change: "+8%",
-    trend: "up",
-    icon: Building2,
-  },
-  {
-    label: "Deployments This Month",
-    value: "89",
-    change: "+23%",
-    trend: "up",
-    icon: FileText,
-  },
-  {
-    label: "Open Complaints",
-    value: "12",
-    change: "-5%",
-    trend: "down",
-    icon: AlertTriangle,
-  },
+const quickStats = [
+  { label: "Total Applicants", value: "12,458", icon: Users, trend: "+234 this month", color: "text-blue-500", bg: "bg-blue-500/10" },
+  { label: "Partner Employers", value: "523", icon: Building2, trend: "+12 this month", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { label: "Active Job Orders", value: "89", icon: Briefcase, trend: "+8 this week", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { label: "Deployments (YTD)", value: "1,245", icon: Globe, trend: "98% success rate", color: "text-accent", bg: "bg-accent/10" },
 ];
 
-const recentApplications = [
-  {
-    id: "1",
-    applicant: "Maria Santos",
-    job: "Registered Nurse",
-    employer: "King Faisal Hospital",
-    status: "processing",
-    date: "2 hours ago",
-  },
-  {
-    id: "2",
-    applicant: "Jose Reyes",
-    job: "ICU Nurse",
-    employer: "Dubai Health Authority",
-    status: "selected",
-    date: "4 hours ago",
-  },
-  {
-    id: "3",
-    applicant: "Anna Cruz",
-    job: "OR Nurse",
-    employer: "Hamad Medical Corporation",
-    status: "interviewed",
-    date: "6 hours ago",
-  },
-  {
-    id: "4",
-    applicant: "Pedro Garcia",
-    job: "Staff Nurse",
-    employer: "MOH Kuwait",
-    status: "shortlisted",
-    date: "8 hours ago",
-  },
+const recentActivity = [
+  { type: "applicant", message: "New applicant registered: Maria Santos", time: "5 min ago", icon: Users },
+  { type: "employer", message: "ABC Company posted new job order", time: "15 min ago", icon: Building2 },
+  { type: "deployment", message: "Juan Reyes deployed to Saudi Arabia", time: "1 hour ago", icon: Globe },
+  { type: "complaint", message: "New complaint filed: ID #2345", time: "2 hours ago", icon: AlertTriangle },
+  { type: "verification", message: "Document verification pending: 5 applicants", time: "3 hours ago", icon: FileCheck },
 ];
 
-const pendingTasks = [
-  {
-    id: "1",
-    type: "Document Verification",
-    count: 15,
-    priority: "high",
-  },
-  {
-    id: "2",
-    type: "Interview Scheduling",
-    count: 8,
-    priority: "medium",
-  },
-  {
-    id: "3",
-    type: "Contract Review",
-    count: 5,
-    priority: "high",
-  },
-  {
-    id: "4",
-    type: "Medical Clearance",
-    count: 12,
-    priority: "medium",
-  },
+const pendingApprovals = [
+  { type: "Employer Registration", company: "XYZ Holdings", status: "pending", count: 3 },
+  { type: "Document Verification", applicant: "Multiple", status: "pending", count: 12 },
+  { type: "Job Order Approval", company: "ABC Corp", status: "pending", count: 5 },
+  { type: "Deployment Clearance", applicant: "Multiple", status: "pending", count: 8 },
 ];
 
-const deploymentMetrics = {
-  averageDays: 28,
-  target: 30,
-  thisMonth: 89,
-  lastMonth: 72,
+const complaints = [
+  { id: "2345", subject: "Delayed processing", status: "open", priority: "high", date: "Jan 25, 2026" },
+  { id: "2344", subject: "Document issue", status: "open", priority: "medium", date: "Jan 24, 2026" },
+  { id: "2343", subject: "Payment inquiry", status: "in-progress", priority: "low", date: "Jan 23, 2026" },
+];
+
+const deploymentStats = {
+  thisMonth: 45,
+  lastMonth: 38,
+  growth: 18.4,
+  byCountry: [
+    { country: "Saudi Arabia", count: 156, percentage: 35 },
+    { country: "UAE", count: 112, percentage: 25 },
+    { country: "Qatar", count: 89, percentage: 20 },
+    { country: "Others", count: 88, percentage: 20 },
+  ],
+};
+
+const priorityConfig: Record<string, { className: string }> = {
+  high: { className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  medium: { className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  low: { className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+};
+
+const statusConfig: Record<string, { className: string }> = {
+  open: { className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  "in-progress": { className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  resolved: { className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  pending: { className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
 };
 
 export default function AdminDashboard() {
@@ -141,221 +99,230 @@ export default function AdminDashboard() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Header */}
+      {/* Welcome Section */}
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
+            Admin Dashboard 🛡️
+          </h1>
           <p className="text-muted-foreground">
-            Overview of platform activity and metrics
+            Platform overview and management tools
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <FileText className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button variant="premium">View Analytics</Button>
+          <Link to="/admin/reports">
+            <Button variant="outline">
+              <Activity className="w-4 h-4 mr-2" />
+              View Reports
+            </Button>
+          </Link>
+          <Link to="/admin/complaints">
+            <Button className="gradient-bg-accent text-accent-foreground font-semibold">
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Complaints
+              <Badge className="ml-2 bg-white/20">5</Badge>
+            </Button>
+          </Link>
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Quick Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div
+        {quickStats.map((stat, index) => (
+          <motion.div
             key={stat.label}
-            className="p-4 sm:p-6 rounded-xl border border-border bg-card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="card-premium p-5"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 rounded-lg bg-muted">
-                <stat.icon className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-start justify-between mb-4">
+              <div className={cn("p-2.5 rounded-xl", stat.bg)}>
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
-              <div
-                className={`flex items-center gap-1 text-sm font-medium ${
-                  stat.trend === "up" ? "text-success" : "text-destructive"
-                }`}
-              >
-                {stat.trend === "up" ? (
-                  <ArrowUpRight className="h-4 w-4" />
-                ) : (
-                  <ArrowDownRight className="h-4 w-4" />
-                )}
-                {stat.change}
-              </div>
+              <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-          </div>
+            <p className="text-2xl sm:text-3xl font-display font-bold mb-1">{stat.value}</p>
+            <p className="text-sm font-medium text-foreground mb-1">{stat.label}</p>
+            <p className="text-xs text-muted-foreground">{stat.trend}</p>
+          </motion.div>
         ))}
       </motion.div>
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Applications */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Recent Applications</h2>
-            <Link
-              to="/admin/applications"
-              className="text-sm text-accent hover:underline flex items-center gap-1"
-            >
-              View all
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">
-                      Applicant
-                    </th>
-                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">
-                      Job / Employer
-                    </th>
-                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">
-                      Status
-                    </th>
-                    <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">
-                      Date
-                    </th>
-                    <th className="text-right text-sm font-medium text-muted-foreground px-4 py-3">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {recentApplications.map((app) => (
-                    <tr key={app.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3">
-                        <p className="font-medium">{app.applicant}</p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-sm">{app.job}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {app.employer}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={
-                            app.status === "selected"
-                              ? "selected"
-                              : app.status === "processing"
-                              ? "processing"
-                              : app.status === "interviewed"
-                              ? "interviewed"
-                              : "shortlisted"
-                          }
-                        >
-                          {app.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {app.date}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Left Column - Activity & Deployment */}
+        <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-6">
+          {/* Recent Activity */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-display font-semibold">Recent Activity</h2>
+              <Button variant="ghost" size="sm" className="text-accent">
+                View all
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
-          </div>
-        </motion.div>
-
-        {/* Sidebar */}
-        <motion.div variants={fadeInUp} className="space-y-6">
-          {/* Pending Tasks */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Pending Tasks</h2>
-            <div className="space-y-3">
-              {pendingTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-card"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        task.priority === "high"
-                          ? "bg-destructive"
-                          : "bg-warning"
-                      }`}
-                    />
-                    <span className="text-sm">{task.type}</span>
+            <div className="space-y-4">
+              {recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className={cn(
+                    "flex items-center justify-center w-9 h-9 rounded-xl shrink-0",
+                    activity.type === "applicant" && "bg-blue-500/10 text-blue-500",
+                    activity.type === "employer" && "bg-purple-500/10 text-purple-500",
+                    activity.type === "deployment" && "bg-emerald-500/10 text-emerald-500",
+                    activity.type === "complaint" && "bg-red-500/10 text-red-500",
+                    activity.type === "verification" && "bg-amber-500/10 text-amber-500",
+                  )}>
+                    <activity.icon className="h-4 w-4" />
                   </div>
-                  <Badge variant="secondary">{task.count}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">{activity.message}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <Clock className="h-3 w-3" />
+                      {activity.time}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Deployment Metrics */}
-          <div className="p-4 rounded-xl border border-border bg-card">
-            <h3 className="font-semibold mb-4">Deployment Performance</h3>
+          {/* Deployment Overview */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-display font-semibold">Deployment Overview</h2>
+              <Badge className="bg-success/10 text-success border-success/20">
+                +{deploymentStats.growth}% vs last month
+              </Badge>
+            </div>
             
-            <div className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-6">
               <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Avg. Deployment Time</span>
-                  <span className="font-semibold text-success">
-                    {deploymentMetrics.averageDays} days
-                  </span>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-4xl font-display font-bold">{deploymentStats.thisMonth}</span>
+                  <span className="text-muted-foreground">deployments this month</span>
                 </div>
-                <Progress
-                  value={
-                    ((deploymentMetrics.target - deploymentMetrics.averageDays) /
-                      deploymentMetrics.target) *
-                      100 +
-                    100
-                  }
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Target: {deploymentMetrics.target} days
+                <p className="text-sm text-muted-foreground">
+                  vs {deploymentStats.lastMonth} last month
                 </p>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold">
-                    {deploymentMetrics.thisMonth}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Month</p>
-                  <p className="text-2xl font-bold text-muted-foreground">
-                    {deploymentMetrics.lastMonth}
-                  </p>
-                </div>
+              
+              <div className="space-y-3">
+                {deploymentStats.byCountry.map((country) => (
+                  <div key={country.country}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{country.country}</span>
+                      <span className="text-muted-foreground">{country.count}</span>
+                    </div>
+                    <Progress value={country.percentage} className="h-2" />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Right Column */}
+        <motion.div variants={fadeInUp} className="space-y-6">
+          {/* Pending Approvals */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <Shield className="h-4 w-4 text-accent" />
+                Pending Approvals
+              </h3>
+              <Badge variant="secondary">{pendingApprovals.reduce((acc, item) => acc + item.count, 0)}</Badge>
+            </div>
+            <div className="space-y-3">
+              {pendingApprovals.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{item.type}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.company || item.applicant}
+                    </p>
+                  </div>
+                  <Badge className={statusConfig[item.status].className}>
+                    {item.count} pending
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            <Link to="/admin/verification" className="block mt-4">
+              <Button variant="outline" size="sm" className="w-full">
+                Review All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Open Complaints */}
+          <div className="card-premium p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Open Complaints
+              </h3>
+              <Badge className="bg-red-500/10 text-red-500 border-red-500/20">{complaints.filter(c => c.status === "open").length} open</Badge>
+            </div>
+            <div className="space-y-3">
+              {complaints.map((complaint) => (
+                <div
+                  key={complaint.id}
+                  className="p-3 rounded-xl bg-muted/50"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-medium text-sm">#{complaint.id}</p>
+                      <p className="text-xs text-muted-foreground">{complaint.subject}</p>
+                    </div>
+                    <Badge className={priorityConfig[complaint.priority].className}>
+                      {complaint.priority}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{complaint.date}</span>
+                    <Badge className={statusConfig[complaint.status].className}>
+                      {complaint.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link to="/admin/complaints" className="block mt-4">
+              <Button variant="outline" size="sm" className="w-full">
+                View All Complaints
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
 
           {/* Quick Actions */}
-          <div className="space-y-2">
-            <Button variant="outline" className="w-full justify-start">
-              <Users className="h-4 w-4 mr-2" />
-              Manage Users
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Building2 className="h-4 w-4 mr-2" />
-              Verify Employers
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Review Complaints
-            </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Generate Invoices
-            </Button>
+          <div className="card-premium p-5">
+            <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <Link to="/admin/applicants">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Applicants
+                </Button>
+              </Link>
+              <Link to="/admin/employers">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Manage Employers
+                </Button>
+              </Link>
+              <Link to="/admin/reports">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Generate Reports
+                </Button>
+              </Link>
+            </div>
           </div>
         </motion.div>
       </div>

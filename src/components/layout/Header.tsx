@@ -1,16 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
   X,
-  ChevronDown,
   Users,
   Building2,
-  Shield,
   Briefcase,
   FileText,
-  Phone,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -45,20 +44,48 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled
+          ? "glass border-b border-border/50 py-2"
+          : "bg-transparent py-4"
+      )}
+    >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-14 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-              L
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden shine-effect">
+              {/* Navy Background with Gold Accent */}
+              <div className="absolute inset-0 bg-primary dark:bg-accent" />
+              {/* Logo Text */}
+              <span className="relative font-bold text-lg text-primary-foreground dark:text-accent-foreground">
+                L
+              </span>
             </div>
-            <span className="font-bold text-xl tracking-tight">Legaforce</span>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-xl tracking-tight">
+                Legaforce
+              </span>
+              <span className="text-[10px] text-muted-foreground tracking-wider uppercase hidden sm:block">
+                Recruitment Platform
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -68,13 +95,20 @@ export function Header() {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive(item.href)
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {item.name}
+                {isActive(item.href) && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute inset-0 rounded-lg bg-accent/10 -z-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </Link>
             ))}
           </div>
@@ -83,13 +117,26 @@ export function Header() {
           <div className="hidden lg:flex lg:items-center lg:gap-3">
             <ThemeToggle />
             <Link to="/login">
-              <Button variant="ghost" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
                 Sign In
               </Button>
             </Link>
             <Link to="/register">
-              <Button variant="premium" size="sm">
-                Get Started
+              <Button
+                size="sm"
+                className="group relative overflow-hidden gradient-bg-accent text-accent-foreground font-semibold shadow-sm hover:shadow-lg hover:shadow-accent/20 transition-all duration-300"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Get Started
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+                {/* Shine on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </Button>
             </Link>
           </div>
@@ -102,12 +149,31 @@ export function Header() {
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
+              className="relative"
             >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              <AnimatePresence mode="wait">
+                {mobileMenuOpen ? (
+                  <motion.div
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <X className="h-5 w-5" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Button>
           </div>
         </div>
@@ -119,43 +185,64 @@ export function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="lg:hidden overflow-hidden"
             >
-              <div className="py-4 space-y-1">
-                {navigation.map((item) => (
-                  <Link
+              <div className="py-6 space-y-2">
+                {navigation.map((item, index) => (
+                  <motion.div
                     key={item.name}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                      isActive(item.href)
-                        ? "bg-accent/10 text-accent"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <div>
-                      <div>{item.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.description}
+                    <Link
+                      to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-medium transition-all",
+                        isActive(item.href)
+                          ? "bg-accent/10 text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex items-center justify-center w-10 h-10 rounded-lg",
+                          isActive(item.href)
+                            ? "bg-accent text-accent-foreground"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
                       </div>
-                    </div>
-                  </Link>
+                      <div>
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {item.description}
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
                 ))}
-                <div className="pt-4 px-4 space-y-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="pt-4 px-4 space-y-3"
+                >
                   <Link to="/login" className="block">
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full h-12">
                       Sign In
                     </Button>
                   </Link>
                   <Link to="/register" className="block">
-                    <Button variant="premium" className="w-full">
-                      Get Started
+                    <Button className="w-full h-12 gradient-bg-accent text-accent-foreground font-semibold">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Get Started Free
                     </Button>
                   </Link>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           )}
