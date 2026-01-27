@@ -136,7 +136,7 @@ export default function LandingPage() {
         </div>
 
         {/* Grid Pattern Overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -153,9 +153,7 @@ export default function LandingPage() {
             >
               {/* Badge */}
               <motion.div variants={fadeInUp} className="mb-6">
-                <Badge 
-                  className="px-4 py-2 bg-accent/10 text-accent border-accent/20 font-medium"
-                >
+                <Badge className="px-4 py-2 bg-accent/10 text-accent border-accent/20 font-medium">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Trusted by 50,000+ Filipino Workers
                 </Badge>
@@ -186,8 +184,8 @@ export default function LandingPage() {
                 className="flex flex-col sm:flex-row items-start gap-4 mb-10"
               >
                 <Link to="/register">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="group h-14 px-8 gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 transition-all duration-300"
                   >
                     Start Your Journey
@@ -195,8 +193,8 @@ export default function LandingPage() {
                   </Button>
                 </Link>
                 <Link to="/employers">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="lg"
                     className="group h-14 px-8 border-2"
                   >
@@ -237,7 +235,7 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + index * 0.1 }}
-                    className={`card-premium p-6 ${index === 0 ? 'col-span-2 sm:col-span-1' : ''}`}
+                    className={`card-premium p-6 ${index === 0 ? "col-span-2 sm:col-span-1" : ""}`}
                   >
                     <div className="flex items-center gap-3 mb-3">
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent/10">
@@ -317,10 +315,14 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="group card-premium p-8"
               >
-                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 group-hover:scale-110 transition-transform duration-300`}
+                >
                   <feature.icon className="h-7 w-7 text-foreground" />
                 </div>
-                <h3 className="text-xl font-display font-semibold mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-display font-semibold mb-3">
+                  {feature.title}
+                </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
@@ -402,7 +404,9 @@ export default function LandingPage() {
                     {/* Pulse effect */}
                     <div className="absolute inset-0 rounded-2xl bg-accent/20 animate-ping opacity-20" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold mb-3">{item.title}</h3>
+                  <h3 className="text-lg font-display font-semibold mb-3">
+                    {item.title}
+                  </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {item.description}
                   </p>
@@ -443,10 +447,7 @@ export default function LandingPage() {
                 {/* Rating */}
                 <div className="flex gap-1 mb-6">
                   {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 fill-accent text-accent"
-                    />
+                    <Star key={i} className="h-5 w-5 fill-accent text-accent" />
                   ))}
                 </div>
 

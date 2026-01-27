@@ -96,21 +96,56 @@ const notifications = [
 ];
 
 const quickStats = [
-  { label: "Active Applications", value: "3", icon: Briefcase, trend: "+1 this week", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { label: "Profile Views", value: "47", icon: Eye, trend: "+12 this week", color: "text-purple-500", bg: "bg-purple-500/10" },
-  { label: "Match Score", value: "92%", icon: TrendingUp, trend: "+5% improvement", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { label: "Reward Points", value: "250", icon: Star, trend: "Redeem for benefits", color: "text-accent", bg: "bg-accent/10" },
+  {
+    label: "Active Applications",
+    value: "3",
+    icon: Briefcase,
+    trend: "+1 this week",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
+  },
+  {
+    label: "Profile Views",
+    value: "47",
+    icon: Eye,
+    trend: "+12 this week",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+  },
+  {
+    label: "Match Score",
+    value: "92%",
+    icon: TrendingUp,
+    trend: "+5% improvement",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+  },
+  {
+    label: "Reward Points",
+    value: "250",
+    icon: Star,
+    trend: "Redeem for benefits",
+    color: "text-accent",
+    bg: "bg-accent/10",
+  },
 ];
 
 const recommendedJobs = [
-  { title: "OR Nurse", company: "Kuwait Hospital", location: "Kuwait City", match: 89 },
-  { title: "ER Nurse", company: "Al Mafraq Hospital", location: "Abu Dhabi, UAE", match: 87 },
+  {
+    title: "OR Nurse",
+    company: "Kuwait Hospital",
+    location: "Kuwait City",
+    match: 89,
+  },
+  {
+    title: "ER Nurse",
+    company: "Al Mafraq Hospital",
+    location: "Abu Dhabi, UAE",
+    match: 87,
+  },
 ];
 
-const statusConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   applied: { label: "Applied", className: "status-applied" },
   shortlisted: { label: "Shortlisted", className: "status-shortlisted" },
   interviewed: { label: "Interviewed", className: "status-interviewed" },
@@ -131,10 +166,13 @@ export default function ApplicantDashboard() {
       className="space-y-6"
     >
       {/* Welcome Section */}
-      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div
+        variants={fadeInUp}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
-            Welcome back, Juan! 👋
+            Welcome back, Juan!
           </h1>
           <p className="text-muted-foreground">
             Here's what's happening with your job applications
@@ -164,14 +202,19 @@ export default function ApplicantDashboard() {
                 <div>
                   <h3 className="font-semibold">Complete Your Profile</h3>
                   <p className="text-sm text-muted-foreground">
-                    A complete profile increases your chances of getting hired by 3x
+                    A complete profile increases your chances of getting hired
+                    by 3x
                   </p>
                 </div>
               </div>
               <div className="mt-4">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Profile completion</span>
-                  <span className="font-medium text-accent">{profileCompletion}%</span>
+                  <span className="text-muted-foreground">
+                    Profile completion
+                  </span>
+                  <span className="font-medium text-accent">
+                    {profileCompletion}%
+                  </span>
                 </div>
                 <Progress value={profileCompletion} className="h-2" />
               </div>
@@ -187,7 +230,10 @@ export default function ApplicantDashboard() {
       )}
 
       {/* Quick Stats */}
-      <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div
+        variants={fadeInUp}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         {quickStats.map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -201,8 +247,12 @@ export default function ApplicantDashboard() {
                 <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-display font-bold mb-1">{stat.value}</p>
-            <p className="text-sm font-medium text-foreground mb-1">{stat.label}</p>
+            <p className="text-2xl sm:text-3xl font-display font-bold mb-1">
+              {stat.value}
+            </p>
+            <p className="text-sm font-medium text-foreground mb-1">
+              {stat.label}
+            </p>
             <p className="text-xs text-muted-foreground">{stat.trend}</p>
           </motion.div>
         ))}
@@ -213,7 +263,9 @@ export default function ApplicantDashboard() {
         {/* Applications */}
         <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-display font-semibold">Recent Applications</h2>
+            <h2 className="text-lg font-display font-semibold">
+              Recent Applications
+            </h2>
             <Link
               to="/app/applications"
               className="text-sm text-accent hover:underline flex items-center gap-1"
@@ -248,7 +300,9 @@ export default function ApplicantDashboard() {
                           {application.company}
                         </div>
                       </div>
-                      <Badge className={statusConfig[application.status].className}>
+                      <Badge
+                        className={statusConfig[application.status].className}
+                      >
                         {statusConfig[application.status].label}
                       </Badge>
                     </div>
@@ -287,7 +341,9 @@ export default function ApplicantDashboard() {
           {/* Notifications */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-display font-semibold">Notifications</h2>
+              <h2 className="text-lg font-display font-semibold">
+                Notifications
+              </h2>
               <Button variant="ghost" size="sm" className="text-accent text-xs">
                 Mark all read
               </Button>
@@ -306,9 +362,12 @@ export default function ApplicantDashboard() {
                     <div
                       className={cn(
                         "flex items-center justify-center w-9 h-9 rounded-xl shrink-0",
-                        notification.type === "success" && "bg-success/10 text-success",
-                        notification.type === "info" && "bg-blue-500/10 text-blue-500",
-                        notification.type === "warning" && "bg-warning/10 text-warning"
+                        notification.type === "success" &&
+                          "bg-success/10 text-success",
+                        notification.type === "info" &&
+                          "bg-blue-500/10 text-blue-500",
+                        notification.type === "warning" &&
+                          "bg-warning/10 text-warning",
                       )}
                     >
                       {notification.type === "success" && (
@@ -322,7 +381,9 @@ export default function ApplicantDashboard() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{notification.title}</p>
+                      <p className="text-sm font-medium">
+                        {notification.title}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                         {notification.message}
                       </p>
@@ -351,7 +412,9 @@ export default function ApplicantDashboard() {
                 >
                   <div>
                     <p className="font-medium text-sm">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.company} • {job.location}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {job.company} • {job.location}
+                    </p>
                   </div>
                   <Badge className="bg-accent/10 text-accent border-accent/20">
                     {job.match}% match
@@ -372,19 +435,31 @@ export default function ApplicantDashboard() {
             <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <Link to="/app/cv-builder">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <FileText className="h-4 w-4 mr-2" />
                   Update CV
                 </Button>
               </Link>
               <Link to="/app/documents">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Briefcase className="h-4 w-4 mr-2" />
                   Upload Documents
                 </Button>
               </Link>
               <Link to="/app/complaints">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Bell className="h-4 w-4 mr-2" />
                   File a Complaint
                 </Button>

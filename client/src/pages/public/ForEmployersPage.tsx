@@ -164,7 +164,7 @@ export default function ForEmployersPage() {
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />

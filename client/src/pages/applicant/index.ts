@@ -1,0 +1,13 @@
+export { default as ApplicantDashboard } from "./ApplicantDashboard";
+export { default as ApplicationDetailsPage } from "./ApplicationDetailsPage";
+export { default as ApplicationsListPage } from "./ApplicationsListPage";
+export { default as ComplaintsPage } from "./ComplaintsPage";
+export { default as CVBuilderPage } from "./CVBuilderPage";
+export { default as DocumentsPage } from "./DocumentsPage";
+export { default as JobDetailsPage } from "./JobDetailsPage";
+export { default as JobsListPage } from "./JobsListPage";
+export { default as ProfilePage } from "./ProfilePage";
+export { default as RewardsPage } from "./RewardsPage";
+export { default as SavedJobsPage } from "./SavedJobsPage";
+export { default as SettingsPage } from "./SettingsPage";
+export { default as SupportPage } from "./SupportPage";

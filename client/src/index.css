@@ -4,11 +4,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
- * LEGAFORCE RECRUITMENT PLATFORM
- * Design System: Corporate Premium with Modern Layouts
- * Colors: Navy Blue, Gold Accents, Clean Neutrals (Original Theme Preserved)
- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .glass-card-modern {
+    @apply bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl;
+  }
+
+  .floating-element {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+}
 
 @layer base {
   :root {
