@@ -33,7 +33,7 @@ const registerSchema = z
       .min(8, "Password must be at least 8 characters")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain uppercase, lowercase, and a number"
+        "Password must contain uppercase, lowercase, and a number",
       ),
     confirmPassword: z.string(),
   })
@@ -186,7 +186,7 @@ export default function RegisterPage() {
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
                     userType === type.type
                       ? "border-accent bg-accent/10"
-                      : "border-border hover:border-accent/50"
+                      : "border-border hover:border-accent/50",
                   )}
                 >
                   <type.icon
@@ -194,7 +194,7 @@ export default function RegisterPage() {
                       "w-6 h-6",
                       userType === type.type
                         ? "text-accent"
-                        : "text-muted-foreground"
+                        : "text-muted-foreground",
                     )}
                   />
                   <div className="text-center">
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                         "text-sm font-medium",
                         userType === type.type
                           ? "text-foreground"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground",
                       )}
                     >
                       {type.label}

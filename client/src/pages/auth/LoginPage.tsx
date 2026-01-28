@@ -81,7 +81,7 @@ export default function LoginPage() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsLoading(false);
-    
+
     // Navigate based on user type
     const selectedType = userTypes.find((t) => t.type === userType);
     navigate(selectedType?.redirect || "/app/dashboard");
@@ -103,7 +103,9 @@ export default function LoginPage() {
               L
             </div>
             <div className="flex flex-col">
-              <span className="font-display font-bold text-xl tracking-tight">Legaforce</span>
+              <span className="font-display font-bold text-xl tracking-tight">
+                Legaforce
+              </span>
               <span className="text-xs opacity-70">Recruitment Platform</span>
             </div>
           </Link>
@@ -149,7 +151,9 @@ export default function LoginPage() {
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary dark:bg-accent text-primary-foreground dark:text-accent-foreground font-bold">
               L
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">Legaforce</span>
+            <span className="font-display font-bold text-lg tracking-tight">
+              Legaforce
+            </span>
           </Link>
           <div className="flex items-center gap-4 ml-auto">
             <ThemeToggle />
@@ -173,7 +177,9 @@ export default function LoginPage() {
             className="w-full max-w-md"
           >
             <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-2">Sign In</h2>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-2">
+                Sign In
+              </h2>
               <p className="text-muted-foreground">
                 Choose your account type and enter your credentials
               </p>
@@ -190,7 +196,7 @@ export default function LoginPage() {
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
                     userType === type.type
                       ? "border-accent bg-accent/10 shadow-lg shadow-accent/10"
-                      : "border-border hover:border-accent/50 hover:bg-muted/50"
+                      : "border-border hover:border-accent/50 hover:bg-muted/50",
                   )}
                 >
                   <div
@@ -198,7 +204,7 @@ export default function LoginPage() {
                       "flex items-center justify-center w-10 h-10 rounded-lg transition-colors",
                       userType === type.type
                         ? "bg-accent text-accent-foreground"
-                        : "bg-muted text-muted-foreground"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     <type.icon className="w-5 h-5" />
@@ -208,7 +214,7 @@ export default function LoginPage() {
                       "text-sm font-medium",
                       userType === type.type
                         ? "text-foreground"
-                        : "text-muted-foreground"
+                        : "text-muted-foreground",
                     )}
                   >
                     {type.label}
@@ -290,7 +296,8 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />
-                    Sign In as {userTypes.find((t) => t.type === userType)?.label}
+                    Sign In as{" "}
+                    {userTypes.find((t) => t.type === userType)?.label}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
