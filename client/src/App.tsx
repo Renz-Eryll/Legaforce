@@ -267,7 +267,6 @@ const App = () => {
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 
-            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
