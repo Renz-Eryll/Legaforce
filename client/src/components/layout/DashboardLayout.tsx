@@ -55,7 +55,12 @@ const applicantNavigation: NavSection[] = [
     title: "Job Search",
     items: [
       { name: "Browse Jobs", href: "/app/jobs", icon: Search },
-      { name: "My Applications", href: "/app/applications", icon: Briefcase, badge: 3 },
+      {
+        name: "My Applications",
+        href: "/app/applications",
+        icon: Briefcase,
+        badge: 3,
+      },
       { name: "Saved Jobs", href: "/app/saved-jobs", icon: Star },
     ],
   },
@@ -87,9 +92,19 @@ const employerNavigation: NavSection[] = [
   {
     title: "Recruitment",
     items: [
-      { name: "Job Orders", href: "/employer/job-orders", icon: Briefcase, badge: 5 },
+      {
+        name: "Job Orders",
+        href: "/employer/job-orders",
+        icon: Briefcase,
+        badge: 5,
+      },
       { name: "Candidates", href: "/employer/candidates", icon: Users },
-      { name: "Interviews", href: "/employer/interviews", icon: UserCheck, badge: 2 },
+      {
+        name: "Interviews",
+        href: "/employer/interviews",
+        icon: UserCheck,
+        badge: 2,
+      },
     ],
   },
   {
@@ -119,15 +134,30 @@ const adminNavigation: NavSection[] = [
   {
     title: "Management",
     items: [
-      { name: "Applicants", href: "/admin/applicants", icon: Users, badge: 120 },
-      { name: "Employers", href: "/admin/employers", icon: Building2, badge: 45 },
+      {
+        name: "Applicants",
+        href: "/admin/applicants",
+        icon: Users,
+        badge: 120,
+      },
+      {
+        name: "Employers",
+        href: "/admin/employers",
+        icon: Building2,
+        badge: 45,
+      },
       { name: "Job Orders", href: "/admin/job-orders", icon: Briefcase },
     ],
   },
   {
     title: "Workflows",
     items: [
-      { name: "Applications", href: "/admin/applications", icon: ClipboardList, badge: 28 },
+      {
+        name: "Applications",
+        href: "/admin/applications",
+        icon: ClipboardList,
+        badge: 28,
+      },
       { name: "Deployments", href: "/admin/deployments", icon: Globe },
       { name: "Compliance", href: "/admin/compliance", icon: FileCheck },
     ],
@@ -142,7 +172,12 @@ const adminNavigation: NavSection[] = [
   {
     title: "Support",
     items: [
-      { name: "Complaints", href: "/admin/complaints", icon: AlertTriangle, badge: 5 },
+      {
+        name: "Complaints",
+        href: "/admin/complaints",
+        icon: AlertTriangle,
+        badge: 5,
+      },
       { name: "User Verification", href: "/admin/verification", icon: Shield },
     ],
   },
@@ -175,11 +210,23 @@ export function DashboardLayout({
   const getUserInfo = () => {
     switch (userRole) {
       case "employer":
-        return { name: "ABC Company", email: "hr@abccompany.com", initials: "AC" };
+        return {
+          name: "ABC Company",
+          email: "hr@abccompany.com",
+          initials: "AC",
+        };
       case "admin":
-        return { name: "Admin User", email: "admin@legaforce.com", initials: "AD" };
+        return {
+          name: "Admin User",
+          email: "admin@legaforce.com",
+          initials: "AD",
+        };
       default:
-        return { name: "Juan Dela Cruz", email: "juan@example.com", initials: "JD" };
+        return {
+          name: "Juan Dela Cruz",
+          email: "juan@example.com",
+          initials: "JD",
+        };
     }
   };
 
@@ -209,11 +256,20 @@ export function DashboardLayout({
   const getRoleBadge = () => {
     switch (userRole) {
       case "employer":
-        return { label: "Employer", className: "bg-blue-500/10 text-blue-500 border-blue-500/20" };
+        return {
+          label: "Employer",
+          className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+        };
       case "admin":
-        return { label: "Admin", className: "bg-purple-500/10 text-purple-500 border-purple-500/20" };
+        return {
+          label: "Admin",
+          className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+        };
       default:
-        return { label: "Applicant", className: "bg-accent/10 text-accent border-accent/20" };
+        return {
+          label: "Applicant",
+          className: "bg-accent/10 text-accent border-accent/20",
+        };
     }
   };
 
@@ -238,18 +294,23 @@ export function DashboardLayout({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-border">
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary dark:bg-accent text-primary-foreground dark:text-accent-foreground font-bold">
-                L
+              <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
+                {/* Navy Background with Gold Accent */}
+                <div className="absolute inset-0 " />
+                {/* Logo Text */}
+                <span className="relative font-bold text-lg ">
+                  <img src="/legaforce-logo.png" alt="Logo" />
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-lg tracking-tight">
+                <span className="font-display font-bold text-xl tracking-tight">
                   Legaforce
                 </span>
               </div>
@@ -289,7 +350,10 @@ export function DashboardLayout({
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
             {navigation.map((section, sectionIndex) => (
-              <div key={sectionIndex} className={cn(sectionIndex > 0 && "mt-6")}>
+              <div
+                key={sectionIndex}
+                className={cn(sectionIndex > 0 && "mt-6")}
+              >
                 {section.title && (
                   <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {section.title}
@@ -305,17 +369,20 @@ export function DashboardLayout({
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                         isActive(item.href)
                           ? "bg-accent/10 text-accent"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
                       )}
                     >
                       <item.icon className="h-5 w-5" />
                       <span className="flex-1">{item.name}</span>
                       {item.badge && (
                         <Badge
-                          variant={isActive(item.href) ? "default" : "secondary"}
+                          variant={
+                            isActive(item.href) ? "default" : "secondary"
+                          }
                           className={cn(
                             "h-5 min-w-5 flex items-center justify-center text-xs",
-                            isActive(item.href) && "bg-accent text-accent-foreground"
+                            isActive(item.href) &&
+                              "bg-accent text-accent-foreground",
                           )}
                         >
                           {item.badge}
@@ -364,7 +431,9 @@ export function DashboardLayout({
               </Button>
               <div className="hidden sm:block">
                 <h1 className="text-lg font-display font-semibold">
-                  {navigation.flatMap((s) => s.items).find((n) => isActive(n.href))?.name || "Dashboard"}
+                  {navigation
+                    .flatMap((s) => s.items)
+                    .find((n) => isActive(n.href))?.name || "Dashboard"}
                 </h1>
               </div>
             </div>

@@ -99,14 +99,21 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent text-accent-foreground font-bold text-xl">
-              L
+            <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
+              {/* Navy Background with Gold Accent */}
+              <div className="absolute inset-0 bg-white" />
+              {/* Logo Text */}
+              <span className="relative font-bold text-lg ">
+                <img src="legaforce-logo.png" alt="Logo" />
+              </span>
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-xl tracking-tight">
                 Legaforce
               </span>
-              <span className="text-xs opacity-70">Recruitment Platform</span>
+              <span className="text-[10px] text-accent tracking-wider uppercase hidden sm:block">
+                Recruitment Platform
+              </span>
             </div>
           </Link>
 

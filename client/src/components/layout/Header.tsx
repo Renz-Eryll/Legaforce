@@ -63,26 +63,26 @@ export function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
           ? "glass border-b border-border/50 py-2"
-          : "bg-transparent py-4"
+          : "bg-transparent py-4",
       )}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden shine-effect">
+            <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
               {/* Navy Background with Gold Accent */}
-              <div className="absolute inset-0 bg-primary dark:bg-accent" />
+              <div className="absolute inset-0 bg-white" />
               {/* Logo Text */}
-              <span className="relative font-bold text-lg text-primary-foreground dark:text-accent-foreground">
-                L
+              <span className="relative font-bold text-lg ">
+                <img src="legaforce-logo.png" alt="Logo" />
               </span>
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-xl tracking-tight">
                 Legaforce
               </span>
-              <span className="text-[10px] text-muted-foreground tracking-wider uppercase hidden sm:block">
+              <span className="text-[10px] text-accent tracking-wider uppercase hidden sm:block">
                 Recruitment Platform
               </span>
             </div>
@@ -98,7 +98,7 @@ export function Header() {
                   "relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive(item.href)
                     ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.name}
@@ -203,7 +203,7 @@ export function Header() {
                         "flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-medium transition-all",
                         isActive(item.href)
                           ? "bg-accent/10 text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
                       )}
                     >
                       <div
@@ -211,7 +211,7 @@ export function Header() {
                           "flex items-center justify-center w-10 h-10 rounded-lg",
                           isActive(item.href)
                             ? "bg-accent text-accent-foreground"
-                            : "bg-muted text-muted-foreground"
+                            : "bg-muted text-muted-foreground",
                         )}
                       >
                         <item.icon className="h-5 w-5" />

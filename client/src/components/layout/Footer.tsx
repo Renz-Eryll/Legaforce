@@ -52,21 +52,25 @@ export function Footer() {
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* CTA Section */}
-       
 
         {/* Main Footer Content */}
         <div className="py-12 lg:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-6 group">
-              <div className="relative flex items-center justify-center w-12 h-12 rounded-xl overflow-hidden bg-accent">
-                <span className="relative font-bold text-xl text-accent-foreground">L</span>
+              <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
+                {/* Navy Background with Gold Accent */}
+                <div className="absolute inset-0 bg-white" />
+                {/* Logo Text */}
+                <span className="relative font-bold text-lg ">
+                  <img src="legaforce-logo.png" alt="Logo" />
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-2xl text-primary-foreground dark:text-foreground">
+                <span className="font-display font-bold text-xl tracking-tight">
                   Legaforce
                 </span>
-                <span className="text-xs text-primary-foreground/50 dark:text-muted-foreground tracking-wider uppercase">
+                <span className="text-[10px] text-accent tracking-wider uppercase hidden sm:block">
                   Recruitment Platform
                 </span>
               </div>
@@ -99,9 +103,7 @@ export function Footer() {
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-foreground/5 dark:bg-muted flex-shrink-0">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span className="text-sm pt-2.5">
-                  Philippines
-                </span>
+                <span className="text-sm pt-2.5">Philippines</span>
               </div>
             </div>
           </div>

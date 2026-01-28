@@ -100,10 +100,22 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsl(var(--accent)/0.15),_transparent_50%)]" />
         <div className="relative z-10 flex flex-col justify-between p-12">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent text-accent-foreground font-bold text-lg">
-              L
+            <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
+              {/* Navy Background with Gold Accent */}
+              <div className="absolute inset-0 bg-white" />
+              {/* Logo Text */}
+              <span className="relative font-bold text-lg ">
+                <img src="legaforce-logo.png" alt="Logo" />
+              </span>
             </div>
-            <span className="font-bold text-xl tracking-tight">Legaforce</span>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-xl tracking-tight">
+                Legaforce
+              </span>
+              <span className="text-[10px] text-accent tracking-wider uppercase hidden sm:block">
+                Recruitment Platform
+              </span>
+            </div>
           </Link>
 
           <div className="max-w-md">
