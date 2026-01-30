@@ -1,25 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
+import { useAuthStore } from "@/stores/authStore";
+import { usePreventNavigation, getDashboardRoute } from "@/hooks/useNavigation";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   ArrowRight,
-  Users,
-  Building2,
-  Shield,
+  AlertCircle,
   Sparkles,
   CheckCircle,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -28,32 +31,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-
-type UserType = "applicant" | "employer" | "admin";
-
-const userTypes = [
-  {
-    type: "applicant" as UserType,
-    icon: Users,
-    label: "Applicant",
-    description: "Looking for job opportunities",
-    redirect: "/app/dashboard",
-  },
-  {
-    type: "employer" as UserType,
-    icon: Building2,
-    label: "Employer",
-    description: "Hiring skilled workers",
-    redirect: "/employer/dashboard",
-  },
-  {
-    type: "admin" as UserType,
-    icon: Shield,
-    label: "Admin",
-    description: "Platform administrator",
-    redirect: "/admin/dashboard",
-  },
-];
 
 const features = [
   "Real-time application tracking",
@@ -64,9 +41,20 @@ const features = [
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [userType, setUserType] = useState<UserType>("applicant");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuthStore();
+
+  // Prevent back navigation when logged in
+  usePreventNavigation();
+
+  useEffect(() => {
+    // If already logged in, redirect to dashboard
+    if (isAuthenticated) {
+      navigate("/app/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -78,13 +66,40 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setLoginError(null);
 
-    // Navigate based on user type
-    const selectedType = userTypes.find((t) => t.type === userType);
-    navigate(selectedType?.redirect || "/app/dashboard");
+    try {
+      await login(data.email, data.password);
+      toast.success("Login successful!");
+
+      // Get user role and navigate to appropriate dashboard
+      const response = await fetch("http://localhost:5000/api/v1/auth/me", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        const userRole = userData.data?.role || "APPLICANT";
+        const dashboardRoute = getDashboardRoute(userRole);
+
+        setTimeout(() => {
+          navigate(dashboardRoute, { replace: true });
+        }, 500);
+      } else {
+        throw new Error("Failed to fetch user data");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please check your credentials and try again.";
+      setLoginError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -188,47 +203,20 @@ export default function LoginPage() {
                 Sign In
               </h2>
               <p className="text-muted-foreground">
-                Choose your account type and enter your credentials
+                Enter your credentials to access your dashboard
               </p>
             </div>
 
-            {/* User Type Selector */}
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              {userTypes.map((type) => (
-                <button
-                  key={type.type}
-                  type="button"
-                  onClick={() => setUserType(type.type)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
-                    userType === type.type
-                      ? "border-accent bg-accent/10 shadow-lg shadow-accent/10"
-                      : "border-border hover:border-accent/50 hover:bg-muted/50",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex items-center justify-center w-10 h-10 rounded-lg transition-colors",
-                      userType === type.type
-                        ? "bg-accent text-accent-foreground"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    <type.icon className="w-5 h-5" />
-                  </div>
-                  <span
-                    className={cn(
-                      "text-sm font-medium",
-                      userType === type.type
-                        ? "text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {type.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+            {/* Error Alert */}
+            {loginError && (
+              <Alert
+                variant="destructive"
+                className="mb-6 border-destructive/50 bg-destructive/5"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{loginError}</AlertDescription>
+              </Alert>
+            )}
 
             {/* Login Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -303,8 +291,7 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />
-                    Sign In as{" "}
-                    {userTypes.find((t) => t.type === userType)?.label}
+                    Sign In
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}

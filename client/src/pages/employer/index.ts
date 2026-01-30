@@ -1,1 +1,13 @@
+export { default as CandidatesListPage } from "./CandidatesListPage";
+export { default as CandidateDetailsPage } from "./CandidateDetailsPage";
+export { default as CompanyProfilePage } from "./CompanyProfilePage";
+export { default as CreateJobOrderPage } from "./CreateJobOrderPage";
+export { default as DeploymentsPage } from "./DeploymentsPage";
 export { default as EmployerDashboard } from "./EmployerDashboard";
+export { default as InterviewsListPage } from "./InterviewsListPage";
+export { default as InvoicesListPage } from "./InvoicesListPage";
+export { default as JobOrderDetailsPage } from "./JobOrderDetailsPage";
+export { default as JobOrdersListPage } from "./JobOrdersListPage";
+export { default as ReportsPage } from "./ReportsPage";
+export { default as SettingsPage } from "./SettingsPage";
+export { default as SupportPage } from "./SupportPage";

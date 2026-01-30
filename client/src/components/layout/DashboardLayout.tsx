@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "@/stores/authStore";
 import {
   LayoutDashboard,
   Briefcase,
@@ -249,7 +250,9 @@ export function DashboardLayout({
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
-    navigate("/login");
+    const { logout } = useAuthStore.getState();
+    logout();
+    navigate("/login", { replace: true });
   };
 
   // Get role badge color

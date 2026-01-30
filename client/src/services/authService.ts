@@ -19,13 +19,7 @@ interface AuthResponse {
   message?: string;
   data: {
     token: string;
-    user: {
-      id: string;
-      email: string;
-      role: "APPLICANT" | "EMPLOYER" | "ADMIN";
-      profile?: any;
-      employer?: any;
-    };
+    user: any;
   };
 }
 

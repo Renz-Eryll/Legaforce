@@ -105,9 +105,9 @@ const App = () => {
             <Route
               path="/app"
               element={
-                // <ProtectedRoute allowedRoles={["APPLICANT"]}>
-                <DashboardLayout userRole="applicant" />
-                // </ProtectedRoute>
+                <ProtectedRoute allowedRoles={["APPLICANT"]}>
+                  <DashboardLayout userRole="applicant" />
+                </ProtectedRoute>
               }
             >
               <Route path="dashboard" element={<ApplicantDashboard />} />
@@ -161,9 +161,9 @@ const App = () => {
             <Route
               path="/employer"
               element={
-                // <ProtectedRoute allowedRoles={["EMPLOYER"]}>
-                <DashboardLayout userRole="employer" />
-                // </ProtectedRoute>
+                <ProtectedRoute allowedRoles={["EMPLOYER"]}>
+                  <DashboardLayout userRole="employer" />
+                </ProtectedRoute>
               }
             >
               <Route path="dashboard" element={<EmployerDashboard />} />
@@ -214,9 +214,9 @@ const App = () => {
             <Route
               path="/admin"
               element={
-                // <ProtectedRoute allowedRoles={["ADMIN"]}>
-                <DashboardLayout userRole="admin" />
-                // </ProtectedRoute>
+                <ProtectedRoute allowedRoles={["ADMIN"]}>
+                  <DashboardLayout userRole="admin" />
+                </ProtectedRoute>
               }
             >
               <Route path="dashboard" element={<AdminDashboard />} />

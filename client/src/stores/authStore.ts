@@ -80,7 +80,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        authService.logout();
+        try {
+          authService.logout();
+        } catch (error) {
+          console.error("Logout error:", error);
+        }
         set({
           user: null,
           isAuthenticated: false,
@@ -102,18 +106,24 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await authService.getCurrentUser();
-          set({
-            user: response.data,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-        } catch {
+          if (response.success && response.data) {
+            set({
+              user: response.data,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error("Failed to get user");
+          }
+        } catch (error) {
+          console.error("Auth check failed:", error);
           localStorage.removeItem("auth_token");
           set({
             user: null,
             isAuthenticated: false,
             isLoading: false,
+            error: null,
           });
         }
       },

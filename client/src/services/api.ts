@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { toast } from "sonner";
 
 const API_BASE_URL =
@@ -12,7 +12,6 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor - add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth_token");
@@ -26,13 +25,11 @@ api.interceptors.request.use(
   },
 );
 
-// Response interceptor - handle errors globally
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ message?: string }>) => {
+  (error) => {
     const message = error.response?.data?.message || "An error occurred";
 
-    // Handle specific error cases
     if (error.response?.status === 401) {
       localStorage.removeItem("auth_token");
       window.location.href = "/login";

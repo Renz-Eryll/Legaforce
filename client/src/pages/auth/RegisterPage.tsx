@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
+import { useAuthStore } from "@/stores/authStore";
 import {
   Mail,
   Lock,
@@ -75,6 +77,7 @@ export default function RegisterPage() {
   const [userType, setUserType] = useState<UserType>("applicant");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register: registerUser } = useAuthStore();
 
   const {
     register,
@@ -86,11 +89,29 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    // Navigate to dashboard or onboarding
-    navigate("/app/dashboard");
+    try {
+      await registerUser({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role: userType === "applicant" ? "APPLICANT" : "EMPLOYER",
+      });
+
+      toast.success("Account created successfully!");
+
+      // Navigate to appropriate dashboard
+      const redirect =
+        userType === "applicant" ? "/app/dashboard" : "/employer/dashboard";
+      setTimeout(() => {
+        navigate(redirect);
+      }, 500);
+    } catch (error: any) {
+      toast.error(error.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
