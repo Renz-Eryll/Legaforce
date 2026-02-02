@@ -1,10 +1,12 @@
 import { config } from "dotenv";
 
-config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
+if (process.env.NODE_ENV !== "production") {
+  config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
+}
 
 export const {
-  PORT,
-  NODE_ENV,
+  PORT = 5000,
+  NODE_ENV = "development",
   SERVER_URL,
   DATABASE_URL,
   JWT_SECRET,
