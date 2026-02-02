@@ -26,18 +26,30 @@ interface AuthResponse {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>("/auth/sign-in", credentials);
+
+    // Only store token if login was actually successful
     if (data.success && data.data?.token) {
       localStorage.setItem("auth_token", data.data.token);
+      return data;
+    } else {
+      // Return the response but don't store token
+      // This allows the error to be handled upstream
+      throw new Error(data.message || "Login failed");
     }
-    return data;
   },
 
   async register(userData: RegisterData): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>("/auth/sign-up", userData);
+
+    // Only store token if registration was actually successful
     if (data.success && data.data?.token) {
       localStorage.setItem("auth_token", data.data.token);
+      return data;
+    } else {
+      // Return the response but don't store token
+      // This allows the error to be handled upstream
+      throw new Error(data.message || "Registration failed");
     }
-    return data;
   },
 
   async logout(): Promise<void> {

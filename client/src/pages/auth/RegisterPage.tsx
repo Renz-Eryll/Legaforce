@@ -16,12 +16,13 @@ import {
   Building2,
   User,
   Phone,
-  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 const registerSchema = z
@@ -53,22 +54,12 @@ const userTypes = [
     type: "applicant" as UserType,
     icon: Users,
     label: "Job Seeker",
-    description: "I'm looking for work abroad",
   },
   {
     type: "employer" as UserType,
     icon: Building2,
     label: "Employer",
-    description: "I want to hire Filipino workers",
   },
-];
-
-const benefits = [
-  "AI-powered CV builder",
-  "Real-time application tracking",
-  "Direct employer connections",
-  "24/7 support assistance",
-  "Rewards & priority processing",
 ];
 
 export default function RegisterPage() {
@@ -76,6 +67,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<UserType>("applicant");
   const [isLoading, setIsLoading] = useState(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { register: registerUser } = useAuthStore();
 
@@ -89,6 +81,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
+    setRegisterError(null);
     try {
       await registerUser({
         firstName: data.firstName,
@@ -108,314 +101,360 @@ export default function RegisterPage() {
         navigate(redirect);
       }, 500);
     } catch (error: any) {
-      toast.error(error.message || "Registration failed. Please try again.");
+      let errorMessage = "Registration failed. Please try again.";
+
+      // Try to extract error message from different possible sources
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setRegisterError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsl(var(--accent)/0.15),_transparent_50%)]" />
-        <div className="relative z-10 flex flex-col justify-between p-12">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
-              {/* Navy Background with Gold Accent */}
-              <div className="absolute inset-0 bg-white" />
-              {/* Logo Text */}
-              <span className="relative font-bold text-lg ">
-                <img src="legaforce-logo.png" alt="Logo" />
-              </span>
+    <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
+      {/* Left Side - Branding (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:flex-col lg:justify-between lg:p-8 bg-gradient-to-br from-primary/95 to-primary text-primary-foreground relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-b from-accent/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-t from-accent/5 to-transparent rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative z-10 space-y-8">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 group w-fit">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <span className="text-2xl font-bold text-white">L</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-xl tracking-tight">
-                Legaforce
-              </span>
-              <span className="text-[10px] text-accent tracking-wider uppercase hidden sm:block">
-                Recruitment Platform
-              </span>
+            <div>
+              <h2 className="text-xl font-bold">Legaforce</h2>
+              <p className="text-xs text-primary-foreground/60">
+                Global Recruitment
+              </p>
             </div>
           </Link>
 
-          <div className="max-w-md">
-            <h1 className="text-4xl font-bold mb-6">
-              Start Your Journey to{" "}
-              <span className="text-accent">Global Success</span>
-            </h1>
-            <p className="text-primary-foreground/70 text-lg leading-relaxed mb-8">
-              Join thousands of Filipino workers who have found their dream jobs
-              abroad through Legaforce.
-            </p>
+          {/* Content */}
+          <div className="max-w-sm space-y-6">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold leading-tight">
+                Join Thousands
+              </h1>
+              <p className="text-primary-foreground/70 text-lg">
+                of successful professionals working globally
+              </p>
+            </div>
 
-            <div className="space-y-4">
-              {benefits.map((benefit) => (
-                <div
-                  key={benefit}
-                  className="flex items-center gap-3 text-primary-foreground/80"
-                >
-                  <CheckCircle className="w-5 h-5 text-accent" />
-                  <span>{benefit}</span>
-                </div>
-              ))}
+            {/* Quick Stats */}
+            <div className="space-y-3 pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-accent" />
+                <span className="text-sm">Get matched instantly</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-accent" />
+                <span className="text-sm">Secure employment abroad</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-accent" />
+                <span className="text-sm">Build your global career</span>
+              </div>
             </div>
           </div>
+        </div>
 
-          <p className="text-sm text-primary-foreground/50">
-            © {new Date().getFullYear()} Legaforce. POEA Licensed.
-          </p>
+        {/* Footer Text */}
+        <div className="relative z-10 text-xs text-primary-foreground/50">
+          © 2026 Legaforce. POEA Licensed Platform.
         </div>
       </div>
 
       {/* Right Side - Registration Form */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 lg:p-6">
-          <Link to="/" className="flex items-center gap-2 lg:hidden">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+      <div className="flex flex-col items-center justify-center p-6 sm:p-8 overflow-y-auto">
+        {/* Header for Mobile */}
+        <div className="lg:hidden w-full flex items-center justify-between mb-8">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
               L
             </div>
-            <span className="font-bold text-lg tracking-tight">Legaforce</span>
+            <span className="font-bold">Legaforce</span>
           </Link>
-          <div className="flex items-center gap-4 ml-auto">
-            <ThemeToggle />
-            <span className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="text-accent hover:underline font-medium"
-              >
-                Sign in
-              </Link>
-            </span>
-          </div>
+          <ThemeToggle />
         </div>
 
-        {/* Form Container */}
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md"
-          >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                Create Account
-              </h2>
-              <p className="text-muted-foreground">
-                Get started with your free account
-              </p>
-            </div>
+        {/* Desktop Theme Toggle */}
+        <div className="hidden lg:flex absolute top-8 right-8">
+          <ThemeToggle />
+        </div>
 
-            {/* User Type Selector */}
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              {userTypes.map((type) => (
-                <button
-                  key={type.type}
-                  type="button"
-                  onClick={() => setUserType(type.type)}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-sm"
+        >
+          {/* Title */}
+          <div className="mb-8 space-y-2">
+            <h1 className="text-3xl font-bold">Create Account</h1>
+            <p className="text-muted-foreground">
+              Start your global career journey
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {registerError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Alert
+                variant="destructive"
+                className="mb-6 border-destructive/50 bg-destructive/5"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{registerError}</AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+
+          {/* User Type Selector */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {userTypes.map((type) => (
+              <motion.button
+                key={type.type}
+                type="button"
+                onClick={() => setUserType(type.type)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={cn(
+                  "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all",
+                  userType === type.type
+                    ? "border-accent bg-accent/10"
+                    : "border-border hover:border-accent/50",
+                )}
+              >
+                <type.icon
                   className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                    "w-5 h-5",
                     userType === type.type
-                      ? "border-accent bg-accent/10"
-                      : "border-border hover:border-accent/50",
+                      ? "text-accent"
+                      : "text-muted-foreground",
+                  )}
+                />
+                <p
+                  className={cn(
+                    "text-xs font-medium",
+                    userType === type.type
+                      ? "text-accent"
+                      : "text-muted-foreground",
                   )}
                 >
-                  <type.icon
-                    className={cn(
-                      "w-6 h-6",
-                      userType === type.type
-                        ? "text-accent"
-                        : "text-muted-foreground",
-                    )}
-                  />
-                  <div className="text-center">
-                    <p
-                      className={cn(
-                        "text-sm font-medium",
-                        userType === type.type
-                          ? "text-foreground"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {type.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {type.description}
-                    </p>
-                  </div>
-                </button>
-              ))}
+                  {type.label}
+                </p>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First</Label>
+                <Input
+                  id="firstName"
+                  placeholder="Juan"
+                  className="h-10"
+                  {...register("firstName")}
+                />
+                {errors.firstName && (
+                  <p className="text-xs text-destructive font-medium">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Dela Cruz"
+                  className="h-10"
+                  {...register("lastName")}
+                />
+                {errors.lastName && (
+                  <p className="text-xs text-destructive font-medium">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Registration Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="firstName"
-                      placeholder="Juan"
-                      className="pl-10"
-                      {...register("firstName")}
-                    />
-                  </div>
-                  {errors.firstName && (
-                    <p className="text-xs text-destructive">
-                      {errors.firstName.message}
-                    </p>
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="pl-10 h-10"
+                  {...register("email")}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-xs text-destructive font-medium">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+63 912 345 6789"
+                  className="pl-10 h-10"
+                  {...register("phone")}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-xs text-destructive font-medium">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="pl-10 pr-10 h-10"
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Dela Cruz"
-                    {...register("lastName")}
-                  />
-                  {errors.lastName && (
-                    <p className="text-xs text-destructive">
-                      {errors.lastName.message}
-                    </p>
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-destructive font-medium">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="pl-10 pr-10 h-10"
+                  {...register("confirmPassword")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
                   )}
-                </div>
+                </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="text-xs text-destructive font-medium">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    className="pl-10"
-                    {...register("email")}
-                  />
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full h-10 mt-2"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Creating...
                 </div>
-                {errors.email && (
-                  <p className="text-xs text-destructive">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+63 912 345 6789"
-                    className="pl-10"
-                    {...register("phone")}
-                  />
-                </div>
-                {errors.phone && (
-                  <p className="text-xs text-destructive">
-                    {errors.phone.message}
-                  </p>
-                )}
-              </div>
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-2 text-xs text-muted-foreground">
+                or
+              </span>
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
-                    className="pl-10 pr-10"
-                    {...register("password")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-xs text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
+          {/* Sign In Link */}
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="text-accent hover:underline font-medium"
+            >
+              Sign in
+            </Link>
+          </p>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    className="pl-10 pr-10"
-                    {...register("confirmPassword")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-xs text-destructive">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                By creating an account, you agree to our{" "}
-                <Link to="/terms" className="text-accent hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className="text-accent hover:underline">
-                  Privacy Policy
-                </Link>
-                .
-              </p>
-
-              <Button
-                type="submit"
-                variant="premium"
-                size="lg"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Creating account...
-                  </div>
-                ) : (
-                  <>
-                    Create Account
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </motion.div>
-        </div>
+          {/* Terms */}
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            By signing up, you agree to our{" "}
+            <Link to="/terms" className="text-accent hover:underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="text-accent hover:underline">
+              Privacy
+            </Link>
+          </p>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
@@ -194,6 +194,12 @@ export function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+
+  // Scroll to top when route changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   // Get navigation based on role
   const getNavigation = () => {
@@ -209,24 +215,59 @@ export function DashboardLayout({
 
   // Get user info based on role
   const getUserInfo = () => {
+    // Return real user data from auth store
+    if (user) {
+      let name = user.email;
+      let initials = user.email.substring(0, 2).toUpperCase();
+
+      if (userRole === "employer" && user.employer?.name) {
+        name = user.employer.name;
+        initials = name
+          .split(" ")
+          .map((word: string) => word[0])
+          .join("")
+          .toUpperCase()
+          .substring(0, 2);
+      } else if (
+        userRole === "applicant" &&
+        user.profile?.firstName &&
+        user.profile?.lastName
+      ) {
+        name = `${user.profile.firstName} ${user.profile.lastName}`;
+        initials =
+          (user.profile.firstName?.[0] || "") +
+          (user.profile.lastName?.[0] || "");
+      } else if (userRole === "admin" && user.profile?.firstName) {
+        name = user.profile.firstName;
+        initials = user.profile.firstName.substring(0, 2).toUpperCase();
+      }
+
+      return {
+        name,
+        email: user.email,
+        initials: initials.substring(0, 2),
+      };
+    }
+
+    // Fallback defaults if no user data
     switch (userRole) {
       case "employer":
         return {
-          name: "ABC Company",
-          email: "hr@abccompany.com",
-          initials: "AC",
+          name: "Company",
+          email: "contact@company.com",
+          initials: "CO",
         };
       case "admin":
         return {
-          name: "Admin User",
+          name: "Admin",
           email: "admin@legaforce.com",
           initials: "AD",
         };
       default:
         return {
-          name: "Juan Dela Cruz",
-          email: "juan@example.com",
-          initials: "JD",
+          name: "User",
+          email: "user@example.com",
+          initials: "US",
         };
     }
   };

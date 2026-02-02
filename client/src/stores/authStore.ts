@@ -44,11 +44,13 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             });
           } else {
-            throw new Error(response.message || "Login failed");
+            const errorMsg = response.message || "Login failed";
+            throw new Error(errorMsg);
           }
         } catch (error: any) {
+          const errorMessage = error.message || "Login failed";
           set({
-            error: error.message || "Login failed",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -68,11 +70,13 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             });
           } else {
-            throw new Error(response.message || "Registration failed");
+            const errorMsg = response.message || "Registration failed";
+            throw new Error(errorMsg);
           }
         } catch (error: any) {
+          const errorMessage = error.message || "Registration failed";
           set({
-            error: error.message || "Registration failed",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
