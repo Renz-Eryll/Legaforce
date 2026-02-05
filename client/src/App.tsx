@@ -37,7 +37,20 @@ import {
 } from "./pages/applicant";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuthStore } from "./stores/authStore";
-import { AdminDashboard } from "./pages/admin";
+import {
+  AdminDashboard,
+  ApplicantsListPage,
+  ApplicationsPage,
+  ComplaintsListPage,
+  CompliancePage,
+  DeploymentsListPage,
+  EmployersListPage,
+  InvoicesPage,
+  JobOrdersListPage,
+  ReportsPage,
+  VerificationPage,
+  SettingsPage as AdminSettingsPage,
+} from "./pages/admin";
 import { EmployerDashboard } from "./pages/employer";
 
 // Placeholder component for pages not yet implemented
@@ -111,49 +124,22 @@ const App = () => {
               }
             >
               <Route path="dashboard" element={<ApplicantDashboard />} />
-              <Route
-                path="jobs"
-                element={<JobsListPage title="Browse Jobs" />}
-              />
-              <Route
-                path="jobs/:id"
-                element={<JobDetailsPage title="Job Details" />}
-              />
+              <Route path="jobs" element={<JobsListPage />} />
+              <Route path="jobs/:id" element={<JobDetailsPage />} />
 
-              <Route
-                path="applications"
-                element={<ApplicationsListPage title="My Applications" />}
-              />
+              <Route path="applications" element={<ApplicationsListPage />} />
               <Route
                 path="applications/:id"
-                element={<ApplicationDetailsPage title="Application Details" />}
+                element={<ApplicationDetailsPage />}
               />
-              <Route
-                path="saved-jobs"
-                element={<SavedJobsPage title="Saved Jobs" />}
-              />
-              <Route
-                path="profile"
-                element={<ProfilePage title="My Profile" />}
-              />
-              <Route
-                path="documents"
-                element={<DocumentsPage title="My Documents" />}
-              />
-              <Route
-                path="cv-builder"
-                element={<CVBuilderPage title="CV Builder" />}
-              />
-              <Route path="rewards" element={<RewardsPage title="Rewards" />} />
-              <Route path="support" element={<SupportPage title="Support" />} />
-              <Route
-                path="complaints"
-                element={<ComplaintsPage title="Complaints" />}
-              />
-              <Route
-                path="settings"
-                element={<SettingsPage title="Settings" />}
-              />
+              <Route path="saved-jobs" element={<SavedJobsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="documents" element={<DocumentsPage />} />
+              <Route path="cv-builder" element={<CVBuilderPage />} />
+              <Route path="rewards" element={<RewardsPage />} />
+              <Route path="support" element={<SupportPage />} />
+              <Route path="complaints" element={<ComplaintsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 
@@ -220,50 +206,17 @@ const App = () => {
               }
             >
               <Route path="dashboard" element={<AdminDashboard />} />
-              <Route
-                path="applicants"
-                element={<PlaceholderPage title="Manage Applicants" />}
-              />
-              <Route
-                path="employers"
-                element={<PlaceholderPage title="Manage Employers" />}
-              />
-              <Route
-                path="job-orders"
-                element={<PlaceholderPage title="Job Orders" />}
-              />
-              <Route
-                path="applications"
-                element={<PlaceholderPage title="Applications" />}
-              />
-              <Route
-                path="deployments"
-                element={<PlaceholderPage title="Deployments" />}
-              />
-              <Route
-                path="compliance"
-                element={<PlaceholderPage title="Compliance" />}
-              />
-              <Route
-                path="invoices"
-                element={<PlaceholderPage title="Invoices" />}
-              />
-              <Route
-                path="reports"
-                element={<PlaceholderPage title="Reports" />}
-              />
-              <Route
-                path="complaints"
-                element={<PlaceholderPage title="Complaints" />}
-              />
-              <Route
-                path="verification"
-                element={<PlaceholderPage title="User Verification" />}
-              />
-              <Route
-                path="settings"
-                element={<PlaceholderPage title="Settings" />}
-              />
+              <Route path="applicants" element={<ApplicantsListPage />} />
+              <Route path="employers" element={<EmployersListPage />} />
+              <Route path="job-orders" element={<JobOrdersListPage />} />
+              <Route path="applications" element={<ApplicationsPage />} />
+              <Route path="deployments" element={<DeploymentsListPage />} />
+              <Route path="compliance" element={<CompliancePage />} />
+              <Route path="invoices" element={<InvoicesPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="complaints" element={<ComplaintsListPage />} />
+              <Route path="verification" element={<VerificationPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 

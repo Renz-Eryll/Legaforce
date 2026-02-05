@@ -2,16 +2,13 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Briefcase,
   Search,
   Filter,
   ChevronRight,
-  MapPin,
-  Building2,
-  CheckCircle,
-  Clock,
-  AlertCircle,
+  Eye,
   Download,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,70 +44,65 @@ const staggerContainer = {
 
 const mockApplications = [
   {
-    id: "APP-001",
-    position: "Registered Nurse (ICU)",
-    employer: "King Faisal Hospital",
-    location: "Riyadh, Saudi Arabia",
-    salary: "$2,500/mo",
-    status: "interviewed",
-    matchScore: 92,
-    appliedDate: "Jan 15, 2026",
-    interviewDate: "Jan 28, 2026",
+    id: "APP-2401",
+    applicant: "Maria Santos",
+    position: "OFW - Nurse",
+    employer: "ABC Healthcare",
+    status: "deployed",
+    matchScore: 95,
+    submittedDate: "Jan 20, 2026",
+    deployedDate: "Jan 25, 2026",
   },
   {
-    id: "APP-002",
-    position: "Staff Nurse - General Ward",
-    employer: "Dubai Health Authority",
-    location: "Dubai, UAE",
-    salary: "$2,200/mo",
-    status: "shortlisted",
-    matchScore: 88,
-    appliedDate: "Jan 18, 2026",
-    interviewDate: null,
-  },
-  {
-    id: "APP-003",
-    position: "Senior Nurse",
-    employer: "Hamad Medical Corporation",
-    location: "Doha, Qatar",
-    salary: "$2,600/mo",
-    status: "applied",
-    matchScore: 85,
-    appliedDate: "Jan 22, 2026",
-    interviewDate: null,
-  },
-  {
-    id: "APP-004",
-    position: "OR Nurse",
-    employer: "Kuwait Hospital",
-    location: "Kuwait City, Kuwait",
-    salary: "$2,400/mo",
+    id: "APP-2402",
+    applicant: "Juan Reyes",
+    position: "Construction Worker",
+    employer: "XYZ Construction",
     status: "selected",
-    matchScore: 90,
-    appliedDate: "Jan 10, 2026",
-    interviewDate: "Jan 25, 2026",
+    matchScore: 87,
+    submittedDate: "Jan 18, 2026",
+    deployedDate: null,
   },
   {
-    id: "APP-005",
+    id: "APP-2403",
+    applicant: "Ana Fernandez",
     position: "Domestic Helper",
-    employer: "Gulf Family Services",
-    location: "Abu Dhabi, UAE",
-    salary: "$500/mo",
-    status: "rejected",
-    matchScore: 65,
-    appliedDate: "Jan 05, 2026",
-    interviewDate: null,
+    employer: "Global Staffing",
+    status: "interviewed",
+    matchScore: 78,
+    submittedDate: "Jan 15, 2026",
+    deployedDate: null,
+  },
+  {
+    id: "APP-2404",
+    applicant: "Miguel Torres",
+    position: "OFW - Driver",
+    employer: "Middle East Transport",
+    status: "shortlisted",
+    matchScore: 82,
+    submittedDate: "Jan 12, 2026",
+    deployedDate: null,
+  },
+  {
+    id: "APP-2405",
+    applicant: "Rosa Diaz",
+    position: "Chef",
+    employer: "Gulf Hospitality",
+    status: "applied",
+    matchScore: 91,
+    submittedDate: "Jan 10, 2026",
+    deployedDate: null,
   },
 ];
 
-function ApplicationsListPage() {
+function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filteredApplications = mockApplications.filter((app) => {
     const matchesSearch =
-      app.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.employer.toLowerCase().includes(searchTerm.toLowerCase());
+      app.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.position.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || app.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -120,23 +112,11 @@ function ApplicationsListPage() {
       applied: "bg-blue-500/10 text-blue-500 border-blue-500/20",
       shortlisted: "bg-purple-500/10 text-purple-500 border-purple-500/20",
       interviewed: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      selected: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      rejected: "bg-red-500/10 text-red-500 border-red-500/20",
+      selected: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+      processing: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+      deployed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     };
     return configs[status as keyof typeof configs] || configs.applied;
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "selected":
-        return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-      case "interviewed":
-        return <Clock className="w-4 h-4 text-amber-500" />;
-      case "rejected":
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
   };
 
   return (
@@ -153,15 +133,15 @@ function ApplicationsListPage() {
       >
         <div>
           <h1 className="text-3xl font-display font-bold mb-1">
-            My Applications
+            Applications Management
           </h1>
           <p className="text-muted-foreground">
-            Track all your job applications
+            Track and manage all job applications
           </p>
         </div>
         <Button variant="outline">
           <Download className="w-4 h-4 mr-2" />
-          Export
+          Export Report
         </Button>
       </motion.div>
 
@@ -171,21 +151,24 @@ function ApplicationsListPage() {
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
-          <p className="text-2xl font-display font-bold">
-            {mockApplications.length}
+          <p className="text-2xl font-display font-bold">5,234</p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
+          <p className="text-2xl font-display font-bold text-amber-500">342</p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Deployed</p>
+          <p className="text-2xl font-display font-bold text-emerald-500">
+            1,245
           </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Active</p>
-          <p className="text-2xl font-display font-bold text-blue-500">3</p>
-        </div>
-        <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Selected</p>
-          <p className="text-2xl font-display font-bold text-emerald-500">1</p>
-        </div>
-        <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Match Score</p>
-          <p className="text-2xl font-display font-bold">85%</p>
+          <p className="text-2xl font-display font-bold flex items-center gap-1">
+            <TrendingUp className="w-5 h-5 text-blue-500" />
+            87%
+          </p>
         </div>
       </motion.div>
 
@@ -196,7 +179,7 @@ function ApplicationsListPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search applications..."
+                placeholder="Search by applicant or position..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -214,7 +197,7 @@ function ApplicationsListPage() {
               <SelectItem value="shortlisted">Shortlisted</SelectItem>
               <SelectItem value="interviewed">Interviewed</SelectItem>
               <SelectItem value="selected">Selected</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="deployed">Deployed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -226,30 +209,27 @@ function ApplicationsListPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Application ID</TableHead>
+                <TableHead>Applicant</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Employer</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Salary</TableHead>
                 <TableHead>Match Score</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Applied Date</TableHead>
+                <TableHead>Submitted</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredApplications.map((app) => (
                 <TableRow key={app.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{app.position}</TableCell>
+                  <TableCell className="font-mono font-medium text-sm">
+                    {app.id}
+                  </TableCell>
+                  <TableCell>{app.applicant}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {app.employer}
+                    {app.position}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      {app.location}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-semibold">{app.salary}</TableCell>
+                  <TableCell>{app.employer}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{app.matchScore}%</Badge>
                   </TableCell>
@@ -258,19 +238,16 @@ function ApplicationsListPage() {
                       variant="outline"
                       className={getStatusBadge(app.status)}
                     >
-                      <span className="flex items-center gap-1">
-                        {getStatusIcon(app.status)}
-                        {app.status}
-                      </span>
+                      {app.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {app.appliedDate}
+                    {app.submittedDate}
                   </TableCell>
                   <TableCell>
-                    <Link to={`/applicant/applications/${app.id}`}>
+                    <Link to={`/admin/applications/${app.id}`}>
                       <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                       </Button>
                     </Link>
                   </TableCell>
@@ -281,15 +258,24 @@ function ApplicationsListPage() {
         </div>
       </motion.div>
 
-      {/* No Results */}
-      {filteredApplications.length === 0 && (
-        <motion.div variants={fadeInUp} className="text-center py-12">
-          <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground">No applications found</p>
-        </motion.div>
-      )}
+      {/* Pagination */}
+      <motion.div
+        variants={fadeInUp}
+        className="flex items-center justify-between"
+      >
+        <p className="text-sm text-muted-foreground">
+          Showing {filteredApplications.length} of {mockApplications.length}{" "}
+          applications
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" disabled>
+            Previous
+          </Button>
+          <Button variant="outline">Next</Button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
 
-export default ApplicationsListPage;
+export default ApplicationsPage;
