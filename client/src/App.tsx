@@ -51,7 +51,18 @@ import {
   VerificationPage,
   SettingsPage as AdminSettingsPage,
 } from "./pages/admin";
-import { EmployerDashboard } from "./pages/employer";
+import {
+  CandidatesListPage,
+  DeploymentsPage,
+  EmployerDashboard,
+  InterviewsListPage,
+  InvoicesListPage,
+  JobOrderDetailsPage,
+  ReportsPage as EmployerReportsPage,
+  CompanyProfilePage,
+  SupportPage as EmployerSupportPage,
+  SettingsPage as EmployerSettingsPage,
+} from "./pages/employer";
 
 // Placeholder component for pages not yet implemented
 const PlaceholderPage = ({ title }: { title: string }) => (
@@ -153,46 +164,16 @@ const App = () => {
               }
             >
               <Route path="dashboard" element={<EmployerDashboard />} />
-              <Route
-                path="job-orders"
-                element={<PlaceholderPage title="Job Orders" />}
-              />
-              <Route
-                path="job-orders/:id"
-                element={<PlaceholderPage title="Job Order Details" />}
-              />
-              <Route
-                path="candidates"
-                element={<PlaceholderPage title="Candidates" />}
-              />
-              <Route
-                path="interviews"
-                element={<PlaceholderPage title="Interviews" />}
-              />
-              <Route
-                path="deployments"
-                element={<PlaceholderPage title="Deployments" />}
-              />
-              <Route
-                path="invoices"
-                element={<PlaceholderPage title="Invoices" />}
-              />
-              <Route
-                path="reports"
-                element={<PlaceholderPage title="Reports" />}
-              />
-              <Route
-                path="profile"
-                element={<PlaceholderPage title="Company Profile" />}
-              />
-              <Route
-                path="support"
-                element={<PlaceholderPage title="Support" />}
-              />
-              <Route
-                path="settings"
-                element={<PlaceholderPage title="Settings" />}
-              />
+              <Route path="job-orders" element={<JobOrdersListPage />} />
+              <Route path="job-orders/:id" element={<JobOrderDetailsPage />} />
+              <Route path="candidates" element={<CandidatesListPage />} />
+              <Route path="interviews" element={<InterviewsListPage />} />
+              <Route path="deployments" element={<DeploymentsPage />} />
+              <Route path="invoices" element={<InvoicesListPage />} />
+              <Route path="reports" element={<EmployerReportsPage />} />
+              <Route path="profile" element={<CompanyProfilePage />} />
+              <Route path="support" element={<EmployerSupportPage />} />
+              <Route path="settings" element={<EmployerSettingsPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 
