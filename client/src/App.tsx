@@ -6,9 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useAuthStore } from "./stores/authStore";
 // Layouts
 import { PublicLayout, DashboardLayout } from "@/components/layout";
-
+import { LoginPage, RegisterPage } from "./pages/auth";
 // Pages
 import {
   AboutPage,
@@ -18,8 +20,6 @@ import {
   NotFound,
   ServicesPage,
 } from "./pages/public";
-
-import { LoginPage, RegisterPage } from "./pages/auth";
 import {
   ApplicantDashboard,
   ApplicationDetailsPage,
@@ -35,8 +35,7 @@ import {
   SettingsPage,
   SupportPage,
 } from "./pages/applicant";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { useAuthStore } from "./stores/authStore";
+
 import {
   AdminDashboard,
   ApplicantsListPage,
@@ -51,6 +50,7 @@ import {
   VerificationPage,
   SettingsPage as AdminSettingsPage,
 } from "./pages/admin";
+
 import {
   CandidatesListPage,
   DeploymentsPage,
