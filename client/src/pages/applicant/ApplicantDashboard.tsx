@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   Briefcase,
   FileText,
@@ -22,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { applicantService } from "@/services/applicantService";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 // Animation variants
 const fadeInUp = {
@@ -37,126 +41,128 @@ const staggerContainer = {
   },
 };
 
-// Mock data
-const applications = [
-  {
-    id: "1",
-    jobTitle: "Registered Nurse",
-    company: "King Faisal Hospital",
-    location: "Riyadh, Saudi Arabia",
-    status: "interviewed",
-    matchScore: 92,
-    appliedDate: "Jan 15, 2026",
-    salary: "$2,500/mo",
-  },
-  {
-    id: "2",
-    jobTitle: "Staff Nurse - ICU",
-    company: "Dubai Health Authority",
-    location: "Dubai, UAE",
-    status: "shortlisted",
-    matchScore: 88,
-    appliedDate: "Jan 18, 2026",
-    salary: "$2,800/mo",
-  },
-  {
-    id: "3",
-    jobTitle: "Senior Nurse",
-    company: "Hamad Medical Corporation",
-    location: "Doha, Qatar",
-    status: "applied",
-    matchScore: 85,
-    appliedDate: "Jan 22, 2026",
-    salary: "$2,600/mo",
-  },
-];
-
-const notifications = [
-  {
-    id: "1",
-    type: "success",
-    title: "Interview Confirmed",
-    message: "Your interview with King Faisal Hospital is scheduled for Jan 28",
-    time: "2 hours ago",
-  },
-  {
-    id: "2",
-    type: "info",
-    title: "New Job Match",
-    message: "OR Nurse position in Kuwait matches your profile (89% match)",
-    time: "5 hours ago",
-  },
-  {
-    id: "3",
-    type: "warning",
-    title: "Document Expiring",
-    message: "Your medical certificate expires in 30 days",
-    time: "1 day ago",
-  },
-];
-
-const quickStats = [
-  {
-    label: "Active Applications",
-    value: "3",
-    icon: Briefcase,
-    trend: "+1 this week",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    label: "Profile Views",
-    value: "47",
-    icon: Eye,
-    trend: "+12 this week",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-  },
-  {
-    label: "Match Score",
-    value: "92%",
-    icon: TrendingUp,
-    trend: "+5% improvement",
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    label: "Reward Points",
-    value: "250",
-    icon: Star,
-    trend: "Redeem for benefits",
-    color: "text-accent",
-    bg: "bg-accent/10",
-  },
-];
-
-const recommendedJobs = [
-  {
-    title: "OR Nurse",
-    company: "Kuwait Hospital",
-    location: "Kuwait City",
-    match: 89,
-  },
-  {
-    title: "ER Nurse",
-    company: "Al Mafraq Hospital",
-    location: "Abu Dhabi, UAE",
-    match: 87,
-  },
-];
-
 const statusConfig: Record<string, { label: string; className: string }> = {
-  applied: { label: "Applied", className: "status-applied" },
-  shortlisted: { label: "Shortlisted", className: "status-shortlisted" },
-  interviewed: { label: "Interviewed", className: "status-interviewed" },
-  selected: { label: "Selected", className: "status-selected" },
-  processing: { label: "Processing", className: "status-processing" },
-  deployed: { label: "Deployed", className: "status-deployed" },
-  rejected: { label: "Rejected", className: "status-rejected" },
+  APPLIED: { label: "Applied", className: "status-applied" },
+  SHORTLISTED: { label: "Shortlisted", className: "status-shortlisted" },
+  INTERVIEWED: { label: "Interviewed", className: "status-interviewed" },
+  SELECTED: { label: "Selected", className: "status-selected" },
+  PROCESSING: { label: "Processing", className: "status-processing" },
+  DEPLOYED: { label: "Deployed", className: "status-deployed" },
+  REJECTED: { label: "Rejected", className: "status-rejected" },
 };
 
 export default function ApplicantDashboard() {
-  const profileCompletion = 75;
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [quickStats, setQuickStats] = useState<any[]>([]);
+  const [recommendedJobs, setRecommendedJobs] = useState<any[]>([]);
+  const [profileCompletion, setProfileCompletion] = useState(75);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Fetch all data in parallel
+        const [
+          profileRes,
+          applicationsRes,
+          notificationsRes,
+          profileCompletionRes,
+          recommendedJobsRes,
+          profileViewsRes,
+          matchScoreRes,
+          rewardPointsRes,
+        ] = await Promise.all([
+          applicantService.getProfile().catch(() => ({ data: { data: null } })),
+          applicantService
+            .getApplications()
+            .catch(() => ({ data: { data: [] } })),
+          applicantService
+            .getNotifications()
+            .catch(() => ({ data: { data: [] } })),
+          applicantService
+            .getProfileCompletion()
+            .catch(() => ({ data: { data: 75 } })),
+          applicantService
+            .getRecommendedJobs()
+            .catch(() => ({ data: { data: [] } })),
+          applicantService
+            .getProfileViews()
+            .catch(() => ({ data: { data: 0 } })),
+          applicantService.getMatchScore().catch(() => ({ data: { data: 0 } })),
+          applicantService
+            .getRewardPoints()
+            .catch(() => ({ data: { data: 0 } })),
+        ]);
+
+        const profile = profileRes.data?.data;
+        setProfile(profile);
+
+        const appData = applicationsRes.data?.data || [];
+        setApplications(appData);
+
+        const notifData = notificationsRes.data?.data || [];
+        setNotifications(notifData);
+
+        const completion = profileCompletionRes.data?.data || 75;
+        setProfileCompletion(completion);
+
+        const recommended = recommendedJobsRes.data?.data || [];
+        setRecommendedJobs(recommended);
+
+        // Build quick stats
+        const stats = [
+          {
+            label: "Active Applications",
+            value: appData.length.toString(),
+            icon: Briefcase,
+            trend: "+0 this week",
+            color: "text-blue-500",
+            bg: "bg-blue-500/10",
+          },
+          {
+            label: "Profile Views",
+            value: profileViewsRes.data?.data?.toString() || "0",
+            icon: Eye,
+            trend: "+0 this week",
+            color: "text-purple-500",
+            bg: "bg-purple-500/10",
+          },
+          {
+            label: "Match Score",
+            value: (matchScoreRes.data?.data || 0).toString() + "%",
+            icon: TrendingUp,
+            trend: "+0% improvement",
+            color: "text-emerald-500",
+            bg: "bg-emerald-500/10",
+          },
+          {
+            label: "Reward Points",
+            value: rewardPointsRes.data?.data?.toString() || "0",
+            icon: Star,
+            trend: "Redeem for benefits",
+            color: "text-accent",
+            bg: "bg-accent/10",
+          },
+        ];
+
+        setQuickStats(stats);
+      } catch (error: any) {
+        console.error("Failed to fetch dashboard data:", error);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const firstName = profile?.firstName || user?.profile?.firstName || "User";
 
   return (
     <motion.div
@@ -172,7 +178,7 @@ export default function ApplicantDashboard() {
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
-            Welcome back, Juan!
+            Welcome back, {firstName}!
           </h1>
           <p className="text-muted-foreground">
             Here's what's happening with your job applications
@@ -301,9 +307,15 @@ export default function ApplicantDashboard() {
                         </div>
                       </div>
                       <Badge
-                        className={statusConfig[application.status].className}
+                        className={
+                          statusConfig[
+                            application.status?.toUpperCase() || "APPLIED"
+                          ]?.className || statusConfig["APPLIED"].className
+                        }
                       >
-                        {statusConfig[application.status].label}
+                        {statusConfig[
+                          application.status?.toUpperCase() || "APPLIED"
+                        ]?.label || "Applied"}
                       </Badge>
                     </div>
 
