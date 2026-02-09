@@ -13,7 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -23,6 +25,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -124,9 +127,9 @@ export default function LoginPage() {
           {/* Content */}
           <div className="max-w-sm space-y-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold leading-tight">Welcome Back</h1>
+              <h1 className="text-4xl font-bold leading-tight">{t("auth.login.welcomeBack")}</h1>
               <p className="text-primary-foreground/70 text-lg">
-                Access your opportunities and track your progress
+                {t("auth.login.accessOpportunities")}
               </p>
             </div>
 
@@ -134,15 +137,15 @@ export default function LoginPage() {
             <div className="space-y-3 pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-sm">Real-time job tracking</span>
+                <span className="text-sm">{t("auth.login.realTimeTracking")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-sm">AI-powered matching</span>
+                <span className="text-sm">{t("auth.login.aiMatching")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-sm">24/7 support access</span>
+                <span className="text-sm">{t("auth.login.supportAccess")}</span>
               </div>
             </div>
           </div>
@@ -167,8 +170,9 @@ export default function LoginPage() {
           <ThemeToggle />
         </div>
 
-        {/* Desktop Theme Toggle */}
-        <div className="hidden lg:flex absolute top-8 right-8">
+        {/* Desktop Theme Toggle and Language Switcher */}
+        <div className="hidden lg:flex absolute top-8 right-8 gap-2">
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
 
@@ -180,9 +184,9 @@ export default function LoginPage() {
         >
           {/* Title */}
           <div className="mb-8 space-y-2">
-            <h1 className="text-3xl font-bold">Sign In</h1>
+            <h1 className="text-3xl font-bold">{t("auth.login.title")}</h1>
             <p className="text-muted-foreground">
-              Enter your credentials to continue
+              {t("auth.login.subtitle")}
             </p>
           </div>
 
@@ -206,7 +210,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.login.email")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -227,12 +231,12 @@ export default function LoginPage() {
             {/* Password */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("auth.login.password")}</Label>
                 <Link
                   to="/forgot-password"
                   className="text-xs text-accent hover:underline"
                 >
-                  Forgot?
+                  {t("auth.login.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -272,11 +276,11 @@ export default function LoginPage() {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Signing in...
+                  {t("auth.login.signingIn")}
                 </div>
               ) : (
                 <>
-                  Sign In
+                  {t("common.signIn")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -290,7 +294,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center">
               <span className="bg-background px-2 text-xs text-muted-foreground">
-                or
+                {t("common.or")}
               </span>
             </div>
           </div>
@@ -326,12 +330,12 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Don't have an account?{" "}
+            {t("auth.login.noAccount")}{" "}
             <Link
               to="/register"
               className="text-accent hover:underline font-medium"
             >
-              Sign up
+              {t("common.signUp")}
             </Link>
           </p>
         </motion.div>
