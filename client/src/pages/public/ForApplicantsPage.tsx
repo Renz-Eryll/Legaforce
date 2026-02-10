@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Shield,
@@ -42,12 +43,12 @@ const staggerContainer = {
 };
 
 // Job categories with brand-themed gradients
-const jobCategories = [
+const getJobCategories = (t: any) => [
   {
     icon: Heart,
-    title: "Healthcare",
-    description: "Nurses, Caregivers, Medical Technicians",
-    jobs: "2,500+ openings",
+    title: t("applicants.healthcare"),
+    description: t("applicants.healthcareDesc"),
+    jobs: "2,500+ " + t("applicants.openings"),
     gradient: "from-red-500/10 to-pink-500/10",
     iconBg: "bg-red-500/10",
     iconColor: "text-red-600 dark:text-red-400",
@@ -55,9 +56,9 @@ const jobCategories = [
   },
   {
     icon: Briefcase,
-    title: "Engineering",
-    description: "Civil, Mechanical, Electrical Engineers",
-    jobs: "1,200+ openings",
+    title: t("applicants.engineering"),
+    description: t("applicants.engineeringDesc"),
+    jobs: "1,200+ " + t("applicants.openings"),
     gradient: "from-primary/10 to-blue-500/10",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
@@ -65,9 +66,9 @@ const jobCategories = [
   },
   {
     icon: Users,
-    title: "Hospitality",
-    description: "Hotel Staff, Chefs, Restaurant Crew",
-    jobs: "3,000+ openings",
+    title: t("applicants.hospitality"),
+    description: t("applicants.hospitalityDesc"),
+    jobs: "3,000+ " + t("applicants.openings"),
     gradient: "from-accent/10 to-orange-500/10",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
@@ -75,9 +76,9 @@ const jobCategories = [
   },
   {
     icon: GraduationCap,
-    title: "Education",
-    description: "Teachers, Tutors, Trainers",
-    jobs: "800+ openings",
+    title: t("applicants.education"),
+    description: t("applicants.educationDesc"),
+    jobs: "800+ " + t("applicants.openings"),
     gradient: "from-purple-500/10 to-indigo-500/10",
     iconBg: "bg-purple-500/10",
     iconColor: "text-purple-600 dark:text-purple-400",
@@ -85,9 +86,9 @@ const jobCategories = [
   },
   {
     icon: Globe,
-    title: "IT & Technology",
-    description: "Developers, Support, Technicians",
-    jobs: "1,500+ openings",
+    title: t("applicants.technology"),
+    description: t("applicants.technologyDesc"),
+    jobs: "1,500+ " + t("applicants.openings"),
     gradient: "from-cyan-500/10 to-blue-500/10",
     iconBg: "bg-cyan-500/10",
     iconColor: "text-cyan-600 dark:text-cyan-400",
@@ -95,9 +96,9 @@ const jobCategories = [
   },
   {
     icon: TrendingUp,
-    title: "Skilled Trades",
-    description: "Welders, Electricians, Plumbers",
-    jobs: "2,000+ openings",
+    title: t("applicants.trades"),
+    description: t("applicants.tradesDesc"),
+    jobs: "2,000+ " + t("applicants.openings"),
     gradient: "from-green-500/10 to-emerald-500/10",
     iconBg: "bg-green-500/10",
     iconColor: "text-green-600 dark:text-green-400",
@@ -106,47 +107,41 @@ const jobCategories = [
 ];
 
 // Benefits with modern styling
-const benefits = [
+const getBenefits = (t: any) => [
   {
     icon: DollarSign,
-    title: "Zero Placement Fees",
-    description:
-      "We follow ethical recruitment practices. You'll never pay excessive fees to find work abroad.",
+    title: t("applicants.zeroFees"),
+    description: t("applicants.zeroFeesDesc"),
     gradient: "from-green-500/5 to-emerald-500/5",
   },
   {
     icon: Shield,
-    title: "Worker Protection",
-    description:
-      "24/7 support hotline, anonymous reporting system, and advocacy for your rights.",
+    title: t("applicants.workerProtection"),
+    description: t("applicants.workerProtectionDesc"),
     gradient: "from-primary/5 to-blue-500/5",
   },
   {
     icon: Sparkles,
-    title: "AI-Powered CV Builder",
-    description:
-      "Create a professional, internationally-formatted CV in minutes with our smart AI tool.",
+    title: t("applicants.aiCVBuilder"),
+    description: t("applicants.aiCVBuilderDesc"),
     gradient: "from-accent/5 to-yellow-500/5",
   },
   {
     icon: Clock,
-    title: "Fast Deployment",
-    description:
-      "Our streamlined process gets you deployed in 21-30 days, not the usual 90+ days.",
+    title: t("applicants.fastDeployment"),
+    description: t("applicants.fastDeploymentDesc"),
     gradient: "from-orange-500/5 to-red-500/5",
   },
   {
     icon: FileText,
-    title: "Real-Time Tracking",
-    description:
-      "Track every step of your application from submission to deployment online.",
+    title: t("applicants.tracking"),
+    description: t("applicants.trackingDesc"),
     gradient: "from-purple-500/5 to-pink-500/5",
   },
   {
     icon: Award,
-    title: "Rewards Program",
-    description:
-      "Earn points for completing milestones and redeem them for priority processing.",
+    title: t("applicants.rewards"),
+    description: t("applicants.rewardsDesc"),
     gradient: "from-accent/5 to-orange-500/5",
   },
 ];
@@ -154,48 +149,56 @@ const benefits = [
 // Destination countries
 const destinations = [
   {
+    nameKey: "saudiArabia",
     name: "Saudi Arabia",
     flag: "🇸🇦",
     jobs: "5,000+",
     color: "from-green-500/10 to-emerald-500/10",
   },
   {
+    nameKey: "uae",
     name: "UAE",
     flag: "🇦🇪",
     jobs: "3,500+",
     color: "from-red-500/10 to-green-500/10",
   },
   {
+    nameKey: "qatar",
     name: "Qatar",
     flag: "🇶🇦",
     jobs: "2,000+",
     color: "from-red-500/10 to-purple-500/10",
   },
   {
+    nameKey: "singapore",
     name: "Singapore",
     flag: "🇸🇬",
     jobs: "1,800+",
     color: "from-red-500/10 to-white/5",
   },
   {
+    nameKey: "japan",
     name: "Japan",
     flag: "🇯🇵",
     jobs: "1,500+",
     color: "from-red-500/10 to-white/5",
   },
   {
+    nameKey: "canada",
     name: "Canada",
     flag: "🇨🇦",
     jobs: "1,200+",
     color: "from-red-500/10 to-white/5",
   },
   {
+    nameKey: "germany",
     name: "Germany",
     flag: "🇩🇪",
     jobs: "900+",
     color: "from-black/5 to-red-500/10",
   },
   {
+    nameKey: "australia",
     name: "Australia",
     flag: "🇦🇺",
     jobs: "800+",
@@ -204,79 +207,77 @@ const destinations = [
 ];
 
 // Steps to get started
-const steps = [
+const getSteps = (t: any) => [
   {
     number: "01",
-    title: "Create Your Account",
-    description:
-      "Sign up for free and complete your profile with personal and professional information.",
+    title: t("applicants.createAccount"),
+    description: t("applicants.createAccountDesc"),
     icon: Users,
   },
   {
     number: "02",
-    title: "Build Your CV",
-    description:
-      "Use our AI-powered CV builder to create a professional, internationally-formatted resume.",
+    title: t("applicants.buildCV"),
+    description: t("applicants.buildCVDesc"),
     icon: FileText,
   },
   {
     number: "03",
-    title: "Browse Opportunities",
-    description:
-      "Explore thousands of verified job openings from employers around the world.",
+    title: t("applicants.browseJobs"),
+    description: t("applicants.browseJobsDesc"),
     icon: Search,
   },
   {
     number: "04",
-    title: "Apply & Interview",
-    description:
-      "Submit applications with one click and complete video interviews from home.",
+    title: t("applicants.applyInterview"),
+    description: t("applicants.applyInterviewDesc"),
     icon: Video,
   },
   {
     number: "05",
-    title: "Get Deployed",
-    description:
-      "Complete documentation with our guidance and start your international career.",
+    title: t("applicants.getDeployed"),
+    description: t("applicants.getDeployedDesc"),
     icon: Rocket,
   },
 ];
 
 // Success stories
-const successStories = [
+const getSuccessStories = (t: any) => [
   {
     name: "Maria Santos",
-    role: "Nurse in Saudi Arabia",
-    quote:
-      "From application to deployment in just 25 days! The AI CV builder helped me stand out.",
+    role: t("applicants.nurse"),
+    quote: t("applicants.nurseQuote"),
     avatar: "MS",
     flag: "🇸🇦",
   },
   {
     name: "Jose Cruz",
-    role: "Engineer in UAE",
-    quote:
-      "Zero fees and full transparency. Legaforce truly puts workers first.",
+    role: t("applicants.engineer"),
+    quote: t("applicants.engineerQuote"),
     avatar: "JC",
     flag: "🇦🇪",
   },
   {
     name: "Anna Reyes",
-    role: "Hotel Manager in Qatar",
-    quote:
-      "The support team was available 24/7. I always felt supported throughout the process.",
+    role: t("applicants.hotelManager"),
+    quote: t("applicants.hotelManagerQuote"),
     avatar: "AR",
     flag: "🇶🇦",
   },
 ];
 
 export default function ForApplicantsPage() {
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
+
+  const jobCategories = getJobCategories(t);
+  const benefits = getBenefits(t);
+  const steps = getSteps(t);
+  const successStories = getSuccessStories(t);
 
   return (
     <div className="overflow-hidden">
@@ -325,7 +326,7 @@ export default function ForApplicantsPage() {
               <motion.div variants={fadeInUp} className="mb-6">
                 <Badge className="px-4 py-2 bg-gradient-to-r from-accent/10 to-primary/10 text-foreground border-accent/20 font-medium">
                   <Users className="w-4 h-4 mr-2 text-accent" />
-                  For Job Seekers
+                  {t("applicants.heroLabel", "For Job Seekers")}
                 </Badge>
               </motion.div>
 
@@ -333,17 +334,17 @@ export default function ForApplicantsPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6"
               >
-                Find Your Dream Job{" "}
-                <span className="gradient-text">Abroad</span>
+                {t("applicants.heroTitle", "Find Your Dream Job")}{" "}
+                <span className="gradient-text">{t("applicants.heroTitleHighlight", "Abroad")}</span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed"
               >
-                Access 10,000+ verified job openings worldwide. Get deployed in{" "}
-                <span className="font-semibold text-accent">21-30 days</span>{" "}
-                with zero placement fees.
+                {t("applicants.heroSubtitle", "Access 10,000+ verified job openings worldwide. Get deployed in")}{" "}
+                <span className="font-semibold text-accent">{t("applicants.heroDays", "21-30 days")}</span>{" "}
+                {t("applicants.heroZeroFees", "with zero placement fees.")}
               </motion.p>
 
               <motion.div
@@ -360,7 +361,7 @@ export default function ForApplicantsPage() {
                       className="group h-14 px-8 gradient-bg-accent text-white font-semibold shadow-2xl glow-accent"
                     >
                       <Sparkles className="w-5 h-5 mr-2" />
-                      Start Free
+                      {t("applicants.startFree", "Start Free")}
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </motion.div>
@@ -375,7 +376,7 @@ export default function ForApplicantsPage() {
                       size="lg"
                       className="h-14 px-8 border-accent/20 hover:bg-accent/5"
                     >
-                      Browse Jobs
+                      {t("applicants.browseJobs")}
                     </Button>
                   </motion.div>
                 </Link>
@@ -387,9 +388,9 @@ export default function ForApplicantsPage() {
                 className="flex flex-wrap gap-6 items-center justify-center"
               >
                 {[
-                  { icon: Users, value: "50K+", label: "Workers Deployed" },
-                  { icon: Globe, value: "30+", label: "Countries" },
-                  { icon: TrendingUp, value: "98%", label: "Success Rate" },
+                  { icon: Users, value: "50K+", label: t("landing.stats.workersDeployed") },
+                  { icon: Globe, value: "30+", label: t("landing.stats.countries") },
+                  { icon: TrendingUp, value: "98%", label: t("landing.stats.successRate") },
                 ].map((stat, index) => (
                   <motion.div
                     key={stat.label}
@@ -428,15 +429,14 @@ export default function ForApplicantsPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Briefcase className="w-4 h-4 mr-2" />
-              Job Categories
+              {t("applicants.jobCategories")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              Explore <span className="gradient-text">10,000+ Jobs</span> Across
-              Industries
+              {t("applicants.explorJobs", "Explore")} <span className="gradient-text">{t("applicants.exploreJobsHighlight", "10,000+ Jobs")}</span>{" "}
+              {t("applicants.acrossIndustries", "Across Industries")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find opportunities in your field with verified employers
-              worldwide.
+              {t("applicants.categoriesSubtitle", "Find opportunities in your field with verified employers worldwide.")}
             </p>
           </motion.div>
 
@@ -495,7 +495,7 @@ export default function ForApplicantsPage() {
                       size="sm"
                       className="group/btn text-accent hover:text-accent hover:bg-accent/5 w-full"
                     >
-                      Browse Jobs
+                      {t("applicants.browseJobs")}
                       <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
@@ -535,14 +535,13 @@ export default function ForApplicantsPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Award className="w-4 h-4 mr-2" />
-              Why Choose Us
+              {t("applicants.whyChooseUs", "Why Choose Us")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              Benefits for <span className="gradient-text">Applicants</span>
+              {t("applicants.benefits")} {t("applicants.forApplicants", "for")} <span className="gradient-text">{t("applicants.applicantsLabel", "Applicants")}</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We put workers first with comprehensive support and transparent
-              practices.
+              {t("applicants.benefitsSubtitle", "We put workers first with comprehensive support and transparent practices.")}
             </p>
           </motion.div>
 
@@ -592,13 +591,13 @@ export default function ForApplicantsPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <MapPin className="w-4 h-4 mr-2" />
-              Destinations
+              {t("applicants.destinations")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              Work in <span className="gradient-text">30+ Countries</span>
+              {t("applicants.workIn", "Work in")} <span className="gradient-text">{t("applicants.thirtyCountries", "30+ Countries")}</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Connect with verified employers from around the world.
+              {t("applicants.destinationsSubtitle", "Connect with verified employers from around the world.")}
             </p>
           </motion.div>
 
@@ -625,7 +624,7 @@ export default function ForApplicantsPage() {
                 </motion.span>
                 <h3 className="font-semibold mb-1">{destination.name}</h3>
                 <p className="text-sm text-accent font-medium">
-                  {destination.jobs} jobs
+                  {destination.jobs} {t("applicants.jobsLabel", "jobs")}
                 </p>
               </motion.div>
             ))}
@@ -644,11 +643,11 @@ export default function ForApplicantsPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Star className="w-4 h-4 mr-2 fill-accent text-accent" />
-              Success Stories
+              {t("applicants.successStories")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              Real Stories from{" "}
-              <span className="gradient-text">Real People</span>
+              {t("applicants.realStories", "Real Stories from")}{" "}
+              <span className="gradient-text">{t("applicants.realPeople", "Real People")}</span>
             </h2>
           </motion.div>
 
@@ -700,14 +699,13 @@ export default function ForApplicantsPage() {
           >
             <Badge className="mb-4 bg-white/10 text-white border-white/20">
               <Clock className="w-4 h-4 mr-2" />
-              Getting Started
+              {t("applicants.steps")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-white mb-4">
-              5 Simple Steps to Your Dream Job
+              {t("applicants.fiveSteps", "5 Simple Steps to Your Dream Job")}
             </h2>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Our streamlined process makes finding work abroad easier than
-              ever.
+              {t("applicants.stepsSubtitle", "Our streamlined process makes finding work abroad easier than ever.")}
             </p>
           </motion.div>
 
@@ -752,12 +750,11 @@ export default function ForApplicantsPage() {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-6">
-              Ready to Start Your{" "}
-              <span className="gradient-text">Global Career?</span>
+              {t("applicants.ctaTitle", "Ready to Start Your")}{" "}
+              <span className="gradient-text">{t("applicants.ctaHighlight", "Global Career?")}</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Create your free account today and take the first step towards
-              your dream job abroad. No fees, no hidden costs.
+              {t("applicants.ctaSubtitle", "Create your free account today and take the first step towards your dream job abroad. No fees, no hidden costs.")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/register">
@@ -769,7 +766,7 @@ export default function ForApplicantsPage() {
                     size="lg"
                     className="h-14 px-10 gradient-bg-accent text-white font-semibold shadow-lg glow-accent"
                   >
-                    Get Started Free
+                    {t("common.getStarted")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
@@ -780,7 +777,7 @@ export default function ForApplicantsPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button variant="outline" size="lg" className="h-14 px-10">
-                    Learn More
+                    {t("common.learnMore")}
                   </Button>
                 </motion.div>
               </Link>

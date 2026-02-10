@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Shield,
@@ -30,111 +31,113 @@ const staggerContainer = {
   animate: { transition: { staggerChildren: 0.1 } },
 };
 
-const coreServices = [
+const getCoreServices = (t: any) => [
   {
     icon: Sparkles,
-    title: "AI-Powered CV Builder",
-    description:
-      "Generate professional CVs instantly with our advanced AI technology.",
+    title: t("services.cvBuilder"),
+    description: t("services.cvBuilderDesc"),
     features: [
-      "Multiple templates",
-      "Industry optimization",
-      "Multi-language support",
+      t("services.multipleTemplates"),
+      t("services.industryOptimization"),
+      t("services.multiLanguage"),
     ],
     image: "/images/services/cv-builder.jpg",
   },
   {
     icon: Users,
-    title: "Candidate Matching",
-    description:
-      "Intelligent matching connects right candidates with right opportunities.",
+    title: t("services.matching"),
+    description: t("services.matchingDesc"),
     features: [
-      "Skills-based matching",
-      "Experience verification",
-      "Real-time updates",
+      t("services.skillsMatch"),
+      t("services.experienceVerify"),
+      t("services.realTimeUpdates"),
     ],
     image: "/images/services/matching.jpg",
   },
   {
     icon: Video,
-    title: "Video Interview Platform",
-    description:
-      "Conduct seamless remote interviews with our integrated platform.",
+    title: t("services.videoInterview"),
+    description: t("services.videoInterviewDesc"),
     features: [
-      "One-click scheduling",
-      "HD video quality",
-      "Collaborative scoring",
+      t("services.oneClick"),
+      t("services.hdVideo"),
+      t("services.collaborativeScoring"),
     ],
     image: "/images/services/video-interview.jpg",
   },
   {
     icon: FileCheck,
-    title: "Document Processing",
-    description:
-      "We handle all documentation from visa applications to medical clearances.",
+    title: t("services.documents"),
+    description: t("services.documentsDesc"),
     features: [
-      "Visa processing",
-      "Medical examinations",
-      "Background verification",
+      t("services.visaProcessing"),
+      t("services.medicalExams"),
+      t("services.backgroundCheck"),
     ],
     image: "/images/services/documents.jpg",
   },
   {
     icon: GraduationCap,
-    title: "Pre-Departure Training",
-    description:
-      "Comprehensive training programs prepare workers for their new roles.",
+    title: t("services.training"),
+    description: t("services.trainingDesc"),
     features: [
-      "Language courses",
-      "Cultural orientation",
-      "Job-specific training",
+      t("services.languageCourses"),
+      t("services.culturalOrientation"),
+      t("services.jobTraining"),
     ],
     image: "/images/services/training.jpg",
   },
   {
     icon: Headphones,
-    title: "24/7 Worker Support",
-    description:
-      "Round-the-clock assistance including emergency support and advocacy.",
-    features: ["Hotline support", "Emergency assistance", "Legal advocacy"],
+    title: t("services.support"),
+    description: t("services.supportDesc"),
+    features: [
+      t("services.hotlineSupport"),
+      t("services.emergencyAssistance"),
+      t("services.legalAdvocacy"),
+    ],
     image: "/images/services/support.jpg",
   },
 ];
 
-const valueProps = [
+const getValueProps = (t: any) => [
   {
     icon: Clock,
-    title: "Faster Deployment",
-    stat: "21-30 Days",
-    description: "Vs. 90+ days average",
+    title: t("services.fasterDeployment"),
+    stat: t("services.stat21Days"),
+    description: t("services.vs90Days"),
   },
   {
     icon: Shield,
-    title: "Ethical Recruitment",
-    stat: "Zero Fees",
-    description: "For workers",
+    title: t("services.ethicalRecruitment"),
+    stat: t("services.zeroFees"),
+    description: t("services.forWorkers"),
   },
   {
     icon: CheckCircle,
-    title: "Quality Assurance",
-    stat: "98%",
-    description: "Satisfaction rate",
+    title: t("services.qualityAssurance"),
+    stat: t("services.stat98"),
+    description: t("services.satisfactionRate"),
   },
   {
     icon: Globe,
-    title: "Global Reach",
-    stat: "30+",
-    description: "Countries served",
+    title: t("services.globalReach"),
+    stat: t("services.stat30"),
+    description: t("services.countriesServed"),
   },
 ];
 
 export default function ServicesPage() {
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
+
+  const coreServices = getCoreServices(t);
+  const valueProps = getValueProps(t);
 
   return (
     <div className="overflow-hidden">
@@ -159,7 +162,7 @@ export default function ServicesPage() {
               <motion.div variants={fadeInUp} className="mb-6">
                 <Badge variant="premium" className="px-4 py-1.5 text-sm">
                   <Briefcase className="w-4 h-4 mr-2" />
-                  Our Services
+                  {t("services.badge")}
                 </Badge>
               </motion.div>
 
@@ -167,16 +170,15 @@ export default function ServicesPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
               >
-                Comprehensive{" "}
-                <span className="text-accent">Recruitment Solutions</span>
+                {t("services.title")}{" "}
+                <span className="text-accent">{t("services.subtitle")}</span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8"
               >
-                From talent sourcing to deployment and beyond, we provide
-                end-to-end recruitment services powered by technology.
+                {t("services.description")}
               </motion.p>
 
               <motion.div
@@ -185,13 +187,13 @@ export default function ServicesPage() {
               >
                 <Link to="/register">
                   <Button variant="hero" size="xl">
-                    Get Started
+                    {t("services.getStarted")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/about">
                   <Button variant="hero-secondary" size="xl">
-                    Learn About Us
+                    {t("services.learnAbout")}
                   </Button>
                 </Link>
               </motion.div>
@@ -287,14 +289,13 @@ export default function ServicesPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Core Services
+              {t("services.coreServices")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything You Need for Successful Recruitment
+              {t("services.coreServicesTitle", "Everything You Need for Successful Recruitment")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our comprehensive suite covers every aspect of international
-              recruitment.
+              {t("services.coreServicesSubtitle", "Our comprehensive suite covers every aspect of international recruitment.")}
             </p>
           </motion.div>
 
@@ -386,14 +387,13 @@ export default function ServicesPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Target className="w-4 h-4 mr-2" />
-              Our Process
+              {t("services.ourProcess", "Our Process")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              From Inquiry to Deployment
+              {t("services.processTitle", "From Inquiry to Deployment")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A streamlined, technology-driven process that ensures quality and
-              speed.
+              {t("services.processSubtitle", "A streamlined, technology-driven process that ensures quality and speed.")}
             </p>
           </motion.div>
 
@@ -419,10 +419,10 @@ export default function ServicesPage() {
               {/* Process Steps Overlay */}
               <div className="absolute inset-0 flex items-center justify-around p-8">
                 {[
-                  { label: "Inquiry", icon: Briefcase },
-                  { label: "Matching", icon: Users },
-                  { label: "Interview", icon: Video },
-                  { label: "Deploy", icon: Globe },
+                  { label: t("services.processInquiry", "Inquiry"), icon: Briefcase },
+                  { label: t("services.processMatching", "Matching"), icon: Users },
+                  { label: t("services.processInterview", "Interview"), icon: Video },
+                  { label: t("services.processDeploy", "Deploy"), icon: Globe },
                 ].map((step, index) => (
                   <motion.div
                     key={step.label}
@@ -449,17 +449,17 @@ export default function ServicesPage() {
               {
                 icon: Clock,
                 value: "70%",
-                label: "Faster than traditional",
+                label: t("services.fasterThanTraditional", "Faster than traditional"),
               },
               {
                 icon: TrendingUp,
                 value: "98%",
-                label: "Success rate",
+                label: t("services.successRate", "Success rate"),
               },
               {
                 icon: Zap,
-                value: "21 Days",
-                label: "Average deployment",
+                value: t("services.stat21DaysShort", "21 Days"),
+                label: t("services.averageDeployment", "Average deployment"),
               },
             ].map((stat, index) => (
               <motion.div
@@ -509,11 +509,10 @@ export default function ServicesPage() {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Ready to Get Started?
+              {t("services.ctaTitle", "Ready to Get Started?")}
             </h2>
             <p className="text-lg text-primary-foreground/70 mb-8">
-              Whether you're looking for your next opportunity or seeking top
-              talent, we're here to help.
+              {t("services.ctaSubtitle", "Whether you're looking for your next opportunity or seeking top talent, we're here to help.")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/register">
@@ -522,7 +521,7 @@ export default function ServicesPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button variant="premium" size="xl" className="min-w-[200px]">
-                    Get Started
+                    {t("services.getStarted")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
@@ -537,7 +536,7 @@ export default function ServicesPage() {
                     size="xl"
                     className="min-w-[200px] border-primary-foreground/20 text-white hover:bg-primary-foreground hover:text-primary"
                   >
-                    About Legaforce
+                    {t("services.aboutLegaforce", "About Legaforce")}
                   </Button>
                 </motion.div>
               </Link>
