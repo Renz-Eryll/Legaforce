@@ -115,8 +115,8 @@ const App = () => {
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/applicants" element={<ForApplicantsPage />} />
-              <Route path="/employers" element={<ForEmployersPage />} />
+              <Route path="/jobs" element={<ForApplicantsPage />} />
+              <Route path="/recruitment" element={<ForEmployersPage />} />
               <Route path="/services" element={<ServicesPage />} />
               <Route path="/about" element={<AboutPage />} />
             </Route>

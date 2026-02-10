@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Shield,
@@ -31,115 +32,113 @@ const staggerContainer = {
   animate: { transition: { staggerChildren: 0.1 } },
 };
 
-const values = [
+const getValues = (t: any) => [
   {
     icon: Heart,
-    title: "Worker-First",
-    description:
-      "Every decision we make prioritizes the welfare and success of Filipino workers abroad.",
+    title: t("about.workerFirst"),
+    description: t("about.workerFirstDesc"),
     color: "text-red-500",
     bg: "bg-red-500/10",
   },
   {
     icon: Shield,
-    title: "Integrity",
-    description:
-      "We operate with complete transparency and ethical practices in all our dealings.",
+    title: t("about.integrity"),
+    description: t("about.integrityDesc"),
     color: "text-primary",
     bg: "bg-primary/10",
   },
   {
     icon: Lightbulb,
-    title: "Innovation",
-    description:
-      "We leverage technology to create better experiences for workers and employers.",
+    title: t("about.innovation"),
+    description: t("about.innovationDesc"),
     color: "text-accent",
     bg: "bg-accent/10",
   },
   {
     icon: Handshake,
-    title: "Partnership",
-    description:
-      "We build lasting relationships based on trust, respect, and mutual success.",
+    title: t("about.partnership"),
+    description: t("about.partnershipDesc"),
     color: "text-emerald-500",
     bg: "bg-emerald-500/10",
   },
 ];
 
-const milestones = [
+const getMilestones = (t: any) => [
   {
     year: "2018",
-    title: "Founded",
-    description:
-      "Legaforce was established with a mission to transform overseas recruitment.",
+    title: t("about.founded"),
+    description: t("about.foundedDesc"),
   },
   {
     year: "2019",
-    title: "POEA License",
-    description:
-      "Received official license from the Philippine Overseas Employment Administration.",
+    title: t("about.poealicense"),
+    description: t("about.poealicenseDesc"),
   },
   {
     year: "2020",
-    title: "Digital Platform",
-    description:
-      "Launched our AI-powered recruitment platform during the pandemic.",
+    title: t("about.digitalPlatform"),
+    description: t("about.digitalPlatformDesc"),
   },
   {
     year: "2021",
-    title: "10,000 Workers",
-    description: "Deployed our 10,000th worker to employers worldwide.",
+    title: t("about.workers10k"),
+    description: t("about.workers10kDesc"),
   },
   {
     year: "2022",
-    title: "ISO Certified",
-    description:
-      "Achieved ISO 9001 certification for quality management systems.",
+    title: t("about.isoCertified"),
+    description: t("about.isoCertifiedDesc"),
   },
   {
     year: "2023",
-    title: "50,000 Workers",
-    description: "Reached milestone of 50,000+ successfully deployed workers.",
+    title: t("about.workers50k"),
+    description: t("about.workers50kDesc"),
   },
 ];
 
-const accreditations = [
-  "POEA Licensed Agency",
-  "ISO 9001:2015 Certified",
-  "DMW Accredited",
-  "OWWA Partner Agency",
-  "IOM Member",
-  "PJSFA Member",
+const getAccreditations = (t: any) => [
+  t("about.poea"),
+  t("about.iso"),
+  t("about.dmw"),
+  t("about.owwa"),
+  t("about.iom"),
+  t("about.pjsfa"),
 ];
 
-const leadership = [
+const getLeadership = (t: any) => [
   {
     name: "Maria dela Cruz",
-    role: "CEO & Founder",
-    bio: "20+ years in international recruitment and labor advocacy.",
+    role: t("about.ceo"),
+    bio: t("about.yearsExperience"),
     initials: "MC",
   },
   {
     name: "Roberto Santos",
-    role: "Chief Operations Officer",
-    bio: "Former POEA official with expertise in deployment processes.",
+    role: t("about.coo"),
+    bio: t("about.poealead"),
     initials: "RS",
   },
   {
     name: "Jennifer Tan",
-    role: "Chief Technology Officer",
-    bio: "Tech leader driving innovation in recruitment technology.",
+    role: t("about.cto"),
+    bio: t("about.techLead"),
     initials: "JT",
   },
 ];
 
 export default function AboutPage() {
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
+
+  const values = getValues(t);
+  const milestones = getMilestones(t);
+  const accreditations = getAccreditations(t);
+  const leadership = getLeadership(t);
 
   return (
     <div className="overflow-hidden">
@@ -164,7 +163,7 @@ export default function AboutPage() {
               <motion.div variants={fadeInUp} className="mb-6">
                 <Badge variant="premium" className="px-4 py-1.5 text-sm">
                   <FileText className="w-4 h-4 mr-2" />
-                  About Us
+                  {t("about.badge")}
                 </Badge>
               </motion.div>
 
@@ -172,17 +171,15 @@ export default function AboutPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
               >
-                Empowering Filipino Workers{" "}
-                <span className="text-accent">Globally</span>
+                {t("about.title")}{" "}
+                <span className="text-accent">{t("about.subtitle")}</span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8"
               >
-                We're on a mission to transform overseas employment by putting
-                workers first, leveraging technology, and building a more
-                transparent recruitment industry.
+                {t("about.description")}
               </motion.p>
             </motion.div>
 
@@ -275,12 +272,11 @@ export default function AboutPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-accent/10 text-accent mb-6">
                   <Target className="h-7 w-7" />
                 </div>
-                <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
+                <h2 className="text-2xl font-bold mb-4">
+                  {t("about.mission")}
+                </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  To be the most trusted and worker-centric overseas recruitment
-                  agency in the Philippines, connecting skilled Filipino workers
-                  with global opportunities while ensuring their rights,
-                  welfare, and dignity are protected at every step.
+                  {t("about.missionDescription")}
                 </p>
               </div>
             </motion.div>
@@ -304,12 +300,9 @@ export default function AboutPage() {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 text-primary mb-6">
                   <Globe className="h-7 w-7" />
                 </div>
-                <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
+                <h2 className="text-2xl font-bold mb-4">{t("about.vision")}</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  To revolutionize the overseas employment industry through
-                  technology and ethical practices, making international careers
-                  accessible, transparent, and rewarding for every Filipino
-                  worker who dreams of working abroad.
+                  {t("about.visionDescription")}
                 </p>
               </div>
             </motion.div>
@@ -344,10 +337,10 @@ export default function AboutPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Our Values
+              {t("about.values")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              What We Stand For
+              {t("about.whyChooseUs")}
             </h2>
           </motion.div>
 
@@ -394,9 +387,11 @@ export default function AboutPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Our Journey
+              {t("about.journey")}
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Milestones</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              {t("about.milestones")}
+            </h2>
           </motion.div>
 
           <div className="max-w-3xl mx-auto">
