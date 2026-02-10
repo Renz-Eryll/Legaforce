@@ -13,41 +13,45 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
-const navigation = [
-  {
-    name: "For Applicants",
-    href: "/applicants",
-    icon: Users,
-    description: "Find your dream job abroad",
-  },
-  {
-    name: "For Employers",
-    href: "/employers",
-    icon: Building2,
-    description: "Hire skilled Filipino workers",
-  },
-  {
-    name: "Services",
-    href: "/services",
-    icon: Briefcase,
-    description: "Our recruitment services",
-  },
-  {
-    name: "About",
-    href: "/about",
-    icon: FileText,
-    description: "Learn about Legaforce",
-  },
-];
 
 export function Header() {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const navigation = [
+    {
+      name: t("navigation.applicant.jobSearch"),
+      href: "/applicants",
+      icon: Users,
+      description: "Find your dream job abroad",
+    },
+    {
+      name: t("navigation.employer.recruitment"),
+      href: "/employers",
+      icon: Building2,
+      description: "Hire skilled Filipino workers",
+    },
+    {
+      name: "Services",
+      href: "/services",
+      icon: Briefcase,
+      description: "Our recruitment services",
+    },
+    {
+      name: "About",
+      href: "/about",
+      icon: FileText,
+      description: "Learn about Legaforce",
+    },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,6 +119,7 @@ export function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
+            <LanguageSwitcher />
             <ThemeToggle />
             <Link to="/login">
               <Button
@@ -122,7 +127,7 @@ export function Header() {
                 size="sm"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Sign In
+                {t("common.signIn")}
               </Button>
             </Link>
             <Link to="/register">
@@ -132,7 +137,7 @@ export function Header() {
               >
                 <span className="relative z-10 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Get Started
+                  {t("common.getStarted")}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
                 {/* Shine on hover */}
@@ -143,6 +148,7 @@ export function Header() {
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 lg:hidden">
+            <LanguageSwitcher />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -233,13 +239,13 @@ export function Header() {
                 >
                   <Link to="/login" className="block">
                     <Button variant="outline" className="w-full h-12">
-                      Sign In
+                      {t("common.signIn")}
                     </Button>
                   </Link>
                   <Link to="/register" className="block">
                     <Button className="w-full h-12 gradient-bg-accent text-accent-foreground font-semibold">
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Get Started Free
+                      {t("common.getStarted")}
                     </Button>
                   </Link>
                 </motion.div>

@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 // Animation variants
 const fadeInUp = {
@@ -44,78 +45,72 @@ const scaleIn = {
   animate: { opacity: 1, scale: 1 },
 };
 
-// Stats data
-const stats = [
-  { value: "50,000+", label: "Workers Deployed", icon: Users },
-  { value: "500+", label: "Partner Employers", icon: Building2 },
-  { value: "30+", label: "Countries", icon: Globe },
-  { value: "98%", label: "Success Rate", icon: TrendingUp },
+// Stats data - will be translated in component
+const getStats = (t: any) => [
+  { value: "50,000+", label: t("landing.stats.workersDeployed"), icon: Users },
+  { value: "500+", label: t("landing.stats.partnerEmployers"), icon: Building2 },
+  { value: "30+", label: t("landing.stats.countries"), icon: Globe },
+  { value: "98%", label: t("landing.stats.successRate"), icon: TrendingUp },
 ];
 
-// Features data with brand colors
-const features = [
+// Features data with brand colors - will be translated in component
+const getFeatures = (t: any) => [
   {
     icon: Sparkles,
-    title: "AI-Powered CV Builder",
-    description:
-      "Generate professional CVs instantly with our AI technology. Stand out to employers worldwide.",
+    title: t("landing.features.aiCVBuilder.title"),
+    description: t("landing.features.aiCVBuilder.description"),
     gradient: "from-primary/20 via-primary/10 to-transparent",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   {
     icon: Zap,
-    title: "Faster Deployment",
-    description:
-      "Our automated workflows reduce deployment time from 90 days to just 21-30 days.",
+    title: t("landing.features.fasterDeployment.title"),
+    description: t("landing.features.fasterDeployment.description"),
     gradient: "from-accent/20 via-accent/10 to-transparent",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
   },
   {
     icon: Shield,
-    title: "Worker Protection",
-    description:
-      "Comprehensive support system with anonymous reporting and 24/7 assistance.",
+    title: t("landing.features.workerProtection.title"),
+    description: t("landing.features.workerProtection.description"),
     gradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
     icon: Globe,
-    title: "Global Opportunities",
-    description:
-      "Connect with verified employers from 30+ countries across all industries.",
+    title: t("landing.features.globalOpportunities.title"),
+    description: t("landing.features.globalOpportunities.description"),
     gradient: "from-primary/20 via-accent/10 to-transparent",
     iconBg: "bg-gradient-to-br from-primary/10 to-accent/10",
     iconColor: "text-primary dark:text-accent",
   },
   {
     icon: FileCheck,
-    title: "End-to-End Tracking",
-    description:
-      "Real-time status updates from application to deployment. Always know where you stand.",
+    title: t("landing.features.tracking.title"),
+    description: t("landing.features.tracking.description"),
     gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Award,
-    title: "Rewards Program",
-    description:
-      "Earn points for completing milestones and redeem them for priority processing.",
+    title: t("landing.features.rewards.title"),
+    description: t("landing.features.rewards.description"),
     gradient: "from-accent/20 via-accent/10 to-transparent",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
   },
 ];
 
-// Trust indicators
-const trustIndicators = [
-  "POEA Licensed",
-  "ISO 9001 Certified",
-  "DMW Accredited",
-  "OWWA Partner",
+// Trust indicators - will be translated in component
+const getTrustIndicators = (t: any) => [
+  t("landing.trustIndicators.poea"),
+  t("landing.trustIndicators.iso"),
+  t("landing.trustIndicators.dmw"),
+  t("landing.trustIndicators.owwa"),
 ];
 
 // Testimonials
@@ -147,6 +142,7 @@ const testimonials = [
 ];
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -154,6 +150,10 @@ export default function LandingPage() {
   });
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
+
+  const stats = getStats(t);
+  const features = getFeatures(t);
+  const trustIndicators = getTrustIndicators(t);
 
   return (
     <div className="overflow-hidden">
@@ -226,7 +226,7 @@ export default function LandingPage() {
               <motion.div variants={fadeInUp} className="mb-6">
                 <Badge className="px-4 py-2 bg-gradient-to-r from-accent/10 to-primary/10 text-foreground border-accent/20 font-medium shine-effect">
                   <Sparkles className="w-4 h-4 mr-2 text-accent" />
-                  Trusted by 50,000+ Filipino Workers
+                  {t("landing.hero.badge")}
                 </Badge>
               </motion.div>
 
@@ -235,8 +235,7 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold tracking-tight mb-6"
               >
-                Your Gateway to{" "}
-                <span className="gradient-text">Global Careers</span>
+                {t("landing.hero.title")}
               </motion.h1>
 
               {/* Subheading */}
@@ -244,9 +243,7 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed"
               >
-                Connect with verified employers worldwide. Get deployed in{" "}
-                <span className="font-semibold text-accent">21-30 days</span>{" "}
-                with our AI-powered recruitment platform.
+                {t("landing.hero.subtitle")}
               </motion.p>
 
               {/* CTA Buttons */}
@@ -264,7 +261,7 @@ export default function LandingPage() {
                       className="group h-14 px-8 gradient-bg-accent text-white font-semibold shadow-2xl glow-accent"
                     >
                       <Sparkles className="w-5 h-5 mr-2" />
-                      Get Started Free
+                      {t("landing.hero.cta")}
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </motion.div>
@@ -280,7 +277,7 @@ export default function LandingPage() {
                       className="h-14 px-8 border-accent/20 hover:bg-accent/5"
                     >
                       <Play className="w-5 h-5 mr-2" />
-                      Watch Demo
+                      {t("landing.hero.watchDemo")}
                     </Button>
                   </motion.div>
                 </Link>
@@ -478,15 +475,13 @@ export default function LandingPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Sparkles className="w-4 h-4 mr-2" />
-              Platform Features
+              {t("landing.features.title")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-6">
-              Everything You Need to{" "}
-              <span className="gradient-text">Succeed Abroad</span>
+              {t("landing.features.subtitle")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our comprehensive platform combines cutting-edge AI technology
-              with human expertise to support your global career journey.
+              {t("landing.features.description")}
             </p>
           </motion.div>
 
@@ -587,14 +582,13 @@ export default function LandingPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Target className="w-4 h-4 mr-2" />
-              Simple Process
+              {t("landing.howItWorks.title")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-6">
-              Your Journey to{" "}
-              <span className="gradient-text">Global Success</span>
+              {t("landing.howItWorks.subtitle")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From application to deployment in just four simple steps.
+              {t("landing.howItWorks.description")}
             </p>
           </motion.div>
 
@@ -607,33 +601,29 @@ export default function LandingPage() {
               {[
                 {
                   step: "01",
-                  title: "Create Profile",
-                  description:
-                    "Sign up and build your professional profile with our AI-powered CV builder.",
+                  title: t("landing.howItWorks.step1.title"),
+                  description: t("landing.howItWorks.step1.description"),
                   icon: Users,
                   color: "primary",
                 },
                 {
                   step: "02",
-                  title: "Browse & Apply",
-                  description:
-                    "Explore job opportunities and apply to positions that match your skills.",
+                  title: t("landing.howItWorks.step2.title"),
+                  description: t("landing.howItWorks.step2.description"),
                   icon: Briefcase,
                   color: "accent",
                 },
                 {
                   step: "03",
-                  title: "Interview",
-                  description:
-                    "Complete video interviews and get matched with the right employers.",
+                  title: t("landing.howItWorks.step3.title"),
+                  description: t("landing.howItWorks.step3.description"),
                   icon: Target,
                   color: "primary",
                 },
                 {
                   step: "04",
-                  title: "Get Deployed",
-                  description:
-                    "Complete documentation and start your international career.",
+                  title: t("landing.howItWorks.step4.title"),
+                  description: t("landing.howItWorks.step4.description"),
                   icon: Globe,
                   color: "accent",
                 },
@@ -705,11 +695,10 @@ export default function LandingPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Star className="w-4 h-4 mr-2 fill-accent text-accent" />
-              Success Stories
+              {t("landing.testimonials.title")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-6">
-              Trusted by Workers{" "}
-              <span className="gradient-text">Worldwide</span>
+              {t("landing.testimonials.subtitle")}
             </h2>
           </motion.div>
 
@@ -796,12 +785,10 @@ export default function LandingPage() {
             className="max-w-4xl mx-auto text-center"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-bold text-white mb-6">
-              Ready to Start Your{" "}
-              <span className="text-accent">Global Career?</span>
+              {t("landing.cta.title")}
             </h2>
             <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of Filipino workers who have found success through
-              Legaforce. Your dream job abroad is just a few clicks away.
+              {t("landing.cta.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/register">
@@ -814,7 +801,7 @@ export default function LandingPage() {
                     className="group h-14 px-10 bg-accent hover:bg-accent/90 text-white font-semibold shadow-2xl"
                   >
                     <Sparkles className="w-5 h-5 mr-2" />
-                    Get Started Free
+                    {t("landing.cta.button")}
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
@@ -829,7 +816,7 @@ export default function LandingPage() {
                     size="lg"
                     className="h-14 px-10 border-white/20 text-white hover:bg-white/10"
                   >
-                    Learn More About Us
+                    {t("landing.cta.learnMore")}
                   </Button>
                 </motion.div>
               </Link>
