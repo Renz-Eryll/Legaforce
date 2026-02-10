@@ -1,0 +1,170 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "getStarted": "Get Started Free",
+    "watchDemo": "Watch Demo",
+    "learnMore": "Learn More",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "support": "Support",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "apply": "Apply",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "or": "or"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Trusted by 50,000+ Filipino Workers",
+      "title": "Your Gateway to Global Careers",
+      "subtitle": "Connect with verified employers worldwide. Get deployed in 21-30 days with our AI-powered recruitment platform.",
+      "cta": "Get Started Free",
+      "watchDemo": "Watch Demo"
+    },
+    "stats": {
+      "workersDeployed": "Workers Deployed",
+      "partnerEmployers": "Partner Employers",
+      "countries": "Countries",
+      "successRate": "Success Rate"
+    },
+    "features": {
+      "title": "Platform Features",
+      "subtitle": "Everything You Need to Succeed Abroad",
+      "description": "Our comprehensive platform combines cutting-edge AI technology with human expertise to support your global career journey.",
+      "aiCVBuilder": {
+        "title": "AI-Powered CV Builder",
+        "description": "Generate professional CVs instantly with our AI technology. Stand out to employers worldwide."
+      },
+      "fasterDeployment": {
+        "title": "Faster Deployment",
+        "description": "Our automated workflows reduce deployment time from 90 days to just 21-30 days."
+      },
+      "workerProtection": {
+        "title": "Worker Protection",
+        "description": "Comprehensive support system with anonymous reporting and 24/7 assistance."
+      },
+      "globalOpportunities": {
+        "title": "Global Opportunities",
+        "description": "Connect with verified employers from 30+ countries across all industries."
+      },
+      "tracking": {
+        "title": "End-to-End Tracking",
+        "description": "Real-time status updates from application to deployment. Always know where you stand."
+      },
+      "rewards": {
+        "title": "Rewards Program",
+        "description": "Earn points for completing milestones and redeem them for priority processing."
+      }
+    },
+    "howItWorks": {
+      "title": "Simple Process",
+      "subtitle": "Your Journey to Global Success",
+      "description": "From application to deployment in just four simple steps.",
+      "step1": {
+        "title": "Create Profile",
+        "description": "Sign up and build your professional profile with our AI-powered CV builder."
+      },
+      "step2": {
+        "title": "Browse & Apply",
+        "description": "Explore job opportunities and apply to positions that match your skills."
+      },
+      "step3": {
+        "title": "Interview",
+        "description": "Complete video interviews and get matched with the right employers."
+      },
+      "step4": {
+        "title": "Get Deployed",
+        "description": "Complete documentation and start your international career."
+      }
+    },
+    "testimonials": {
+      "title": "Success Stories",
+      "subtitle": "Trusted by Workers Worldwide"
+    },
+    "cta": {
+      "title": "Ready to Start Your Global Career?",
+      "subtitle": "Join thousands of Filipino workers who have found success through Legaforce. Your dream job abroad is just a few clicks away.",
+      "button": "Get Started Free",
+      "learnMore": "Learn More About Us"
+    },
+    "trustIndicators": {
+      "poea": "POEA Licensed",
+      "iso": "ISO 9001 Certified",
+      "dmw": "DMW Accredited",
+      "owwa": "OWWA Partner"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Enter your credentials to continue",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot?",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "welcomeBack": "Welcome Back",
+      "accessOpportunities": "Access your opportunities and track your progress",
+      "realTimeTracking": "Real-time job tracking",
+      "aiMatching": "AI-powered matching",
+      "supportAccess": "24/7 support access"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Start your journey to global opportunities"
+    }
+  },
+  "navigation": {
+    "applicant": {
+      "jobSearch": "Job Search",
+      "browseJobs": "Browse Jobs",
+      "myApplications": "My Applications",
+      "savedJobs": "Saved Jobs",
+      "myProfile": "My Profile",
+      "documents": "Documents",
+      "cvBuilder": "CV Builder",
+      "rewardsSupport": "Rewards & Support",
+      "rewards": "Rewards",
+      "complaints": "Complaints"
+    },
+    "employer": {
+      "recruitment": "Recruitment",
+      "jobOrders": "Job Orders",
+      "candidates": "Candidates",
+      "interviews": "Interviews",
+      "management": "Management",
+      "deployments": "Deployments",
+      "invoices": "Invoices",
+      "reports": "Reports",
+      "account": "Account",
+      "companyProfile": "Company Profile"
+    },
+    "admin": {
+      "management": "Management",
+      "applicants": "Applicants",
+      "employers": "Employers",
+      "workflows": "Workflows",
+      "applications": "Applications",
+      "compliance": "Compliance",
+      "financeReports": "Finance & Reports",
+      "userVerification": "User Verification"
+    }
+  },
+  "roles": {
+    "applicant": "Applicant",
+    "employer": "Employer",
+    "admin": "Admin"
+  }
+}
