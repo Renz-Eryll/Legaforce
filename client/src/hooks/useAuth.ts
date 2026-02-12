@@ -22,7 +22,14 @@ export function useAuth() {
     redirectPath?: string,
   ) => {
     try {
-      await loginStore(email, password);
+      const response = await loginStore(email, password);
+
+      if (response?.data?.requiresVerification) {
+        toast.info(response.message || "Please verify your email");
+        navigate("/verify-email", { state: { email: response.data.email } });
+        return;
+      }
+
       toast.success("Login successful!");
 
       // Redirect based on role
@@ -41,18 +48,16 @@ export function useAuth() {
     }
   };
 
-  const register = async (userData: any, redirectPath?: string) => {
+  const register = async (userData: any) => {
     try {
-      await useAuthStore.getState().register(userData);
-      toast.success("Registration successful!");
-
-      // Redirect based on role
-      if (redirectPath) {
-        navigate(redirectPath);
-      } else if (userData.role === "APPLICANT") {
-        navigate("/app/dashboard");
-      } else if (userData.role === "EMPLOYER") {
-        navigate("/employer/dashboard");
+      const response = await useAuthStore.getState().register(userData);
+      
+      if (response?.data?.requiresVerification) {
+        toast.success(response.message || "Please check your email for the code");
+        navigate("/verify-email", { state: { email: response.data.email } });
+      } else {
+        toast.success("Registration successful!");
+        navigate("/login");
       }
     } catch (error: any) {
       toast.error(error.message || "Registration failed");

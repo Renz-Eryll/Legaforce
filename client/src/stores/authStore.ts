@@ -16,8 +16,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  register: (userData: any) => Promise<any>;
   logout: () => void;
   checkAuth: () => Promise<void>;
   clearError: () => void;
@@ -36,13 +36,19 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: true, error: null });
           const response = await authService.login({ email, password });
 
-          if (response.success && response.data) {
-            set({
-              user: response.data.user,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
+          if (response.success) {
+            // Only set user if we have the data (meaning no verification needed or login complete)
+            if (response.data && response.data.user) {
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+            } else {
+              set({ isLoading: false });
+            }
+            return response;
           } else {
             const errorMsg = response.message || "Login failed";
             throw new Error(errorMsg);
@@ -62,13 +68,19 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: true, error: null });
           const response = await authService.register(userData);
 
-          if (response.success && response.data) {
-            set({
-              user: response.data.user,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
+          if (response.success) {
+             // Only set user if we have the data (meaning no verification needed - which shouldn't happen for register now)
+             if (response.data && response.data.user) {
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+            } else {
+              set({ isLoading: false });
+            }
+            return response;
           } else {
             const errorMsg = response.message || "Registration failed";
             throw new Error(errorMsg);

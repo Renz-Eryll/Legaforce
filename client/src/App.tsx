@@ -10,7 +10,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuthStore } from "./stores/authStore";
 // Layouts
 import { PublicLayout, DashboardLayout } from "@/components/layout";
-import { LoginPage, RegisterPage } from "./pages/auth";
+import { LoginPage, RegisterPage, VerifyEmailPage } from "./pages/auth";
 // Pages
 import {
   AboutPage,
@@ -124,6 +124,7 @@ const App = () => {
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
             {/* Protected Dashboard Routes - Applicant */}
             <Route

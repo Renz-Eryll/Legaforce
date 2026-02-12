@@ -55,26 +55,45 @@ export default function LoginPage() {
     setLoginError(null);
 
     try {
-      await login(data.email, data.password);
+      const response = await login(data.email, data.password);
+      
+      console.log("Login Response:", response);
+
+      if (response?.data?.requiresVerification) {
+        toast.info(response.message || "Please verify your email");
+        navigate("/verify-email", { state: { email: response.data.email } });
+        return;
+      }
+
       toast.success("Login successful!");
 
-      // Get user role and navigate to appropriate dashboard
-      const response = await fetch("http://localhost:5000/api/v1/auth/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        const userRole = userData.data?.role || "APPLICANT";
+      // If login was successful and we have user data (token stored), proceed
+      if (response?.data?.user) {
+        const userRole = response.data.user.role || "APPLICANT";
         const dashboardRoute = getDashboardRoute(userRole);
 
         setTimeout(() => {
           navigate(dashboardRoute, { replace: true });
         }, 500);
       } else {
-        throw new Error("Failed to fetch user data");
+        // Fallback: fetch user data if for some reason it wasn't in the login response
+        const userResp = await fetch("http://localhost:5000/api/v1/auth/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        });
+
+        if (userResp.ok) {
+          const userData = await userResp.json();
+          const userRole = userData.data?.role || "APPLICANT";
+          const dashboardRoute = getDashboardRoute(userRole);
+
+          setTimeout(() => {
+            navigate(dashboardRoute, { replace: true });
+          }, 500);
+        } else {
+          throw new Error("Failed to fetch user data");
+        }
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -95,7 +114,6 @@ export default function LoginPage() {
       }
 
       setLoginError(errorMessage);
-      // Don't use toast.error here as it's shown by the alert component
       return;
     }
   };
@@ -171,7 +189,7 @@ export default function LoginPage() {
         </div>
 
         {/* Desktop Theme Toggle and Language Switcher */}
-        <div className="hidden lg:flex absolute top-8 right-8 gap-2">
+        <div className="hidden lg:flex absolute top-8 end-8 gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
         </div>
@@ -212,12 +230,12 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.login.email")}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-10 h-10"
+                  className="ps-10 h-10"
                   {...register("email")}
                 />
               </div>
@@ -240,18 +258,18 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder=""
-                  className="pl-10 pr-10 h-10"
+                  className="ps-10 pe-10 h-10"
                   {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -281,7 +299,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   {t("common.signIn")}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
                 </>
               )}
             </Button>
