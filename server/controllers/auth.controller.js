@@ -8,7 +8,8 @@ import {
   FRONTEND_URL,
   NODE_ENV,
 } from "../config/env.js";
-import transporter from "../config/sendgrid.js";
+import sgMail from "../config/sendgrid.js";
+
 
 // Generate a 6-digit OTP
 const generateOtp = () => {
