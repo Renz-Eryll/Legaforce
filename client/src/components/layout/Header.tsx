@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -10,20 +10,37 @@ import {
   FileText,
   Sparkles,
   ArrowRight,
+  LogOut,
+  LayoutDashboard,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/stores/authStore";
 
 export function Header() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const getDashboardPath = () => {
+    if (!user) return "/app/dashboard";
+    return user.role === "EMPLOYER" ? "/employer/dashboard" : "/app/dashboard";
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setMobileMenuOpen(false);
+  };
 
   const navigation = [
     {
@@ -120,29 +137,55 @@ export function Header() {
           <div className="hidden lg:flex lg:items-center lg:gap-3">
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link to="/login">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                {t("common.signIn")}
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button
-                size="sm"
-                className="group relative overflow-hidden gradient-bg-accent text-accent-foreground font-semibold shadow-sm hover:shadow-lg hover:shadow-accent/20 transition-all duration-300"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  {t("common.getStarted")}
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-                {/* Shine on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <>
+                <Link to={getDashboardPath()}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {t("common.logout") || "Logout"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {t("common.signIn")}
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button
+                    size="sm"
+                    className="group relative overflow-hidden gradient-bg-accent text-accent-foreground font-semibold shadow-sm hover:shadow-lg hover:shadow-accent/20 transition-all duration-300"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      {t("common.getStarted")}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    {/* Shine on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -236,17 +279,42 @@ export function Header() {
                   transition={{ delay: 0.2 }}
                   className="pt-4 px-4 space-y-3"
                 >
-                  <Link to="/login" className="block">
-                    <Button variant="outline" className="w-full h-12">
-                      {t("common.signIn")}
-                    </Button>
-                  </Link>
-                  <Link to="/register" className="block">
-                    <Button className="w-full h-12 gradient-bg-accent text-accent-foreground font-semibold">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {t("common.getStarted")}
-                    </Button>
-                  </Link>
+                  {isAuthenticated && user ? (
+                    <>
+                      <Link
+                        to={getDashboardPath()}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block"
+                      >
+                        <Button variant="outline" className="w-full h-12">
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          Go to Dashboard
+                        </Button>
+                      </Link>
+                      <Button
+                        onClick={handleLogout}
+                        variant="destructive"
+                        className="w-full h-12"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        {t("common.logout") || "Logout"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" className="block">
+                        <Button variant="outline" className="w-full h-12">
+                          {t("common.signIn")}
+                        </Button>
+                      </Link>
+                      <Link to="/register" className="block">
+                        <Button className="w-full h-12 gradient-bg-accent text-accent-foreground font-semibold">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          {t("common.getStarted")}
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthCTA } from "@/components/AuthCTA";
 import { useRef } from "react";
 
 // Animation variants
@@ -335,15 +336,22 @@ export default function ForApplicantsPage() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6"
               >
                 {t("applicants.heroTitle", "Find Your Dream Job")}{" "}
-                <span className="gradient-text">{t("applicants.heroTitleHighlight", "Abroad")}</span>
+                <span className="gradient-text">
+                  {t("applicants.heroTitleHighlight", "Abroad")}
+                </span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed"
               >
-                {t("applicants.heroSubtitle", "Access 10,000+ verified job openings worldwide. Get deployed in")}{" "}
-                <span className="font-semibold text-accent">{t("applicants.heroDays", "21-30 days")}</span>{" "}
+                {t(
+                  "applicants.heroSubtitle",
+                  "Access 10,000+ verified job openings worldwide. Get deployed in",
+                )}{" "}
+                <span className="font-semibold text-accent">
+                  {t("applicants.heroDays", "21-30 days")}
+                </span>{" "}
                 {t("applicants.heroZeroFees", "with zero placement fees.")}
               </motion.p>
 
@@ -351,35 +359,15 @@ export default function ForApplicantsPage() {
                 variants={fadeInUp}
                 className="flex flex-col sm:flex-row gap-4 mb-8 justify-center"
               >
-                <Link to="/register">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      size="lg"
-                      className="group h-14 px-8 gradient-bg-accent text-white font-semibold shadow-2xl glow-accent"
-                    >
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      {t("applicants.startFree", "Start Free")}
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </motion.div>
-                </Link>
-                <Link to="/services">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="h-14 px-8 border-accent/20 hover:bg-accent/5"
-                    >
-                      {t("applicants.browseJobs")}
-                    </Button>
-                  </motion.div>
-                </Link>
+                <AuthCTA
+                  primaryText={t("applicants.startFree", "Start Free")}
+                  secondaryText={t("applicants.browseJobs")}
+                  primaryLink="/register"
+                  secondaryLink="/services"
+                  primaryVariant="default"
+                  secondaryVariant="outline"
+                  size="lg"
+                />
               </motion.div>
 
               {/* Quick Stats */}
@@ -388,9 +376,21 @@ export default function ForApplicantsPage() {
                 className="flex flex-wrap gap-6 items-center justify-center"
               >
                 {[
-                  { icon: Users, value: "50K+", label: t("landing.stats.workersDeployed") },
-                  { icon: Globe, value: "30+", label: t("landing.stats.countries") },
-                  { icon: TrendingUp, value: "98%", label: t("landing.stats.successRate") },
+                  {
+                    icon: Users,
+                    value: "50K+",
+                    label: t("landing.stats.workersDeployed"),
+                  },
+                  {
+                    icon: Globe,
+                    value: "30+",
+                    label: t("landing.stats.countries"),
+                  },
+                  {
+                    icon: TrendingUp,
+                    value: "98%",
+                    label: t("landing.stats.successRate"),
+                  },
                 ].map((stat, index) => (
                   <motion.div
                     key={stat.label}
@@ -432,11 +432,17 @@ export default function ForApplicantsPage() {
               {t("applicants.jobCategories")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              {t("applicants.explorJobs", "Explore")} <span className="gradient-text">{t("applicants.exploreJobsHighlight", "10,000+ Jobs")}</span>{" "}
+              {t("applicants.explorJobs", "Explore")}{" "}
+              <span className="gradient-text">
+                {t("applicants.exploreJobsHighlight", "10,000+ Jobs")}
+              </span>{" "}
               {t("applicants.acrossIndustries", "Across Industries")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("applicants.categoriesSubtitle", "Find opportunities in your field with verified employers worldwide.")}
+              {t(
+                "applicants.categoriesSubtitle",
+                "Find opportunities in your field with verified employers worldwide.",
+              )}
             </p>
           </motion.div>
 
@@ -538,10 +544,16 @@ export default function ForApplicantsPage() {
               {t("applicants.whyChooseUs", "Why Choose Us")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              {t("applicants.benefits")} {t("applicants.forApplicants", "for")} <span className="gradient-text">{t("applicants.applicantsLabel", "Applicants")}</span>
+              {t("applicants.benefits")} {t("applicants.forApplicants", "for")}{" "}
+              <span className="gradient-text">
+                {t("applicants.applicantsLabel", "Applicants")}
+              </span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("applicants.benefitsSubtitle", "We put workers first with comprehensive support and transparent practices.")}
+              {t(
+                "applicants.benefitsSubtitle",
+                "We put workers first with comprehensive support and transparent practices.",
+              )}
             </p>
           </motion.div>
 
@@ -594,10 +606,16 @@ export default function ForApplicantsPage() {
               {t("applicants.destinations")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
-              {t("applicants.workIn", "Work in")} <span className="gradient-text">{t("applicants.thirtyCountries", "30+ Countries")}</span>
+              {t("applicants.workIn", "Work in")}{" "}
+              <span className="gradient-text">
+                {t("applicants.thirtyCountries", "30+ Countries")}
+              </span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("applicants.destinationsSubtitle", "Connect with verified employers from around the world.")}
+              {t(
+                "applicants.destinationsSubtitle",
+                "Connect with verified employers from around the world.",
+              )}
             </p>
           </motion.div>
 
@@ -647,7 +665,9 @@ export default function ForApplicantsPage() {
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
               {t("applicants.realStories", "Real Stories from")}{" "}
-              <span className="gradient-text">{t("applicants.realPeople", "Real People")}</span>
+              <span className="gradient-text">
+                {t("applicants.realPeople", "Real People")}
+              </span>
             </h2>
           </motion.div>
 
@@ -705,7 +725,10 @@ export default function ForApplicantsPage() {
               {t("applicants.fiveSteps", "5 Simple Steps to Your Dream Job")}
             </h2>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              {t("applicants.stepsSubtitle", "Our streamlined process makes finding work abroad easier than ever.")}
+              {t(
+                "applicants.stepsSubtitle",
+                "Our streamlined process makes finding work abroad easier than ever.",
+              )}
             </p>
           </motion.div>
 
@@ -751,37 +774,25 @@ export default function ForApplicantsPage() {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-6">
               {t("applicants.ctaTitle", "Ready to Start Your")}{" "}
-              <span className="gradient-text">{t("applicants.ctaHighlight", "Global Career?")}</span>
+              <span className="gradient-text">
+                {t("applicants.ctaHighlight", "Global Career?")}
+              </span>
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              {t("applicants.ctaSubtitle", "Create your free account today and take the first step towards your dream job abroad. No fees, no hidden costs.")}
+              {t(
+                "applicants.ctaSubtitle",
+                "Create your free account today and take the first step towards your dream job abroad. No fees, no hidden costs.",
+              )}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    size="lg"
-                    className="h-14 px-10 gradient-bg-accent text-white font-semibold shadow-lg glow-accent"
-                  >
-                    {t("common.getStarted")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </Link>
-              <Link to="/services">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="outline" size="lg" className="h-14 px-10">
-                    {t("common.learnMore")}
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
+            <AuthCTA
+              primaryText={t("common.getStarted")}
+              secondaryText={t("common.learnMore")}
+              primaryLink="/register"
+              secondaryLink="/services"
+              primaryVariant="default"
+              secondaryVariant="outline"
+              size="lg"
+            />
           </motion.div>
         </div>
       </section>

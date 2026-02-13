@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthCTA } from "@/components/AuthCTA";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -48,7 +49,11 @@ const scaleIn = {
 // Stats data - will be translated in component
 const getStats = (t: any) => [
   { value: "50,000+", label: t("landing.stats.workersDeployed"), icon: Users },
-  { value: "500+", label: t("landing.stats.partnerEmployers"), icon: Building2 },
+  {
+    value: "500+",
+    label: t("landing.stats.partnerEmployers"),
+    icon: Building2,
+  },
   { value: "30+", label: t("landing.stats.countries"), icon: Globe },
   { value: "98%", label: t("landing.stats.successRate"), icon: TrendingUp },
 ];
@@ -251,36 +256,15 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="flex flex-col sm:flex-row gap-4 mb-8"
               >
-                <Link to="/register">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      size="lg"
-                      className="group h-14 px-8 gradient-bg-accent text-white font-semibold shadow-2xl glow-accent"
-                    >
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      {t("landing.hero.cta")}
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </motion.div>
-                </Link>
-                <Link to="/services">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="h-14 px-8 border-accent/20 hover:bg-accent/5"
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      {t("landing.hero.watchDemo")}
-                    </Button>
-                  </motion.div>
-                </Link>
+                <AuthCTA
+                  primaryText={t("landing.hero.cta")}
+                  secondaryText="View Services"
+                  primaryLink="/register"
+                  secondaryLink="/services"
+                  primaryVariant="default"
+                  secondaryVariant="outline"
+                  size="lg"
+                />
               </motion.div>
 
               {/* Trust Indicators */}
@@ -790,37 +774,15 @@ export default function LandingPage() {
             <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
               {t("landing.cta.subtitle")}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    size="lg"
-                    className="group h-14 px-10 bg-accent hover:bg-accent/90 text-white font-semibold shadow-2xl"
-                  >
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    {t("landing.cta.button")}
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </motion.div>
-              </Link>
-              <Link to="/about">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-14 px-10 border-white/20 text-white hover:bg-white/10"
-                  >
-                    {t("landing.cta.learnMore")}
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
+            <AuthCTA
+              primaryText={t("landing.cta.button")}
+              secondaryText={t("landing.cta.learnMore")}
+              primaryLink="/register"
+              secondaryLink="/about"
+              primaryVariant="default"
+              secondaryVariant="outline"
+              size="lg"
+            />
           </motion.div>
         </div>
       </section>

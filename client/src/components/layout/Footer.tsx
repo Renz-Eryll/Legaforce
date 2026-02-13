@@ -22,8 +22,8 @@ const getFooterLinks = (t: any) => ({
     { name: t("footer.blog"), href: "/blog" },
   ],
   services: [
-    { name: t("footer.forApplicants"), href: "/applicants" },
-    { name: t("footer.forEmployers"), href: "/employers" },
+    { name: t("footer.jobs"), href: "/jobs" },
+    { name: t("footer.recruitment"), href: "/recruitment" },
     { name: t("footer.process"), href: "/services" },
     { name: t("footer.compliance"), href: "/compliance" },
   ],

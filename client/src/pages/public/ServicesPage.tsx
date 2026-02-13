@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthCTA } from "@/components/AuthCTA";
 import { useRef } from "react";
 
 const fadeInUp = {
@@ -185,17 +186,15 @@ export default function ServicesPage() {
                 variants={fadeInUp}
                 className="flex flex-col sm:flex-row items-center gap-4"
               >
-                <Link to="/register">
-                  <Button variant="hero" size="xl">
-                    {t("services.getStarted")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/about">
-                  <Button variant="hero-secondary" size="xl">
-                    {t("services.learnAbout")}
-                  </Button>
-                </Link>
+                <AuthCTA
+                  primaryText={t("services.getStarted")}
+                  secondaryText={t("services.learnAbout")}
+                  primaryLink="/register"
+                  secondaryLink="/about"
+                  primaryVariant="default"
+                  secondaryVariant="outline"
+                  size="xl"
+                />
               </motion.div>
             </motion.div>
 
@@ -292,10 +291,16 @@ export default function ServicesPage() {
               {t("services.coreServices")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              {t("services.coreServicesTitle", "Everything You Need for Successful Recruitment")}
+              {t(
+                "services.coreServicesTitle",
+                "Everything You Need for Successful Recruitment",
+              )}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("services.coreServicesSubtitle", "Our comprehensive suite covers every aspect of international recruitment.")}
+              {t(
+                "services.coreServicesSubtitle",
+                "Our comprehensive suite covers every aspect of international recruitment.",
+              )}
             </p>
           </motion.div>
 
@@ -393,7 +398,10 @@ export default function ServicesPage() {
               {t("services.processTitle", "From Inquiry to Deployment")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("services.processSubtitle", "A streamlined, technology-driven process that ensures quality and speed.")}
+              {t(
+                "services.processSubtitle",
+                "A streamlined, technology-driven process that ensures quality and speed.",
+              )}
             </p>
           </motion.div>
 
@@ -419,9 +427,18 @@ export default function ServicesPage() {
               {/* Process Steps Overlay */}
               <div className="absolute inset-0 flex items-center justify-around p-8">
                 {[
-                  { label: t("services.processInquiry", "Inquiry"), icon: Briefcase },
-                  { label: t("services.processMatching", "Matching"), icon: Users },
-                  { label: t("services.processInterview", "Interview"), icon: Video },
+                  {
+                    label: t("services.processInquiry", "Inquiry"),
+                    icon: Briefcase,
+                  },
+                  {
+                    label: t("services.processMatching", "Matching"),
+                    icon: Users,
+                  },
+                  {
+                    label: t("services.processInterview", "Interview"),
+                    icon: Video,
+                  },
                   { label: t("services.processDeploy", "Deploy"), icon: Globe },
                 ].map((step, index) => (
                   <motion.div
@@ -449,7 +466,10 @@ export default function ServicesPage() {
               {
                 icon: Clock,
                 value: "70%",
-                label: t("services.fasterThanTraditional", "Faster than traditional"),
+                label: t(
+                  "services.fasterThanTraditional",
+                  "Faster than traditional",
+                ),
               },
               {
                 icon: TrendingUp,
@@ -512,35 +532,20 @@ export default function ServicesPage() {
               {t("services.ctaTitle", "Ready to Get Started?")}
             </h2>
             <p className="text-lg text-primary-foreground/70 mb-8">
-              {t("services.ctaSubtitle", "Whether you're looking for your next opportunity or seeking top talent, we're here to help.")}
+              {t(
+                "services.ctaSubtitle",
+                "Whether you're looking for your next opportunity or seeking top talent, we're here to help.",
+              )}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="premium" size="xl" className="min-w-[200px]">
-                    {t("services.getStarted")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </Link>
-              <Link to="/about">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="min-w-[200px] border-primary-foreground/20 text-white hover:bg-primary-foreground hover:text-primary"
-                  >
-                    {t("services.aboutLegaforce", "About Legaforce")}
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
+            <AuthCTA
+              primaryText={t("services.getStarted")}
+              secondaryText={t("services.aboutLegaforce", "About Legaforce")}
+              primaryLink="/register"
+              secondaryLink="/about"
+              primaryVariant="default"
+              secondaryVariant="outline"
+              size="xl"
+            />
           </motion.div>
         </div>
       </section>

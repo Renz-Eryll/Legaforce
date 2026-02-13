@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import api from "@/services/api";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -56,65 +57,41 @@ export default function LoginPage() {
 
     try {
       const response = await login(data.email, data.password);
-      
+
       console.log("Login Response:", response);
 
+      // Check if verification is needed
       if (response?.data?.requiresVerification) {
         toast.info(response.message || "Please verify your email");
         navigate("/verify-email", { state: { email: response.data.email } });
         return;
       }
 
+      // Login successful
       toast.success("Login successful!");
 
-      // If login was successful and we have user data (token stored), proceed
-      if (response?.data?.user) {
-        const userRole = response.data.user.role || "APPLICANT";
-        const dashboardRoute = getDashboardRoute(userRole);
+      // Get user role and redirect
+      const userRole = response?.data?.user?.role || "APPLICANT";
+      const dashboardRoute = getDashboardRoute(userRole);
 
-        setTimeout(() => {
-          navigate(dashboardRoute, { replace: true });
-        }, 500);
-      } else {
-        // Fallback: fetch user data if for some reason it wasn't in the login response
-        const userResp = await fetch("http://localhost:5000/api/v1/auth/me", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-        });
-
-        if (userResp.ok) {
-          const userData = await userResp.json();
-          const userRole = userData.data?.role || "APPLICANT";
-          const dashboardRoute = getDashboardRoute(userRole);
-
-          setTimeout(() => {
-            navigate(dashboardRoute, { replace: true });
-          }, 500);
-        } else {
-          throw new Error("Failed to fetch user data");
-        }
-      }
+      setTimeout(() => {
+        navigate(dashboardRoute, { replace: true });
+      }, 500);
     } catch (error: any) {
-      setIsLoading(false);
-
       let errorMessage =
         "Login failed. Please check your credentials and try again.";
 
-      // Try to extract error message from different possible sources
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (
-        error.message &&
-        error.message !== "Failed to fetch user data"
-      ) {
+      } else if (error.message) {
         errorMessage = error.message;
       }
 
       setLoginError(errorMessage);
-      return;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -145,7 +122,9 @@ export default function LoginPage() {
           {/* Content */}
           <div className="max-w-sm space-y-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold leading-tight">{t("auth.login.welcomeBack")}</h1>
+              <h1 className="text-4xl font-bold leading-tight">
+                {t("auth.login.welcomeBack")}
+              </h1>
               <p className="text-primary-foreground/70 text-lg">
                 {t("auth.login.accessOpportunities")}
               </p>
@@ -155,7 +134,9 @@ export default function LoginPage() {
             <div className="space-y-3 pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-sm">{t("auth.login.realTimeTracking")}</span>
+                <span className="text-sm">
+                  {t("auth.login.realTimeTracking")}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-accent" />
@@ -203,9 +184,7 @@ export default function LoginPage() {
           {/* Title */}
           <div className="mb-8 space-y-2">
             <h1 className="text-3xl font-bold">{t("auth.login.title")}</h1>
-            <p className="text-muted-foreground">
-              {t("auth.login.subtitle")}
-            </p>
+            <p className="text-muted-foreground">{t("auth.login.subtitle")}</p>
           </div>
 
           {/* Error Alert */}

@@ -13,13 +13,17 @@ const transporter = nodemailer.createTransport({
 if (EMAIL_USER && EMAIL_PASSWORD) {
   transporter.verify((error, success) => {
     if (error) {
-      console.error("❌ Email transporter error:", error.message);
+      console.error("❌ Email transporter error:", error);
+      console.error("Error Code:", error.code);
+      console.error("Error Message:", error.message);
     } else {
       console.log("✅ Email transporter ready");
     }
   });
 } else {
-  console.warn("⚠️  Email credentials not configured — email features disabled");
+  console.warn(
+    "⚠️  Email credentials not configured — email features disabled",
+  );
 }
 
 export default transporter;
