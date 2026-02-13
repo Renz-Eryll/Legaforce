@@ -21,7 +21,7 @@ const OTP_EXPIRY_MINUTES = 10;
 // Send OTP email
 const sendOtpEmail = async (email, otp, firstName) => {
   const mailOptions = {
-    from: `"Legaforce" <${EMAIL_USER}>`,
+    from: `"Legaforce" <renzeryll09@gmail.com>`, // ✅ Use your verified sender email
     to: email,
     subject: "Verify Your Email - Legaforce",
     html: `
