@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Shield,
@@ -40,174 +41,177 @@ const staggerContainer = {
 };
 
 // Why hire Filipino workers
-const whyFilipino = [
+const getWhyFilipino = (t: any) => [
   {
     icon: Globe,
-    title: "English Proficiency",
-    description:
-      "The Philippines ranks among the top English-speaking countries in Asia.",
+    title: t("employers.englishProficiency"),
+    description: t("employers.englishProficiencyDesc"),
     stat: "#1",
-    statLabel: "In Asia",
+    statLabel: t("employers.englishStat"),
   },
   {
     icon: Award,
-    title: "Strong Work Ethic",
-    description:
-      "Filipino workers are known for dedication, loyalty, and attention to detail.",
+    title: t("employers.workEthic"),
+    description: t("employers.workEthicDesc"),
     stat: "98%",
-    statLabel: "Retention",
+    statLabel: t("employers.retentionStat"),
   },
   {
     icon: Users,
-    title: "Cultural Adaptability",
-    description:
-      "Easily integrates into diverse work environments and multicultural teams.",
+    title: t("employers.adaptability"),
+    description: t("employers.adaptabilityDesc"),
     stat: "30+",
-    statLabel: "Countries",
+    statLabel: t("employers.countriesStat"),
   },
   {
     icon: TrendingUp,
-    title: "Skilled Workforce",
-    description:
-      "Access to professionals across healthcare, engineering, IT, and more.",
+    title: t("employers.skilledWorkforce"),
+    description: t("employers.skilledWorkforceDesc"),
     stat: "10M+",
-    statLabel: "Workers",
+    statLabel: t("employers.workersStat"),
   },
 ];
 
 // Services for employers
-const services = [
+const getServices = (t: any) => [
   {
     icon: Search,
-    title: "AI-Powered Matching",
-    description:
-      "Our intelligent algorithms match you with candidates that perfectly fit your requirements.",
+    title: t("employers.aiMatching"),
+    description: t("employers.aiMatchingDesc"),
     features: [
-      "Skills-based matching",
-      "Experience verification",
-      "Cultural fit assessment",
+      t("services.skillsMatch"),
+      t("services.experienceVerify"),
+      t("employers.culturalFit", "Cultural fit assessment"),
     ],
     image: "/images/employers/ai-matching.jpg",
   },
   {
     icon: Video,
-    title: "Video Interviews",
-    description:
-      "Conduct interviews remotely with our integrated video platform and evaluation tools.",
+    title: t("employers.videoInterviews"),
+    description: t("employers.videoInterviewsDesc"),
     features: [
-      "Scheduling automation",
-      "Recording & playback",
-      "Collaborative scoring",
+      t("employers.schedulingAutomation", "Scheduling automation"),
+      t("employers.recordingPlayback", "Recording & playback"),
+      t("services.collaborativeScoring"),
     ],
     image: "/images/employers/video-interview.jpg",
   },
   {
     icon: FileCheck,
-    title: "Document Processing",
-    description:
-      "We handle all visa paperwork, certifications, and compliance requirements.",
-    features: ["Visa processing", "Medical clearances", "Background checks"],
+    title: t("employers.docProcessing"),
+    description: t("employers.docProcessingDesc"),
+    features: [
+      t("services.visaProcessing"),
+      t("employers.medicalClearances", "Medical clearances"),
+      t("employers.backgroundChecks", "Background checks"),
+    ],
     image: "/images/employers/documents.jpg",
   },
   {
     icon: Headphones,
-    title: "Dedicated Support",
-    description:
-      "Your dedicated account manager ensures smooth recruitment and deployment.",
-    features: ["24/7 assistance", "Onboarding support", "Issue resolution"],
+    title: t("employers.dedicatedSupport"),
+    description: t("employers.dedicatedSupportDesc"),
+    features: [
+      t("employers.assistance247", "24/7 assistance"),
+      t("employers.onboardingSupport", "Onboarding support"),
+      t("employers.issueResolution", "Issue resolution"),
+    ],
     image: "/images/employers/support.jpg",
   },
 ];
 
 // Industries served
-const industries = [
-  "Healthcare",
-  "Construction",
-  "Hospitality",
-  "Manufacturing",
-  "Oil & Gas",
-  "IT & Technology",
-  "Education",
-  "Retail",
-  "Transportation",
-  "Agriculture",
-  "Food & Beverage",
-  "Finance",
+const getIndustries = (t: any) => [
+  t("employers.industryHealthcare", "Healthcare"),
+  t("employers.industryConstruction", "Construction"),
+  t("employers.industryHospitality", "Hospitality"),
+  t("employers.industryManufacturing", "Manufacturing"),
+  t("employers.industryOilGas", "Oil & Gas"),
+  t("employers.industryIT", "IT & Technology"),
+  t("employers.industryEducation", "Education"),
+  t("employers.industryRetail", "Retail"),
+  t("employers.industryTransportation", "Transportation"),
+  t("employers.industryAgriculture", "Agriculture"),
+  t("employers.industryFoodBeverage", "Food & Beverage"),
+  t("employers.industryFinance", "Finance"),
 ];
 
 // Stats
-const stats = [
-  { value: "500+", label: "Partner Employers", icon: Building2 },
-  { value: "98%", label: "Retention Rate", icon: TrendingUp },
-  { value: "21 Days", label: "Average Deployment", icon: Clock },
-  { value: "50,000+", label: "Workers Deployed", icon: Users },
+const getStats = (t: any) => [
+  { value: "500+", label: t("employers.partnerEmployers"), icon: Building2 },
+  { value: "98%", label: t("employers.retentionRate"), icon: TrendingUp },
+  { value: "21 Days", label: t("employers.averageDeployment"), icon: Clock },
+  { value: "50,000+", label: t("employers.workersDeployed"), icon: Users },
 ];
 
 // Process steps
-const processSteps = [
+const getProcessSteps = (t: any) => [
   {
     step: "01",
-    title: "Share Requirements",
-    description:
-      "Tell us about your staffing needs, job requirements, and timeline.",
+    title: t("employers.shareRequirements"),
+    description: t("employers.shareReqDesc"),
     icon: FileCheck,
   },
   {
     step: "02",
-    title: "Candidate Matching",
-    description: "Our AI matches you with pre-screened, qualified candidates.",
+    title: t("employers.candidateMatching"),
+    description: t("employers.candidateMatchingDesc"),
     icon: Search,
   },
   {
     step: "03",
-    title: "Interview & Select",
-    description: "Conduct interviews and select your ideal candidates.",
+    title: t("employers.interviewSelect"),
+    description: t("employers.interviewSelectDesc"),
     icon: Video,
   },
   {
     step: "04",
-    title: "We Handle the Rest",
-    description:
-      "We process documentation and deploy workers to your location.",
+    title: t("employers.handleRest"),
+    description: t("employers.handleRestDesc"),
     icon: Zap,
   },
 ];
 
 // Client testimonials
-const testimonials = [
+const getTestimonials = (t: any) => [
   {
-    company: "Global Healthcare Corp",
-    industry: "Healthcare",
-    quote:
-      "Legaforce delivered 50 qualified nurses in just 3 weeks. Their AI matching saved us months of recruitment time.",
+    company: t("employers.globalHealthcare"),
+    industry: t("employers.healthcareIndustry"),
+    quote: t("employers.healthcareQuote"),
     logo: "GH",
     rating: 5,
   },
   {
-    company: "Tech Solutions ME",
-    industry: "IT Services",
-    quote:
-      "The quality of candidates and speed of deployment exceeded our expectations. Best recruitment partner we've worked with.",
+    company: t("employers.techSolutions"),
+    industry: t("employers.itServices"),
+    quote: t("employers.techQuote"),
     logo: "TS",
     rating: 5,
   },
   {
-    company: "Hospitality International",
-    industry: "Hotels & Resorts",
-    quote:
-      "Their 24/7 support and transparent process made scaling our workforce seamless. Highly recommended.",
+    company: t("employers.hospitalityInt"),
+    industry: t("employers.hotels"),
+    quote: t("employers.hospitalityQuote"),
     logo: "HI",
     rating: 5,
   },
 ];
 
 export default function ForEmployersPage() {
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
+
+  const whyFilipino = getWhyFilipino(t);
+  const services = getServices(t);
+  const industries = getIndustries(t);
+  const stats = getStats(t);
+  const processSteps = getProcessSteps(t);
+  const testimonials = getTestimonials(t);
 
   return (
     <div className="overflow-hidden">
@@ -233,7 +237,7 @@ export default function ForEmployersPage() {
               <motion.div variants={fadeInUp} className="mb-6">
                 <Badge variant="premium" className="px-4 py-1.5 text-sm">
                   <Building2 className="w-4 h-4 mr-2" />
-                  For Employers
+                  {t("employers.title")}
                 </Badge>
               </motion.div>
 
@@ -241,16 +245,14 @@ export default function ForEmployersPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
               >
-                Hire Top <span className="text-accent">Filipino Talent</span>
+                {t("employers.heroTitle", "Hire Top")} <span className="text-accent">{t("employers.heroHighlight", "Filipino Talent")}</span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8"
               >
-                Access a pool of 50,000+ skilled, pre-screened Filipino workers.
-                Streamlined recruitment, faster deployment, and comprehensive
-                support for employers worldwide.
+                {t("employers.heroSubtitle", "Access a pool of 50,000+ skilled, pre-screened Filipino workers. Streamlined recruitment, faster deployment, and comprehensive support for employers worldwide.")}
               </motion.p>
 
               <motion.div
@@ -259,13 +261,13 @@ export default function ForEmployersPage() {
               >
                 <Link to="/register">
                   <Button variant="hero" size="xl">
-                    Start Hiring
+                    {t("employers.startHiring", "Start Hiring")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/services">
                   <Button variant="hero-secondary" size="xl">
-                    View Our Services
+                    {t("employers.viewServices", "View Our Services")}
                   </Button>
                 </Link>
               </motion.div>
@@ -276,9 +278,9 @@ export default function ForEmployersPage() {
                 className="flex flex-wrap gap-6  items-center justify-center"
               >
                 {[
-                  { icon: Shield, label: "ISO Certified" },
-                  { icon: BadgeCheck, label: "POEA Licensed" },
-                  { icon: Award, label: "500+ Clients" },
+                  { icon: Shield, label: t("employers.isoCertified", "ISO Certified") },
+                  { icon: BadgeCheck, label: t("employers.poeaLicensed", "POEA Licensed") },
+                  { icon: Award, label: t("employers.fiveHundredClients", "500+ Clients") },
                 ].map((item, index) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
@@ -340,14 +342,13 @@ export default function ForEmployersPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Why Filipino Workers?
+              {t("employers.whyFilipino")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              The World's Preferred Workforce
+              {t("employers.worldsPreferred", "The World's Preferred Workforce")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Over 10 million Filipino workers are employed worldwide, valued
-              for their skills and professionalism.
+              {t("employers.whyFilipinoSubtitle", "Over 10 million Filipino workers are employed worldwide, valued for their skills and professionalism.")}
             </p>
           </motion.div>
 
@@ -400,14 +401,13 @@ export default function ForEmployersPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Our Services
+              {t("employers.services")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              End-to-End Recruitment Solutions
+              {t("employers.endToEnd", "End-to-End Recruitment Solutions")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From sourcing to deployment, we handle every aspect of
-              international recruitment.
+              {t("employers.servicesSubtitle", "From sourcing to deployment, we handle every aspect of international recruitment.")}
             </p>
           </motion.div>
 
@@ -479,13 +479,13 @@ export default function ForEmployersPage() {
             className="text-center mb-16"
           >
             <Badge variant="secondary" className="mb-4">
-              Industries We Serve
+              {t("employers.industriesWeServe", "Industries We Serve")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Talent for Every Sector
+              {t("employers.talentForSector", "Talent for Every Sector")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We provide skilled workers across all major industries worldwide.
+              {t("employers.industriesSubtitle", "We provide skilled workers across all major industries worldwide.")}
             </p>
           </motion.div>
 
@@ -522,11 +522,11 @@ export default function ForEmployersPage() {
           >
             <Badge variant="secondary" className="mb-4">
               <Star className="w-4 h-4 mr-2 fill-accent text-accent" />
-              Client Success
+              {t("employers.clientSuccess", "Client Success")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Trusted by{" "}
-              <span className="gradient-text">Leading Companies</span>
+              {t("employers.trustedBy", "Trusted by")}{" "}
+              <span className="gradient-text">{t("employers.leadingCompanies", "Leading Companies")}</span>
             </h2>
           </motion.div>
 
@@ -592,13 +592,13 @@ export default function ForEmployersPage() {
               variant="secondary"
               className="mb-4 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20"
             >
-              How It Works
+              {t("employers.howItWorks", "How It Works")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Simple Hiring Process
+              {t("employers.simpleHiring", "Simple Hiring Process")}
             </h2>
             <p className="text-lg text-primary-foreground/70 max-w-2xl mx-auto">
-              Start hiring world-class Filipino talent in four simple steps.
+              {t("employers.hiringProcessSubtitle", "Start hiring world-class Filipino talent in four simple steps.")}
             </p>
           </motion.div>
 
@@ -641,12 +641,10 @@ export default function ForEmployersPage() {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Ready to Build Your{" "}
-              <span className="text-accent">Dream Team?</span>
+              {t("employers.readyToHire")}{" "}
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Join 500+ employers worldwide who trust Legaforce for their
-              international hiring needs. Get started today with no commitment.
+              {t("employers.readyToHireSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/register">
@@ -655,7 +653,7 @@ export default function ForEmployersPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button variant="premium" size="xl" className="min-w-[200px]">
-                    Start Hiring Now
+                    {t("employers.startHiringNow", "Start Hiring Now")}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
@@ -666,7 +664,7 @@ export default function ForEmployersPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button variant="outline" size="xl" className="min-w-[200px]">
-                    Learn About Us
+                    {t("common.learnAboutUs")}
                   </Button>
                 </motion.div>
               </Link>

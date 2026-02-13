@@ -10,8 +10,8 @@ export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
-  APPLICANTS: "/applicants",
-  EMPLOYERS: "/employers",
+  JOB_SEARCH: "/jobs",
+  RECRUITMENT: "/recruitment",
   SERVICES: "/services",
   ABOUT: "/about",
 

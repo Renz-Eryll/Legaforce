@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Facebook,
@@ -13,28 +14,28 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const footerLinks = {
+const getFooterLinks = (t: any) => ({
   company: [
-    { name: "About Us", href: "/about" },
-    { name: "Careers", href: "/careers" },
-    { name: "Press", href: "/press" },
-    { name: "Blog", href: "/blog" },
+    { name: t("footer.about"), href: "/about" },
+    { name: t("footer.careers"), href: "/careers" },
+    { name: t("footer.press"), href: "/press" },
+    { name: t("footer.blog"), href: "/blog" },
   ],
   services: [
-    { name: "For Applicants", href: "/applicants" },
-    { name: "For Employers", href: "/employers" },
-    { name: "Recruitment Process", href: "/services" },
-    { name: "Compliance", href: "/compliance" },
+    { name: t("footer.forApplicants"), href: "/applicants" },
+    { name: t("footer.forEmployers"), href: "/employers" },
+    { name: t("footer.process"), href: "/services" },
+    { name: t("footer.compliance"), href: "/compliance" },
   ],
   support: [
-    { name: "Help Center", href: "/help" },
-    { name: "Contact Us", href: "/contact" },
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
+    { name: t("footer.helpCenter"), href: "/help" },
+    { name: t("footer.contact"), href: "/contact" },
+    { name: t("footer.privacy"), href: "/privacy" },
+    { name: t("footer.terms"), href: "/terms" },
   ],
-};
+});
 
-const socialLinks = [
+const socialLinks = (t: any) => [
   { name: "Facebook", icon: Facebook, href: "#" },
   { name: "Twitter", icon: Twitter, href: "#" },
   { name: "LinkedIn", icon: Linkedin, href: "#" },
@@ -42,6 +43,9 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const { t } = useTranslation();
+  const footerLinks = getFooterLinks(t);
+  const socialLinksArray = socialLinks(t);
   return (
     <footer className="relative overflow-hidden bg-primary dark:bg-card">
       {/* Background Effects */}
@@ -76,9 +80,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-primary-foreground/60 dark:text-muted-foreground text-sm leading-relaxed max-w-sm mb-8">
-              Empowering Filipino workers with transparent, ethical recruitment
-              services. Your trusted partner for overseas employment
-              opportunities since 2020.
+              {t("footer.companyDescription")}
             </p>
             <div className="space-y-4">
               <a
@@ -103,7 +105,9 @@ export function Footer() {
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-foreground/5 dark:bg-muted flex-shrink-0">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span className="text-sm pt-2.5">Philippines</span>
+                <span className="text-sm pt-2.5">
+                  {t("footer.philippines")}
+                </span>
               </div>
             </div>
           </div>
@@ -111,7 +115,7 @@ export function Footer() {
           {/* Link Columns */}
           <div>
             <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-primary-foreground dark:text-foreground mb-6">
-              Company
+              {t("footer.company")}
             </h4>
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
@@ -130,7 +134,7 @@ export function Footer() {
 
           <div>
             <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-primary-foreground dark:text-foreground mb-6">
-              Services
+              {t("footer.services")}
             </h4>
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
@@ -149,7 +153,7 @@ export function Footer() {
 
           <div>
             <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-primary-foreground dark:text-foreground mb-6">
-              Support
+              {t("footer.support")}
             </h4>
             <ul className="space-y-4">
               {footerLinks.support.map((link) => (
@@ -170,12 +174,12 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="py-8 border-t border-primary-foreground/10 dark:border-border flex flex-col sm:flex-row items-center justify-between gap-6">
           <p className="text-sm text-primary-foreground/50 dark:text-muted-foreground">
-            © {new Date().getFullYear()} Legaforce. All rights reserved.
+            © {new Date().getFullYear()} Legaforce. {t("footer.rights")}
           </p>
 
           {/* Social Links */}
           <div className="flex items-center gap-2">
-            {socialLinks.map((social) => (
+            {socialLinksArray.map((social) => (
               <a
                 key={social.name}
                 href={social.href}

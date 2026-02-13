@@ -17,7 +17,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
-
 export function Header() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -29,24 +28,24 @@ export function Header() {
   const navigation = [
     {
       name: t("navigation.applicant.jobSearch"),
-      href: "/applicants",
+      href: "/jobs",
       icon: Users,
       description: "Find your dream job abroad",
     },
     {
       name: t("navigation.employer.recruitment"),
-      href: "/employers",
+      href: "/recruitment",
       icon: Building2,
       description: "Hire skilled Filipino workers",
     },
     {
-      name: "Services",
+      name: t("navigation.header.services"),
       href: "/services",
       icon: Briefcase,
       description: "Our recruitment services",
     },
     {
-      name: "About",
+      name: t("navigation.header.about"),
       href: "/about",
       icon: FileText,
       description: "Learn about Legaforce",

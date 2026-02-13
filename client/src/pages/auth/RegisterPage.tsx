@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +84,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     setRegisterError(null);
     try {
-      await registerUser({
+      const response = await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -92,14 +93,20 @@ export default function RegisterPage() {
         role: userType === "applicant" ? "APPLICANT" : "EMPLOYER",
       });
 
-      toast.success("Account created successfully!");
+      console.log("Registration Response:", response);
 
-      // Navigate to appropriate dashboard
-      const redirect =
-        userType === "applicant" ? "/app/dashboard" : "/employer/dashboard";
-      setTimeout(() => {
-        navigate(redirect);
-      }, 500);
+      if (response?.data?.requiresVerification) {
+        toast.info(response.message || "Please verify your email");
+        navigate("/verify-email", { state: { email: data.email } });
+      } else {
+        toast.success("Account created successfully!");
+        // Navigate to appropriate dashboard if no verification needed (fallback)
+        const redirect =
+          userType === "applicant" ? "/app/dashboard" : "/employer/dashboard";
+        setTimeout(() => {
+          navigate(redirect);
+        }, 500);
+      }
     } catch (error: any) {
       let errorMessage = "Registration failed. Please try again.";
 
@@ -192,7 +199,8 @@ export default function RegisterPage() {
         </div>
 
         {/* Desktop Theme Toggle */}
-        <div className="hidden lg:flex absolute top-8 right-8">
+        <div className="hidden lg:flex absolute top-8 end-8 gap-2">
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
 
@@ -302,12 +310,12 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-10 h-10"
+                  className="ps-10 h-10"
                   {...register("email")}
                 />
               </div>
@@ -327,7 +335,7 @@ export default function RegisterPage() {
                   id="phone"
                   type="tel"
                   placeholder="+63 912 345 6789"
-                  className="pl-10 h-10"
+                  className="ps-10 h-10"
                   {...register("phone")}
                 />
               </div>
@@ -347,13 +355,13 @@ export default function RegisterPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-10 pr-10 h-10"
+                  className="ps-10 pe-10 h-10"
                   {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -378,7 +386,7 @@ export default function RegisterPage() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-10 pr-10 h-10"
+                  className="ps-10 pe-10 h-10"
                   {...register("confirmPassword")}
                 />
                 <button
@@ -414,7 +422,7 @@ export default function RegisterPage() {
               ) : (
                 <>
                   Create Account
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
                 </>
               )}
             </Button>

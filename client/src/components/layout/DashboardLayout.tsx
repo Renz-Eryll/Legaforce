@@ -30,10 +30,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+
 
 interface NavItem {
   name: string;
@@ -48,62 +48,62 @@ interface NavSection {
 }
 
 // Applicant Navigation - will be translated in component
-const getApplicantNavigation = (t: any): NavSection[] => [
+const getApplicantNavigation = (): NavSection[] => [
   {
     items: [
-      { name: t("common.dashboard"), href: "/app/dashboard", icon: LayoutDashboard },
+      { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    title: t("navigation.applicant.jobSearch"),
+    title: "Job Search",
     items: [
-      { name: t("navigation.applicant.browseJobs"), href: "/app/jobs", icon: Search },
+      { name: "Browse Jobs", href: "/app/jobs", icon: Search },
       {
-        name: t("navigation.applicant.myApplications"),
+        name: "My Applications",
         href: "/app/applications",
         icon: Briefcase,
         badge: 3,
       },
-      { name: t("navigation.applicant.savedJobs"), href: "/app/saved-jobs", icon: Star },
+      { name: "Saved Jobs", href: "/app/saved-jobs", icon: Star },
     ],
   },
   {
-    title: t("common.profile"),
+    title: "Profile",
     items: [
-      { name: t("navigation.applicant.myProfile"), href: "/app/profile", icon: User },
-      { name: t("navigation.applicant.documents"), href: "/app/documents", icon: FileText },
-      { name: t("navigation.applicant.cvBuilder"), href: "/app/cv-builder", icon: FileCheck },
+      { name: "My Profile", href: "/app/profile", icon: User },
+      { name: "Documents", href: "/app/documents", icon: FileText },
+      { name: "CV Builder", href: "/app/cv-builder", icon: FileCheck },
     ],
   },
   {
-    title: t("navigation.applicant.rewardsSupport"),
+    title: "Rewards & Support",
     items: [
-      { name: t("navigation.applicant.rewards"), href: "/app/rewards", icon: Star, badge: "250 pts" },
-      { name: t("common.support"), href: "/app/support", icon: HelpCircle },
-      { name: t("navigation.applicant.complaints"), href: "/app/complaints", icon: MessageSquare },
+      { name: "Rewards", href: "/app/rewards", icon: Star, badge: "250 pts" },
+      { name: "Support", href: "/app/support", icon: HelpCircle },
+      { name: "Complaints", href: "/app/complaints", icon: MessageSquare },
     ],
   },
 ];
 
 // Employer Navigation - will be translated in component
-const getEmployerNavigation = (t: any): NavSection[] => [
+const getEmployerNavigation = (): NavSection[] => [
   {
     items: [
-      { name: t("common.dashboard"), href: "/employer/dashboard", icon: LayoutDashboard },
+      { name: "Dashboard", href: "/employer/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    title: t("navigation.employer.recruitment"),
+    title: "Recruitment",
     items: [
       {
-        name: t("navigation.employer.jobOrders"),
+        name: "Job Orders",
         href: "/employer/job-orders",
         icon: Briefcase,
         badge: 5,
       },
-      { name: t("navigation.employer.candidates"), href: "/employer/candidates", icon: Users },
+      { name: "Candidates", href: "/employer/candidates", icon: Users },
       {
-        name: t("navigation.employer.interviews"),
+        name: "Interviews",
         href: "/employer/interviews",
         icon: UserCheck,
         badge: 2,
@@ -111,77 +111,77 @@ const getEmployerNavigation = (t: any): NavSection[] => [
     ],
   },
   {
-    title: t("navigation.employer.management"),
+    title: "Management",
     items: [
-      { name: t("navigation.employer.deployments"), href: "/employer/deployments", icon: Globe },
-      { name: t("navigation.employer.invoices"), href: "/employer/invoices", icon: DollarSign },
-      { name: t("navigation.employer.reports"), href: "/employer/reports", icon: BarChart3 },
+      { name: "Deployments", href: "/employer/deployments", icon: Globe },
+      { name: "Invoices", href: "/employer/invoices", icon: DollarSign },
+      { name: "Reports", href: "/employer/reports", icon: BarChart3 },
     ],
   },
   {
-    title: t("navigation.employer.account"),
+    title: "Account",
     items: [
-      { name: t("navigation.employer.companyProfile"), href: "/employer/profile", icon: Building2 },
-      { name: t("common.support"), href: "/employer/support", icon: HelpCircle },
+      { name: "Company Profile", href: "/employer/profile", icon: Building2 },
+      { name: "Support", href: "/employer/support", icon: HelpCircle },
     ],
   },
 ];
 
 // Admin Navigation - will be translated in component
-const getAdminNavigation = (t: any): NavSection[] => [
+const getAdminNavigation = (): NavSection[] => [
   {
     items: [
-      { name: t("common.dashboard"), href: "/admin/dashboard", icon: LayoutDashboard },
+      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    title: t("navigation.admin.management"),
+    title: "Management",
     items: [
       {
-        name: t("navigation.admin.applicants"),
+        name: "Applicants",
         href: "/admin/applicants",
         icon: Users,
         badge: 120,
       },
       {
-        name: t("navigation.admin.employers"),
+        name: "Employers",
         href: "/admin/employers",
         icon: Building2,
         badge: 45,
       },
-      { name: t("navigation.employer.jobOrders"), href: "/admin/job-orders", icon: Briefcase },
+      { name: "Job Orders", href: "/admin/job-orders", icon: Briefcase },
     ],
   },
   {
-    title: t("navigation.admin.workflows"),
+    title: "Workflows",
     items: [
       {
-        name: t("navigation.admin.applications"),
+        name: "Applications",
         href: "/admin/applications",
         icon: ClipboardList,
         badge: 28,
       },
-      { name: t("navigation.employer.deployments"), href: "/admin/deployments", icon: Globe },
-      { name: t("navigation.admin.compliance"), href: "/admin/compliance", icon: FileCheck },
+      { name: "Deployments", href: "/admin/deployments", icon: Globe },
+      { name: "Compliance", href: "/admin/compliance", icon: FileCheck },
     ],
   },
   {
-    title: t("navigation.admin.financeReports"),
+    title: "Finance & Reports",
     items: [
-      { name: t("navigation.employer.invoices"), href: "/admin/invoices", icon: Wallet },
-      { name: t("navigation.employer.reports"), href: "/admin/reports", icon: BarChart3 },
+      { name: "Invoices", href: "/admin/invoices", icon: Wallet },
+      { name: "Reports", href: "/admin/reports", icon: BarChart3 },
     ],
   },
   {
-    title: t("common.support"),
+    title: "Support",
     items: [
       {
-        name: t("navigation.applicant.complaints"),
+        name: "Complaints",
         href: "/admin/complaints",
         icon: AlertTriangle,
         badge: 5,
       },
-      { name: t("navigation.admin.userVerification"), href: "/admin/verification", icon: Shield },
+      { name: "User Verification", href: "/admin/verification", icon: Shield },
     ],
   },
 ];
@@ -193,7 +193,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({
   userRole = "applicant",
 }: DashboardLayoutProps) {
-  const { t } = useTranslation();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -208,11 +208,11 @@ export function DashboardLayout({
   const getNavigation = () => {
     switch (userRole) {
       case "employer":
-        return getEmployerNavigation(t);
+        return getEmployerNavigation();
       case "admin":
-        return getAdminNavigation(t);
+        return getAdminNavigation();
       default:
-        return getApplicantNavigation(t);
+        return getApplicantNavigation();
     }
   };
 
@@ -304,17 +304,17 @@ export function DashboardLayout({
     switch (userRole) {
       case "employer":
         return {
-          label: t("roles.employer"),
+          label: "Employer",
           className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
         };
       case "admin":
         return {
-          label: t("roles.admin"),
+          label: "Admin",
           className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
         };
       default:
         return {
-          label: t("roles.applicant"),
+          label: "Applicant",
           className: "bg-accent/10 text-accent border-accent/20",
         };
     }
@@ -449,14 +449,14 @@ export function DashboardLayout({
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Settings className="h-5 w-5" />
-              {t("common.settings")}
+              Settings
             </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
             >
               <LogOut className="h-5 w-5" />
-              {t("common.signOut")}
+              Sign Out
             </button>
           </div>
         </div>
@@ -480,13 +480,13 @@ export function DashboardLayout({
                 <h1 className="text-lg font-display font-semibold">
                   {navigation
                     .flatMap((s) => s.items)
-                    .find((n) => isActive(n.href))?.name || t("common.dashboard")}
+                    .find((n) => isActive(n.href))?.name || "Dashboard"}
                 </h1>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
+
               <ThemeToggle />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
