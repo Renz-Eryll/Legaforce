@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthCTA } from "@/components/AuthCTA";
 import { useRef } from "react";
 
 const fadeInUp = {
@@ -245,31 +246,38 @@ export default function ForEmployersPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
               >
-                {t("employers.heroTitle", "Hire Top")} <span className="text-accent">{t("employers.heroHighlight", "Filipino Talent")}</span>
+                {t("employers.heroTitle", "Hire Top")}{" "}
+                <span className="text-accent">
+                  {t("employers.heroHighlight", "Filipino Talent")}
+                </span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8"
               >
-                {t("employers.heroSubtitle", "Access a pool of 50,000+ skilled, pre-screened Filipino workers. Streamlined recruitment, faster deployment, and comprehensive support for employers worldwide.")}
+                {t(
+                  "employers.heroSubtitle",
+                  "Access a pool of 50,000+ skilled, pre-screened Filipino workers. Streamlined recruitment, faster deployment, and comprehensive support for employers worldwide.",
+                )}
               </motion.p>
 
               <motion.div
                 variants={fadeInUp}
                 className="flex flex-wrap gap-5 mb-8 items-center justify-center"
               >
-                <Link to="/register">
-                  <Button variant="hero" size="xl">
-                    {t("employers.startHiring", "Start Hiring")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/services">
-                  <Button variant="hero-secondary" size="xl">
-                    {t("employers.viewServices", "View Our Services")}
-                  </Button>
-                </Link>
+                <AuthCTA
+                  primaryText={t("employers.startHiring", "Start Hiring")}
+                  secondaryText={t(
+                    "employers.viewServices",
+                    "View Our Services",
+                  )}
+                  primaryLink="/register"
+                  secondaryLink="/services"
+                  primaryVariant="default"
+                  secondaryVariant="outline"
+                  size="xl"
+                />
               </motion.div>
 
               {/* Trust Indicators */}
@@ -278,9 +286,18 @@ export default function ForEmployersPage() {
                 className="flex flex-wrap gap-6  items-center justify-center"
               >
                 {[
-                  { icon: Shield, label: t("employers.isoCertified", "ISO Certified") },
-                  { icon: BadgeCheck, label: t("employers.poeaLicensed", "POEA Licensed") },
-                  { icon: Award, label: t("employers.fiveHundredClients", "500+ Clients") },
+                  {
+                    icon: Shield,
+                    label: t("employers.isoCertified", "ISO Certified"),
+                  },
+                  {
+                    icon: BadgeCheck,
+                    label: t("employers.poeaLicensed", "POEA Licensed"),
+                  },
+                  {
+                    icon: Award,
+                    label: t("employers.fiveHundredClients", "500+ Clients"),
+                  },
                 ].map((item, index) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
@@ -345,10 +362,16 @@ export default function ForEmployersPage() {
               {t("employers.whyFilipino")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              {t("employers.worldsPreferred", "The World's Preferred Workforce")}
+              {t(
+                "employers.worldsPreferred",
+                "The World's Preferred Workforce",
+              )}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("employers.whyFilipinoSubtitle", "Over 10 million Filipino workers are employed worldwide, valued for their skills and professionalism.")}
+              {t(
+                "employers.whyFilipinoSubtitle",
+                "Over 10 million Filipino workers are employed worldwide, valued for their skills and professionalism.",
+              )}
             </p>
           </motion.div>
 
@@ -407,7 +430,10 @@ export default function ForEmployersPage() {
               {t("employers.endToEnd", "End-to-End Recruitment Solutions")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("employers.servicesSubtitle", "From sourcing to deployment, we handle every aspect of international recruitment.")}
+              {t(
+                "employers.servicesSubtitle",
+                "From sourcing to deployment, we handle every aspect of international recruitment.",
+              )}
             </p>
           </motion.div>
 
@@ -485,7 +511,10 @@ export default function ForEmployersPage() {
               {t("employers.talentForSector", "Talent for Every Sector")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("employers.industriesSubtitle", "We provide skilled workers across all major industries worldwide.")}
+              {t(
+                "employers.industriesSubtitle",
+                "We provide skilled workers across all major industries worldwide.",
+              )}
             </p>
           </motion.div>
 
@@ -526,7 +555,9 @@ export default function ForEmployersPage() {
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               {t("employers.trustedBy", "Trusted by")}{" "}
-              <span className="gradient-text">{t("employers.leadingCompanies", "Leading Companies")}</span>
+              <span className="gradient-text">
+                {t("employers.leadingCompanies", "Leading Companies")}
+              </span>
             </h2>
           </motion.div>
 
@@ -598,7 +629,10 @@ export default function ForEmployersPage() {
               {t("employers.simpleHiring", "Simple Hiring Process")}
             </h2>
             <p className="text-lg text-primary-foreground/70 max-w-2xl mx-auto">
-              {t("employers.hiringProcessSubtitle", "Start hiring world-class Filipino talent in four simple steps.")}
+              {t(
+                "employers.hiringProcessSubtitle",
+                "Start hiring world-class Filipino talent in four simple steps.",
+              )}
             </p>
           </motion.div>
 
@@ -646,29 +680,15 @@ export default function ForEmployersPage() {
             <p className="text-lg text-muted-foreground mb-8">
               {t("employers.readyToHireSubtitle")}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="premium" size="xl" className="min-w-[200px]">
-                    {t("employers.startHiringNow", "Start Hiring Now")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </Link>
-              <Link to="/about">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="outline" size="xl" className="min-w-[200px]">
-                    {t("common.learnAboutUs")}
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
+            <AuthCTA
+              primaryText={t("employers.startHiringNow", "Start Hiring Now")}
+              secondaryText={t("common.learnAboutUs")}
+              primaryLink="/register"
+              secondaryLink="/about"
+              primaryVariant="default"
+              secondaryVariant="outline"
+              size="xl"
+            />
           </motion.div>
         </div>
       </section>

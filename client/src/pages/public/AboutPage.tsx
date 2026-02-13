@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AuthCTA } from "@/components/AuthCTA";
 import { useRef } from "react";
 
 const fadeInUp = {
@@ -659,27 +660,15 @@ export default function AboutPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="premium" size="xl">
-                    Get Started
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </Link>
-              <Link to="/services">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button variant="outline" size="xl">
-                    View Services
-                  </Button>
-                </motion.div>
-              </Link>
+              <AuthCTA
+                primaryText="Get Started"
+                secondaryText="View Services"
+                primaryLink="/register"
+                secondaryLink="/services"
+                primaryVariant="default"
+                secondaryVariant="outline"
+                size="xl"
+              />
             </div>
           </motion.div>
         </div>
