@@ -2,7 +2,12 @@ import prisma from "../config/database.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { JWT_EXPIRES_IN, JWT_SECRET, FRONTEND_URL, EMAIL_USER } from "../config/env.js";
+import {
+  JWT_EXPIRES_IN,
+  JWT_SECRET,
+  FRONTEND_URL,
+  EMAIL_USER,
+} from "../config/env.js";
 import transporter from "../config/nodemailer.js";
 
 // Generate a 6-digit OTP
@@ -98,7 +103,14 @@ export const signUp = async (req, res, next) => {
         try {
           await sendOtpEmail(email, otp, firstName);
         } catch (emailError) {
-          console.error("Failed to send OTP email:", emailError.message);
+          console.error("Failed to send OTP email:", emailError);
+          console.error("Email Error Code:", emailError.code);
+          console.error("Email Error Message:", emailError.message);
+          const error = new Error(
+            "Failed to send verification email. Please try again.",
+          );
+          error.statusCode = 500;
+          throw error;
         }
 
         return res.status(200).json({
@@ -179,13 +191,21 @@ export const signUp = async (req, res, next) => {
     try {
       await sendOtpEmail(email, otp, firstName);
     } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError.message);
+      console.error("Failed to send OTP email:", emailError);
+      console.error("Email Error Code:", emailError.code);
+      console.error("Email Error Message:", emailError.message);
+      const error = new Error(
+        "Failed to send verification email. Please try again.",
+      );
+      error.statusCode = 500;
+      throw error;
     }
 
     // Don't return token yet — user must verify email first
     res.status(201).json({
       success: true,
-      message: "Registration successful. Please check your email for the verification code.",
+      message:
+        "Registration successful. Please check your email for the verification code.",
       data: {
         requiresVerification: true,
         email: newUser.email,
@@ -229,8 +249,13 @@ export const verifyEmail = async (req, res, next) => {
     }
 
     // Check OTP expiry
-    if (!user.emailVerificationExpiry || new Date() > user.emailVerificationExpiry) {
-      const error = new Error("Verification code has expired. Please request a new one.");
+    if (
+      !user.emailVerificationExpiry ||
+      new Date() > user.emailVerificationExpiry
+    ) {
+      const error = new Error(
+        "Verification code has expired. Please request a new one.",
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -261,7 +286,12 @@ export const verifyEmail = async (req, res, next) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
-    const { password: _, emailVerificationOtp: __, emailVerificationExpiry: ___, ...userWithoutSensitive } = updatedUser;
+    const {
+      password: _,
+      emailVerificationOtp: __,
+      emailVerificationExpiry: ___,
+      ...userWithoutSensitive
+    } = updatedUser;
 
     res.status(200).json({
       success: true,
@@ -318,14 +348,19 @@ export const resendOtp = async (req, res, next) => {
     });
 
     // Get the user's first name for the email
-    const firstName = user.profile?.firstName || user.employer?.companyName || "User";
+    const firstName =
+      user.profile?.firstName || user.employer?.companyName || "User";
 
     // Send OTP email
     try {
       await sendOtpEmail(email, otp, firstName);
     } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError.message);
-      const error = new Error("Failed to send verification email. Please try again.");
+      console.error("Failed to send OTP email:", emailError);
+      console.error("Email Error Code:", emailError.code);
+      console.error("Email Error Message:", emailError.message);
+      const error = new Error(
+        "Failed to send verification email. Please try again.",
+      );
       error.statusCode = 500;
       throw error;
     }
@@ -387,7 +422,8 @@ export const signIn = async (req, res, next) => {
         },
       });
 
-      const firstName = user.profile?.firstName || user.employer?.companyName || "User";
+      const firstName =
+        user.profile?.firstName || user.employer?.companyName || "User";
 
       try {
         await sendOtpEmail(email, otp, firstName);
@@ -397,7 +433,8 @@ export const signIn = async (req, res, next) => {
 
       return res.status(200).json({
         success: true,
-        message: "Please verify your email first. A new verification code has been sent.",
+        message:
+          "Please verify your email first. A new verification code has been sent.",
         data: {
           requiresVerification: true,
           email: user.email,
@@ -411,7 +448,12 @@ export const signIn = async (req, res, next) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
-    const { password: _, emailVerificationOtp: __, emailVerificationExpiry: ___, ...userWithoutSensitive } = user;
+    const {
+      password: _,
+      emailVerificationOtp: __,
+      emailVerificationExpiry: ___,
+      ...userWithoutSensitive
+    } = user;
 
     res.status(200).json({
       success: true,
@@ -454,7 +496,12 @@ export const getCurrentUser = async (req, res, next) => {
     }
 
     // Exclude sensitive fields from response
-    const { password: _, emailVerificationOtp: __, emailVerificationExpiry: ___, ...userWithoutSensitive } = user;
+    const {
+      password: _,
+      emailVerificationOtp: __,
+      emailVerificationExpiry: ___,
+      ...userWithoutSensitive
+    } = user;
 
     res.status(200).json({
       success: true,
