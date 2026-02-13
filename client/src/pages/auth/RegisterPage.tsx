@@ -98,9 +98,8 @@ export default function RegisterPage() {
       if (response?.data?.requiresVerification) {
         toast.info(response.message || "Please verify your email");
         navigate("/verify-email", { state: { email: data.email } });
-      } else {
+      } else if (response?.data?.token) {
         toast.success("Account created successfully!");
-        // Navigate to appropriate dashboard if no verification needed (fallback)
         const redirect =
           userType === "applicant" ? "/app/dashboard" : "/employer/dashboard";
         setTimeout(() => {
@@ -110,7 +109,6 @@ export default function RegisterPage() {
     } catch (error: any) {
       let errorMessage = "Registration failed. Please try again.";
 
-      // Try to extract error message from different possible sources
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
