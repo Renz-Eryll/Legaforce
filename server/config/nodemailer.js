@@ -1,21 +1,43 @@
 import nodemailer from "nodemailer";
-import { EMAIL_USER, EMAIL_PASSWORD } from "./env.js";
+import { EMAIL_USER, EMAIL_PASSWORD, NODE_ENV } from "./env.js";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASSWORD,
-  },
-});
+let transporter;
 
-// Only verify if email credentials are configured
-if (EMAIL_USER && EMAIL_PASSWORD) {
+if (NODE_ENV === "production") {
+  transporter = nodemailer.createTransport({
+    host: "smtp.sendgrid.net",
+    port: 587,
+    secure: false,
+    auth: {
+      user: "apikey",
+      pass: EMAIL_PASSWORD,
+    },
+  });
+
+  console.log("📧 Using SendGrid for email in production");
+} else {
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASSWORD,
+    },
+  });
+
+  console.log("📧 Using Gmail for email in development");
+}
+
+// Verify email configuration
+if (EMAIL_PASSWORD) {
   transporter.verify((error, success) => {
     if (error) {
-      console.error("❌ Email transporter error:", error);
+      console.error("❌ Email transporter error:", error.message);
       console.error("Error Code:", error.code);
-      console.error("Error Message:", error.message);
+      if (error.code === "EAUTH") {
+        console.error(
+          "⚠️  Invalid SendGrid API key. Check your EMAIL_PASSWORD env var.",
+        );
+      }
     } else {
       console.log("✅ Email transporter ready");
     }
