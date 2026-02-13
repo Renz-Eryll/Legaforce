@@ -6,9 +6,9 @@ import {
   JWT_EXPIRES_IN,
   JWT_SECRET,
   FRONTEND_URL,
-  EMAIL_USER,
+  NODE_ENV,
 } from "../config/env.js";
-import transporter from "../config/nodemailer.js";
+import transporter from "../config/sendgrid.js";
 
 // Generate a 6-digit OTP
 const generateOtp = () => {
@@ -20,9 +20,15 @@ const OTP_EXPIRY_MINUTES = 10;
 
 // Send OTP email
 const sendOtpEmail = async (email, otp, firstName) => {
-  const mailOptions = {
-    from: `"Legaforce" <renzeryll09@gmail.com>`, // ✅ Use your verified sender email
+  // Skip email in development
+  if (NODE_ENV !== "production") {
+    console.log(`📧 [DEV] Would send OTP ${otp} to ${email}`);
+    return;
+  }
+
+  const msg = {
     to: email,
+    from: "renzeryll09@gmail.com",
     subject: "Verify Your Email - Legaforce",
     html: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
@@ -49,7 +55,7 @@ const sendOtpEmail = async (email, otp, firstName) => {
           </div>
           
           <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0 0 8px;">
-            ⏱ This code expires in <strong>${OTP_EXPIRY_MINUTES} minutes</strong>.
+            ⏱ This code expires in <strong>10 minutes</strong>.
           </p>
           <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0;">
             If you didn't create an account on Legaforce, you can safely ignore this email.
@@ -64,7 +70,13 @@ const sendOtpEmail = async (email, otp, firstName) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await sgMail.send(msg);
+    console.log(`✅ OTP email sent to ${email}`);
+  } catch (error) {
+    console.error("❌ SendGrid error:", error.response?.body || error.message);
+    throw new Error("Failed to send verification email");
+  }
 };
 
 export const signUp = async (req, res, next) => {
