@@ -214,7 +214,7 @@ function CandidateDetailsPage() {
                 Send Message
               </Button>
               <Button className="w-full" variant="outline">
-                Schedule Interview
+                Schedule Video Interview
               </Button>
               <Button className="w-full" variant="outline">
                 Make Offer

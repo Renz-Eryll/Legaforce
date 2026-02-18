@@ -115,6 +115,7 @@ const getEmployerNavigation = (): NavSection[] => [
     items: [
       { name: "Deployments", href: "/employer/deployments", icon: Globe },
       { name: "Invoices", href: "/employer/invoices", icon: DollarSign },
+      { name: "Pricing & Cost", href: "/employer/pricing", icon: Wallet },
       { name: "Reports", href: "/employer/reports", icon: BarChart3 },
     ],
   },

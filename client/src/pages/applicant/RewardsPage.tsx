@@ -3,12 +3,10 @@ import { motion } from "framer-motion";
 import {
   Gift,
   Zap,
-  TrendingUp,
   Clock,
-  Check,
-  Coins,
   Award,
   Star,
+  FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,79 +26,82 @@ const staggerContainer = {
   },
 };
 
+// Rewards & Trust Score: earn for complete docs early, attend interview on time, successful deployment
+// Redeem for: free training, priority processing, discounts on medical/documentation
 const mockRewards = {
   points: 2850,
+  trustScore: 85,
   nextMilestone: 3000,
   history: [
     {
       id: "RW-001",
-      type: "Application",
-      description: "Applied to job posting",
-      points: 50,
+      type: "Documents",
+      description: "Complete documents early",
+      points: 150,
       date: "2025-01-15",
     },
     {
       id: "RW-002",
       type: "Interview",
-      description: "Completed job interview",
+      description: "Attended interview on time",
       points: 200,
       date: "2025-01-12",
     },
     {
       id: "RW-003",
-      type: "Document Upload",
+      type: "Documents",
       description: "Uploaded required documents",
       points: 100,
       date: "2025-01-10",
     },
     {
       id: "RW-004",
-      type: "Profile",
-      description: "Completed profile information",
-      points: 150,
-      date: "2025-01-08",
+      type: "Deployment",
+      description: "Successful deployment",
+      points: 500,
+      date: "2024-12-20",
     },
   ],
   available: [
     {
       id: "REWARD-001",
-      name: "₱500 Voucher",
-      cost: 500,
-      description: "Redemption voucher",
-      type: "voucher",
+      name: "Free training",
+      cost: 800,
+      description: "Eligibility for free skills or compliance training",
+      type: "training",
     },
     {
       id: "REWARD-002",
-      name: "Premium Support",
+      name: "Priority processing",
       cost: 1000,
-      description: "3 months priority support",
+      description: "3 months priority in application processing",
       type: "service",
     },
     {
       id: "REWARD-003",
-      name: "₱1000 Voucher",
-      cost: 1200,
-      description: "High-value redemption voucher",
-      type: "voucher",
+      name: "Medical / documentation discount",
+      cost: 600,
+      description: "Discount on medical or documentation fees",
+      type: "discount",
     },
     {
       id: "REWARD-004",
-      name: "Training Course",
-      cost: 800,
-      description: "Professional development course",
+      name: "Premium training bundle",
+      cost: 1200,
+      description: "Full professional development course",
       type: "training",
     },
   ],
   redeemed: [
     {
       id: "RED-001",
-      name: "₱500 Voucher",
+      name: "Medical / documentation discount",
       date: "2024-12-20",
-      cost: 500,
+      cost: 600,
     },
     {
       id: "RED-002",
-      name: "Training Course",
+      name: "Free training",
       date: "2024-12-10",
       cost: 800,
     },
@@ -123,20 +124,60 @@ function RewardsPage() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Header */}
+      {/* Header - Rewards & Trust Score */}
       <motion.div
         variants={fadeInUp}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-display font-bold mb-1">Rewards</h1>
+          <h1 className="text-3xl font-display font-bold mb-1">
+            Rewards & Trust Score
+          </h1>
           <p className="text-muted-foreground">
-            Earn and redeem your loyalty points
+            Earn points for completing documents early, attending interviews on
+            time, and successful deployment. Redeem for training, priority
+            processing, or discounts.
           </p>
         </div>
-        <div className="bg-accent/10 text-accent px-6 py-3 rounded-lg">
-          <p className="text-sm text-muted-foreground">Your Points</p>
-          <p className="text-3xl font-display font-bold">{points}</p>
+        <div className="flex gap-4">
+          <div className="bg-accent/10 text-accent px-6 py-3 rounded-lg">
+            <p className="text-sm text-muted-foreground">Your Points</p>
+            <p className="text-3xl font-display font-bold">{points}</p>
+          </div>
+          <div className="bg-muted/50 px-6 py-3 rounded-lg">
+            <p className="text-sm text-muted-foreground">Trust Score</p>
+            <p className="text-2xl font-display font-bold">
+              {mockRewards.trustScore}%
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* How you earn */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <h3 className="font-semibold mb-4">Earn points for</h3>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+            <FileCheck className="w-6 h-6 text-accent shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Complete documents early</p>
+              <p className="text-sm text-muted-foreground">Up to 150 pts</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+            <Clock className="w-6 h-6 text-accent shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Attend interviews on time</p>
+              <p className="text-sm text-muted-foreground">Up to 200 pts</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+            <Award className="w-6 h-6 text-accent shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Successful deployment</p>
+              <p className="text-sm text-muted-foreground">Up to 500 pts</p>
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -182,7 +223,7 @@ function RewardsPage() {
                     className="p-4 border border-border rounded-lg"
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      {reward.type === "voucher" && (
+                      {(reward.type === "voucher" || reward.type === "discount") && (
                         <Gift className="w-5 h-5 text-accent" />
                       )}
                       {reward.type === "service" && (
@@ -261,35 +302,29 @@ function RewardsPage() {
         </Tabs>
       </motion.div>
 
-      {/* How It Works */}
+      {/* Redeem for: Free training, Priority processing, Discounts */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="font-semibold mb-4">How It Works</h3>
+        <h3 className="font-semibold mb-4">Redeem for</h3>
         <div className="grid sm:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
-              <Zap className="w-6 h-6 text-accent" />
-            </div>
-            <p className="text-sm font-medium">Earn Points</p>
+          <div className="text-center p-4 rounded-lg bg-muted/50">
+            <Award className="w-8 h-8 text-accent mx-auto mb-2" />
+            <p className="text-sm font-medium">Free training</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Complete activities and milestones
+              Skills and compliance courses
             </p>
           </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-6 h-6 text-accent" />
-            </div>
-            <p className="text-sm font-medium">Accumulate</p>
+          <div className="text-center p-4 rounded-lg bg-muted/50">
+            <Zap className="w-8 h-8 text-accent mx-auto mb-2" />
+            <p className="text-sm font-medium">Priority processing</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Watch your balance grow
+              Faster application handling
             </p>
           </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
-              <Gift className="w-6 h-6 text-accent" />
-            </div>
-            <p className="text-sm font-medium">Redeem</p>
+          <div className="text-center p-4 rounded-lg bg-muted/50">
+            <Gift className="w-8 h-8 text-accent mx-auto mb-2" />
+            <p className="text-sm font-medium">Discounts</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Exchange for amazing rewards
+              Medical & documentation fees
             </p>
           </div>
         </div>

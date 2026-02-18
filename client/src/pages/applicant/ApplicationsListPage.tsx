@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { applicantService } from "@/services/applicantService";
 import {
   Briefcase,
   Search,
@@ -45,6 +46,7 @@ const staggerContainer = {
   },
 };
 
+// Real-time pipeline: Applied → Shortlisted → Interview → Selected → Processing → Deployed
 const mockApplications = [
   {
     id: "APP-001",
@@ -85,15 +87,26 @@ const mockApplications = [
     employer: "Kuwait Hospital",
     location: "Kuwait City, Kuwait",
     salary: "$2,400/mo",
-    status: "selected",
+    status: "processing",
     matchScore: 90,
     appliedDate: "Jan 10, 2026",
     interviewDate: "Jan 25, 2026",
   },
   {
     id: "APP-005",
-    position: "Domestic Helper",
+    position: "Caregiver",
     employer: "Gulf Family Services",
+    location: "Abu Dhabi, UAE",
+    salary: "$600/mo",
+    status: "deployed",
+    matchScore: 88,
+    appliedDate: "Dec 01, 2025",
+    interviewDate: "Dec 15, 2025",
+  },
+  {
+    id: "APP-006",
+    position: "Domestic Helper",
+    employer: "Gulf Home Services",
     location: "Abu Dhabi, UAE",
     salary: "$500/mo",
     status: "rejected",
@@ -103,11 +116,62 @@ const mockApplications = [
   },
 ];
 
+type AppRow = {
+  id: string;
+  position: string;
+  employer: string;
+  location: string;
+  salary: string | number;
+  status: string;
+  matchScore: number;
+  appliedDate: string;
+  interviewDate: string | null;
+};
+
+function mapApiToRow(app: any): AppRow {
+  const job = app.jobOrder || {};
+  const created = app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+  const interviewed = app.interviewedAt ? new Date(app.interviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
+  const salary = job.salary != null ? (typeof job.salary === "number" ? `$${job.salary}/mo` : job.salary) : "—";
+  return {
+    id: app.id,
+    position: job.title || app.position || "—",
+    employer: job.employer || app.employer || "—",
+    location: job.location || app.location || "—",
+    salary,
+    status: (app.status || "").toLowerCase(),
+    matchScore: app.aiMatchScore ?? app.matchScore ?? 0,
+    appliedDate: created,
+    interviewDate: interviewed,
+  };
+}
+
 function ApplicationsListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [applications, setApplications] = useState<AppRow[]>(mockApplications);
+  const [loading, setLoading] = useState(true);
 
-  const filteredApplications = mockApplications.filter((app) => {
+  useEffect(() => {
+    let cancelled = false;
+    applicantService
+      .getApplications()
+      .then((data: any) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : (data?.items ?? []);
+        const rows = list.length ? list.map(mapApiToRow) : mockApplications;
+        setApplications(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setApplications(mockApplications);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.employer.toLowerCase().includes(searchTerm.toLowerCase());
@@ -121,6 +185,8 @@ function ApplicationsListPage() {
       shortlisted: "bg-purple-500/10 text-purple-500 border-purple-500/20",
       interviewed: "bg-amber-500/10 text-amber-500 border-amber-500/20",
       selected: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      processing: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+      deployed: "bg-green-600/10 text-green-600 border-green-600/20",
       rejected: "bg-red-500/10 text-red-500 border-red-500/20",
     };
     return configs[status as keyof typeof configs] || configs.applied;
@@ -129,8 +195,10 @@ function ApplicationsListPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "selected":
+      case "deployed":
         return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case "interviewed":
+      case "processing":
         return <Clock className="w-4 h-4 text-amber-500" />;
       case "rejected":
         return <AlertCircle className="w-4 h-4 text-red-500" />;
@@ -172,20 +240,26 @@ function ApplicationsListPage() {
             Total Applications
           </p>
           <p className="text-2xl font-display font-bold">
-            {mockApplications.length}
+            {loading ? "—" : applications.length}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Active</p>
-          <p className="text-2xl font-display font-bold text-blue-500">3</p>
+          <p className="text-2xl font-display font-bold text-blue-500">
+            {loading ? "—" : applications.filter((a) => !["rejected", "deployed"].includes(a.status)).length}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Selected</p>
-          <p className="text-2xl font-display font-bold text-emerald-500">1</p>
+          <p className="text-2xl font-display font-bold text-emerald-500">
+            {loading ? "—" : applications.filter((a) => ["selected", "processing", "deployed"].includes(a.status)).length}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Match Score</p>
-          <p className="text-2xl font-display font-bold">85%</p>
+          <p className="text-2xl font-display font-bold">
+            {loading ? "—" : applications.length ? Math.round(applications.reduce((s, a) => s + a.matchScore, 0) / applications.length) + "%" : "0%"}
+          </p>
         </div>
       </motion.div>
 
@@ -212,8 +286,10 @@ function ApplicationsListPage() {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="applied">Applied</SelectItem>
               <SelectItem value="shortlisted">Shortlisted</SelectItem>
-              <SelectItem value="interviewed">Interviewed</SelectItem>
+              <SelectItem value="interviewed">Interview</SelectItem>
               <SelectItem value="selected">Selected</SelectItem>
+              <SelectItem value="processing">Processing</SelectItem>
+              <SelectItem value="deployed">Deployed</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
@@ -237,7 +313,14 @@ function ApplicationsListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredApplications.map((app) => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    Loading applications…
+                  </TableCell>
+                </TableRow>
+              ) : (
+              filteredApplications.map((app) => (
                 <TableRow key={app.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{app.position}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
@@ -249,9 +332,9 @@ function ApplicationsListPage() {
                       {app.location}
                     </div>
                   </TableCell>
-                  <TableCell className="font-semibold">{app.salary}</TableCell>
+                  <TableCell className="font-semibold">{typeof app.salary === "number" ? `$${app.salary}/mo` : app.salary}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{app.matchScore}%</Badge>
+                    <Badge variant="secondary">{app.matchScore != null ? `${app.matchScore}%` : "—"}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -268,21 +351,22 @@ function ApplicationsListPage() {
                     {app.appliedDate}
                   </TableCell>
                   <TableCell>
-                    <Link to={`/applicant/applications/${app.id}`}>
+                    <Link to={`/app/applications/${app.id}`}>
                       <Button variant="ghost" size="sm">
                         <ChevronRight className="w-4 h-4" />
                       </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+              )}
             </TableBody>
           </Table>
         </div>
       </motion.div>
 
       {/* No Results */}
-      {filteredApplications.length === 0 && (
+      {!loading && filteredApplications.length === 0 && (
         <motion.div variants={fadeInUp} className="text-center py-12">
           <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">No applications found</p>

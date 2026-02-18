@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   Search,
-  Filter,
   ChevronRight,
   MapPin,
   Building2,
@@ -11,6 +10,8 @@ import {
   Briefcase,
   Heart,
   Eye,
+  Smartphone,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -100,6 +103,7 @@ function JobsListPage() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [salaryFilter, setSalaryFilter] = useState("all");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [autoApplyMatching, setAutoApplyMatching] = useState(false);
 
   const filteredJobs = mockJobs.filter((job) => {
     const matchesSearch =
@@ -116,6 +120,18 @@ function JobsListPage() {
       variants={staggerContainer}
       className="space-y-6"
     >
+      {/* Apply Anywhere: Mobile & Web, low-bandwidth optimized */}
+      <motion.div
+        variants={fadeInUp}
+        className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border text-sm text-muted-foreground"
+      >
+        <span className="flex items-center gap-2 font-medium text-foreground">
+          <Smartphone className="w-4 h-4 text-accent" />
+          Apply anywhere
+        </span>
+        <span>Works on mobile & web. Optimized for low-bandwidth.</span>
+      </motion.div>
+
       {/* Header */}
       <motion.div
         variants={fadeInUp}
@@ -129,13 +145,26 @@ function JobsListPage() {
             Find your next overseas placement
           </p>
         </div>
-        <Button
-          variant={savedOnly ? "default" : "outline"}
-          onClick={() => setSavedOnly(!savedOnly)}
-        >
-          <Heart className="w-4 h-4 mr-2 fill-current" />
-          Saved Jobs
-        </Button>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="auto-apply"
+              checked={autoApplyMatching}
+              onCheckedChange={setAutoApplyMatching}
+            />
+            <Label htmlFor="auto-apply" className="text-sm cursor-pointer flex items-center gap-1">
+              <Zap className="w-4 h-4 text-accent" />
+              Auto-apply to matching jobs
+            </Label>
+          </div>
+          <Button
+            variant={savedOnly ? "default" : "outline"}
+            onClick={() => setSavedOnly(!savedOnly)}
+          >
+            <Heart className="w-4 h-4 mr-2 fill-current" />
+            Saved Jobs
+          </Button>
+        </div>
       </motion.div>
 
       {/* Stats */}
@@ -231,7 +260,7 @@ function JobsListPage() {
                     <Heart className="w-4 h-4" />
                   </Button>
                 )}
-                <Link to={`/applicant/jobs/${job.id}`}>
+                <Link to={`/app/jobs/${job.id}`}>
                   <Button className="gradient-bg-accent text-accent-foreground">
                     <Eye className="w-4 h-4 mr-2" />
                     View Details

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   ChevronLeft,
   MapPin,
@@ -57,9 +57,10 @@ const mockApplication = {
   timeline: [
     { stage: "Applied", date: "Jan 15, 2026", completed: true },
     { stage: "Shortlisted", date: "Jan 18, 2026", completed: true },
-    { stage: "Interviewed", date: "Jan 28, 2026", completed: true },
+    { stage: "Interview", date: "Jan 28, 2026", completed: true },
     { stage: "Selected", date: "Pending", completed: false },
-    { stage: "Deployment", date: "Pending", completed: false },
+    { stage: "Processing", date: "Pending", completed: false },
+    { stage: "Deployed", date: "Pending", completed: false },
   ],
   employer_info: {
     name: "King Faisal Hospital",
@@ -81,9 +82,11 @@ function ApplicationDetailsPage() {
     >
       {/* Header */}
       <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-6">
-        <Button variant="ghost" size="sm">
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Back
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/app/applications">
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back
+          </Link>
         </Button>
       </motion.div>
 
@@ -189,9 +192,13 @@ function ApplicationDetailsPage() {
         </ul>
       </motion.div>
 
-      {/* Application Timeline */}
+      {/* Application Timeline - Real-time status: Applied → Shortlisted → Interview → Selected → Processing → Deployed */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h2 className="text-lg font-semibold mb-6">Application Timeline</h2>
+        <h2 className="text-lg font-semibold mb-2">Application Timeline</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          You’ll get updates via push notification, email, and SMS when your
+          status changes.
+        </p>
         <div className="space-y-4">
           {mockApplication.timeline.map((item, idx) => (
             <div key={idx} className="flex gap-4">

@@ -11,6 +11,8 @@ import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 import authRouter from "./routes/auth.routes.js";
+import applicantRouter from "./routes/applicant.routes.js";
+import employerRouter from "./routes/employer.routes.js";
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use(cookieParser());
 app.use(arcjetMiddleware);
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/applicant", applicantRouter);
+app.use("/api/v1/employer", employerRouter);
 
 app.get("/", (req, res) => {
   res.json({

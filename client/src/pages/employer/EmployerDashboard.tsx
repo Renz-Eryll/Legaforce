@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import {
   Briefcase,
   Users,
-  TrendingUp,
   DollarSign,
   ArrowRight,
   ChevronRight,
@@ -18,6 +17,8 @@ import {
   Plus,
   Eye,
   Building2,
+  Video,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -194,6 +195,25 @@ export default function EmployerDashboard() {
           <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 transition-all">
             <Plus className="w-4 h-4 mr-2" />
             Post New Job
+          </Button>
+        </Link>
+      </motion.div>
+
+      {/* Recruitment cost optimization callout */}
+      <motion.div variants={fadeInUp} className="card-premium p-4 flex flex-wrap items-center gap-4 bg-muted/30">
+        <span className="font-medium">Recruitment cost optimization</span>
+        <span className="text-sm text-muted-foreground flex items-center gap-2">
+          <Video className="w-4 h-4" />
+          No physical interviews
+        </span>
+        <span className="text-sm text-muted-foreground flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          No repeated sourcing
+        </span>
+        <Link to="/employer/pricing">
+          <Button variant="outline" size="sm">
+            <Wallet className="w-4 h-4 mr-2" />
+            Transparent pricing
           </Button>
         </Link>
       </motion.div>

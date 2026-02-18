@@ -108,7 +108,7 @@ function JobDetailsPage() {
       {/* Back Button */}
       <motion.button
         variants={fadeInUp}
-        onClick={() => navigate("/applicant/jobs")}
+        onClick={() => navigate("/app/jobs")}
         className="flex items-center gap-2 text-accent hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />

@@ -53,13 +53,14 @@ import {
 
 import {
   CandidatesListPage,
+  CompanyProfilePage,
   DeploymentsPage,
   EmployerDashboard,
   InterviewsListPage,
   InvoicesListPage,
   JobOrderDetailsPage,
+  PricingDashboardPage,
   ReportsPage as EmployerReportsPage,
-  CompanyProfilePage,
   SupportPage as EmployerSupportPage,
   SettingsPage as EmployerSettingsPage,
 } from "./pages/employer";
@@ -171,6 +172,7 @@ const App = () => {
               <Route path="interviews" element={<InterviewsListPage />} />
               <Route path="deployments" element={<DeploymentsPage />} />
               <Route path="invoices" element={<InvoicesListPage />} />
+              <Route path="pricing" element={<PricingDashboardPage />} />
               <Route path="reports" element={<EmployerReportsPage />} />
               <Route path="profile" element={<CompanyProfilePage />} />
               <Route path="support" element={<EmployerSupportPage />} />

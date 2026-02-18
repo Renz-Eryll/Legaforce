@@ -8,6 +8,7 @@ export { default as InterviewsListPage } from "./InterviewsListPage";
 export { default as InvoicesListPage } from "./InvoicesListPage";
 export { default as JobOrderDetailsPage } from "./JobOrderDetailsPage";
 export { default as JobOrdersListPage } from "./JobOrdersListPage";
+export { default as PricingDashboardPage } from "./PricingDashboardPage";
 export { default as ReportsPage } from "./ReportsPage";
 export { default as SettingsPage } from "./SettingsPage";
 export { default as SupportPage } from "./SupportPage";

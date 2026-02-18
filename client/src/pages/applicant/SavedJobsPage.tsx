@@ -173,7 +173,7 @@ function SavedJobsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Link to={`/applicant/jobs/${job.id}`}>
+                  <Link to={`/app/jobs/${job.id}`}>
                     <Button variant="outline" size="sm">
                       <Eye className="w-4 h-4 mr-1" />
                       View
@@ -223,7 +223,7 @@ function SavedJobsPage() {
               ? "No saved jobs match your search"
               : "You haven't saved any jobs yet"}
           </p>
-          <Link to="/applicant/jobs">
+          <Link to="/app/jobs">
             <Button className="gradient-bg-accent text-accent-foreground">
               Browse Jobs
             </Button>
