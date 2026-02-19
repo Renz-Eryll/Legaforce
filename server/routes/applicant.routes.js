@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authorize, authorizeRoles } from "../middlewares/auth.middleware.js";
 import {
   getProfile,
+  updateProfile,
   getApplications,
   getApplicationById,
   getComplaints,
@@ -31,6 +32,7 @@ router.use(authorize);
 router.use(authorizeRoles("APPLICANT"));
 
 router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
 router.get("/applications", getApplications);
 router.get("/applications/:id", getApplicationById);
 router.get("/complaints", getComplaints);

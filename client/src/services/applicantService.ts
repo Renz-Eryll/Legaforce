@@ -1,8 +1,9 @@
 import api from "./api";
 
 // Response shape: backend typically returns { success, data, message }
+// Unwrap nested { data: { data: T } }; callers fall back to res.data if undefined.
 const getData = <T>(res: { data?: { data?: T } }): T | undefined =>
-  res.data?.data ?? res.data;
+  res.data?.data;
 
 export const applicantService = {
   async getProfile() {
@@ -11,6 +12,27 @@ export const applicantService = {
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to fetch applicant profile:", error);
+      throw error;
+    }
+  },
+
+  async updateProfile(payload: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    nationality?: string;
+    dateOfBirth?: string;
+    bio?: string;
+    skills?: string[];
+    experience?: Array<Record<string, string>>;
+    education?: Array<Record<string, string>>;
+    certifications?: string[];
+  }) {
+    try {
+      const res = await api.put("/applicant/profile", payload);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to update profile:", error);
       throw error;
     }
   },
