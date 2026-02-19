@@ -1,13 +1,14 @@
 import api from "./api";
 
 const getData = <T>(res: { data?: { data?: T } }): T | undefined =>
-  res.data?.data ?? res.data;
+  res.data?.data ?? (res.data as T | undefined);
 
 export const employerService = {
+  // ───── Profile ─────
   async getProfile() {
     try {
       const res = await api.get("/employer/profile");
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to fetch employer profile:", error);
       throw error;
@@ -24,28 +25,89 @@ export const employerService = {
   }) {
     try {
       const res = await api.patch("/employer/profile", payload);
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to update employer profile:", error);
       throw error;
     }
   },
 
+  // ───── Job Orders CRUD ─────
   async getJobOrders(status?: string) {
     try {
       const params = status ? { status } : {};
       const res = await api.get("/employer/job-orders", { params });
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch job orders:", error);
       throw error;
     }
   },
 
+  async getJobOrder(id: string) {
+    try {
+      const res = await api.get(`/employer/job-orders/${id}`);
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to fetch job order:", error);
+      throw error;
+    }
+  },
+
+  async createJobOrder(payload: {
+    title: string;
+    description: string;
+    requirements?: Record<string, unknown>;
+    salary?: number | string;
+    location: string;
+    positions?: number;
+    status?: string;
+  }) {
+    try {
+      const res = await api.post("/employer/job-orders", payload);
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to create job order:", error);
+      throw error;
+    }
+  },
+
+  async updateJobOrder(
+    id: string,
+    payload: {
+      title?: string;
+      description?: string;
+      requirements?: Record<string, unknown>;
+      salary?: number | string;
+      location?: string;
+      positions?: number;
+      status?: string;
+    }
+  ) {
+    try {
+      const res = await api.put(`/employer/job-orders/${id}`, payload);
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to update job order:", error);
+      throw error;
+    }
+  },
+
+  async deleteJobOrder(id: string) {
+    try {
+      const res = await api.delete(`/employer/job-orders/${id}`);
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to delete job order:", error);
+      throw error;
+    }
+  },
+
+  // ───── Dashboard Stats ─────
   async getDashboardStats() {
     try {
       const res = await api.get("/employer/dashboard-stats");
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to fetch employer dashboard stats:", error);
       throw error;
@@ -55,7 +117,7 @@ export const employerService = {
   async getUpcomingInterviews() {
     try {
       const res = await api.get("/employer/upcoming-interviews");
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch upcoming interviews:", error);
       throw error;
@@ -65,7 +127,7 @@ export const employerService = {
   async getRecentCandidates() {
     try {
       const res = await api.get("/employer/recent-candidates");
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch recent candidates:", error);
       throw error;
@@ -75,7 +137,7 @@ export const employerService = {
   async getCandidateCount() {
     try {
       const res = await api.get("/employer/candidate-count");
-      return getData(res) ?? res.data;
+      return getData<number>(res) ?? 0;
     } catch (error) {
       console.error("Failed to fetch candidate count:", error);
       throw error;
@@ -86,7 +148,7 @@ export const employerService = {
     try {
       const params = status ? { status } : {};
       const res = await api.get("/employer/job-order-count", { params });
-      return getData(res) ?? res.data;
+      return getData<number>(res) ?? 0;
     } catch (error) {
       console.error("Failed to fetch job order count:", error);
       throw error;
@@ -96,7 +158,7 @@ export const employerService = {
   async getInterviewCount() {
     try {
       const res = await api.get("/employer/interview-count");
-      return getData(res) ?? res.data;
+      return getData<number>(res) ?? 0;
     } catch (error) {
       console.error("Failed to fetch interview count:", error);
       throw error;
@@ -106,14 +168,14 @@ export const employerService = {
   async getDeployedWorkerCount() {
     try {
       const res = await api.get("/employer/deployed-worker-count");
-      return getData(res) ?? res.data;
+      return getData<number>(res) ?? 0;
     } catch (error) {
       console.error("Failed to fetch deployed worker count:", error);
       throw error;
     }
   },
 
-  // ----- Smart Candidate Search -----
+  // ───── Smart Candidate Search ─────
   async getCandidates(params?: {
     search?: string;
     skills?: string;
@@ -127,7 +189,7 @@ export const employerService = {
   }) {
     try {
       const res = await api.get("/employer/candidates", { params });
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch candidates:", error);
       throw error;
@@ -137,18 +199,18 @@ export const employerService = {
   async getCandidate(id: string) {
     try {
       const res = await api.get(`/employer/candidates/${id}`);
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to fetch candidate:", error);
       throw error;
     }
   },
 
-  // ----- Interviews (video, record & rate, share feedback) -----
+  // ───── Interviews ─────
   async getInterviews(params?: { status?: string }) {
     try {
       const res = await api.get("/employer/interviews", { params });
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch interviews:", error);
       throw error;
@@ -164,7 +226,7 @@ export const employerService = {
         `/employer/interviews/${applicationId}/rating`,
         payload
       );
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to update interview rating:", error);
       throw error;
@@ -176,18 +238,35 @@ export const employerService = {
       const res = await api.post(
         `/employer/interviews/${applicationId}/share-feedback`
       );
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to share feedback:", error);
       throw error;
     }
   },
 
-  // ----- Documents & Verification -----
+  // ───── Application Status ─────
+  async updateApplicationStatus(
+    applicationId: string,
+    payload: { status: string; notes?: string }
+  ) {
+    try {
+      const res = await api.patch(
+        `/employer/applications/${applicationId}/status`,
+        payload
+      );
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to update application status:", error);
+      throw error;
+    }
+  },
+
+  // ───── Documents & Verification ─────
   async getDocuments() {
     try {
       const res = await api.get("/employer/documents");
-      return getData(res) ?? res.data;
+      return getData<any[]>(res) ?? [];
     } catch (error) {
       console.error("Failed to fetch documents:", error);
       throw error;
@@ -199,18 +278,18 @@ export const employerService = {
       const res = await api.post("/employer/documents", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to upload document:", error);
       throw error;
     }
   },
 
-  // ----- Pricing (transparent pricing dashboard) -----
+  // ───── Pricing ─────
   async getPricing() {
     try {
       const res = await api.get("/employer/pricing");
-      return getData(res) ?? res.data;
+      return getData(res);
     } catch (error) {
       console.error("Failed to fetch pricing:", error);
       throw error;

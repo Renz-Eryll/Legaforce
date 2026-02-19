@@ -133,10 +133,16 @@ function mapApiToRow(app: any): AppRow {
   const created = app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
   const interviewed = app.interviewedAt ? new Date(app.interviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
   const salary = job.salary != null ? (typeof job.salary === "number" ? `$${job.salary}/mo` : job.salary) : "—";
+  // job.employer is an object { companyName: "..." } from the Prisma include
+  const employerName =
+    typeof job.employer === "string" ? job.employer :
+    job.employer?.companyName ||
+    (typeof app.employer === "string" ? app.employer : app.employer?.companyName) ||
+    "—";
   return {
     id: app.id,
     position: job.title || app.position || "—",
-    employer: job.employer || app.employer || "—",
+    employer: employerName,
     location: job.location || app.location || "—",
     salary,
     status: (app.status || "").toLowerCase(),

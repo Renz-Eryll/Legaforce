@@ -29,6 +29,70 @@ export const getProfile = async (req, res, next) => {
   }
 };
 
+export const updateProfile = async (req, res, next) => {
+  try {
+    const profile = await getProfileByUser(req.user.id);
+    const {
+      firstName,
+      lastName,
+      phone,
+      nationality,
+      dateOfBirth,
+      // CV-related fields stored in aiGeneratedCV JSON
+      bio,
+      skills,
+      experience,
+      education,
+      certifications,
+    } = req.body;
+
+    // Build update data for profile table fields
+    const updateData = {};
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (nationality !== undefined) updateData.nationality = nationality;
+    if (dateOfBirth !== undefined)
+      updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+
+    // Merge CV-related fields into aiGeneratedCV JSON
+    const existingCV =
+      profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
+        ? profile.aiGeneratedCV
+        : {};
+    const cvUpdates = {};
+    if (bio !== undefined) cvUpdates.summary = bio;
+    if (skills !== undefined) cvUpdates.skills = skills;
+    if (experience !== undefined) cvUpdates.experience = experience;
+    if (education !== undefined) cvUpdates.education = education;
+    if (certifications !== undefined) cvUpdates.certifications = certifications;
+
+    if (Object.keys(cvUpdates).length > 0) {
+      updateData.aiGeneratedCV = { ...existingCV, ...cvUpdates };
+    }
+
+    const updatedProfile = await prisma.profile.update({
+      where: { id: profile.id },
+      data: updateData,
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { email: true },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...updatedProfile,
+        email: user?.email,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getApplications = async (req, res, next) => {
   try {
     const profile = await getProfileByUser(req.user.id);

@@ -104,7 +104,10 @@ function CVBuilderPage() {
     if (!isFirstStep) setCurrentStep((s) => s - 1);
   };
 
-  const updatePersonal = (field: keyof CVData["personalInfo"], value: string) => {
+  const updatePersonal = (
+    field: keyof CVData["personalInfo"],
+    value: string,
+  ) => {
     setCVData((d) => ({
       ...d,
       personalInfo: { ...d.personalInfo, [field]: value },
@@ -128,11 +131,7 @@ function CVBuilderPage() {
     }));
   };
 
-  const updateExperience = (
-    index: number,
-    field: string,
-    value: string
-  ) => {
+  const updateExperience = (index: number, field: string, value: string) => {
     setCVData((d) => {
       const next = [...d.experience];
       (next[index] as Record<string, string>)[field] = value;
@@ -157,11 +156,7 @@ function CVBuilderPage() {
     }));
   };
 
-  const updateEducation = (
-    index: number,
-    field: string,
-    value: string
-  ) => {
+  const updateEducation = (index: number, field: string, value: string) => {
     setCVData((d) => {
       const next = [...d.education];
       (next[index] as Record<string, string>)[field] = value;
@@ -200,11 +195,7 @@ function CVBuilderPage() {
     }));
   };
 
-  const updateCertification = (
-    index: number,
-    field: string,
-    value: string
-  ) => {
+  const updateCertification = (index: number, field: string, value: string) => {
     setCVData((d) => {
       const next = [...d.certifications];
       (next[index] as Record<string, string>)[field] = value;
@@ -226,7 +217,12 @@ function CVBuilderPage() {
       await new Promise((r) => setTimeout(r, 1500));
       const summary =
         cvData.summary ||
-        `Professional profile for ${cvData.personalInfo.fullName || "applicant"} with experience in ${cvData.experience.map((e) => e.position).filter(Boolean).join(", ") || "various roles"}.`;
+        `Professional profile for ${cvData.personalInfo.fullName || "applicant"} with experience in ${
+          cvData.experience
+            .map((e) => e.position)
+            .filter(Boolean)
+            .join(", ") || "various roles"
+        }.`;
       const tags = [
         ...cvData.skills,
         ...cvData.certifications.map((c) => c.name).filter(Boolean),
@@ -288,7 +284,7 @@ function CVBuilderPage() {
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   currentStep === idx
                     ? "bg-accent text-accent-foreground"
-                    : "bg-muted/50 hover:bg-muted text-muted-foreground"
+                    : "bg-muted/50 hover:bg-muted text-muted-foreground",
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -303,11 +299,7 @@ function CVBuilderPage() {
         <AnimatePresence mode="wait">
           {/* Personal */}
           {stepId === "personal" && (
-            <motion.div
-              key="personal"
-              {...fadeInUp}
-              className="space-y-4"
-            >
+            <motion.div key="personal" {...fadeInUp} className="space-y-4">
               <h2 className="text-lg font-semibold">Personal Information</h2>
               <div className="space-y-4">
                 <div>
@@ -316,9 +308,7 @@ function CVBuilderPage() {
                   </label>
                   <Input
                     value={cvData.personalInfo.fullName}
-                    onChange={(e) =>
-                      updatePersonal("fullName", e.target.value)
-                    }
+                    onChange={(e) => updatePersonal("fullName", e.target.value)}
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -329,9 +319,7 @@ function CVBuilderPage() {
                     </label>
                     <Input
                       value={cvData.personalInfo.email}
-                      onChange={(e) =>
-                        updatePersonal("email", e.target.value)
-                      }
+                      onChange={(e) => updatePersonal("email", e.target.value)}
                       placeholder="your@email.com"
                     />
                   </div>
@@ -341,9 +329,7 @@ function CVBuilderPage() {
                     </label>
                     <Input
                       value={cvData.personalInfo.phone}
-                      onChange={(e) =>
-                        updatePersonal("phone", e.target.value)
-                      }
+                      onChange={(e) => updatePersonal("phone", e.target.value)}
                       placeholder="+63 xxx xxx xxxx"
                     />
                   </div>
@@ -354,9 +340,7 @@ function CVBuilderPage() {
                   </label>
                   <Input
                     value={cvData.personalInfo.location}
-                    onChange={(e) =>
-                      updatePersonal("location", e.target.value)
-                    }
+                    onChange={(e) => updatePersonal("location", e.target.value)}
                     placeholder="City, Country"
                   />
                 </div>
@@ -366,9 +350,7 @@ function CVBuilderPage() {
                   </label>
                   <Textarea
                     value={cvData.personalInfo.bio}
-                    onChange={(e) =>
-                      updatePersonal("bio", e.target.value)
-                    }
+                    onChange={(e) => updatePersonal("bio", e.target.value)}
                     placeholder="Brief overview of your professional background"
                     className="min-h-[100px]"
                   />
@@ -379,11 +361,7 @@ function CVBuilderPage() {
 
           {/* Experience */}
           {stepId === "experience" && (
-            <motion.div
-              key="experience"
-              {...fadeInUp}
-              className="space-y-4"
-            >
+            <motion.div key="experience" {...fadeInUp} className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Employment History</h2>
                 <Button variant="outline" size="sm" onClick={addExperience}>
@@ -463,11 +441,7 @@ function CVBuilderPage() {
 
           {/* Skills & Certifications */}
           {stepId === "skills" && (
-            <motion.div
-              key="skills"
-              {...fadeInUp}
-              className="space-y-6"
-            >
+            <motion.div key="skills" {...fadeInUp} className="space-y-6">
               <h2 className="text-lg font-semibold">Skills & Certifications</h2>
               <div>
                 <label className="text-sm font-medium mb-2 block">
@@ -562,11 +536,7 @@ function CVBuilderPage() {
 
           {/* Education */}
           {stepId === "education" && (
-            <motion.div
-              key="education"
-              {...fadeInUp}
-              className="space-y-4"
-            >
+            <motion.div key="education" {...fadeInUp} className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Education</h2>
                 <Button variant="outline" size="sm" onClick={addEducation}>
@@ -626,11 +596,7 @@ function CVBuilderPage() {
 
           {/* Preview & Generate */}
           {stepId === "preview" && (
-            <motion.div
-              key="preview"
-              {...fadeInUp}
-              className="space-y-6"
-            >
+            <motion.div key="preview" {...fadeInUp} className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
                 <h2 className="text-lg font-semibold">
                   Preview & AI-Generated Outputs
@@ -667,21 +633,22 @@ function CVBuilderPage() {
                         : ""}
                     </p>
                   </div>
-                  {aiGenerated.skillTags && aiGenerated.skillTags.length > 0 && (
-                    <div className="p-4 rounded-lg border border-accent/30 bg-accent/5 space-y-2">
-                      <div className="flex items-center gap-2 text-accent font-medium">
-                        <Tag className="w-4 h-4" />
-                        Skill tags for search
+                  {aiGenerated.skillTags &&
+                    aiGenerated.skillTags.length > 0 && (
+                      <div className="p-4 rounded-lg border border-accent/30 bg-accent/5 space-y-2">
+                        <div className="flex items-center gap-2 text-accent font-medium">
+                          <Tag className="w-4 h-4" />
+                          Skill tags for search
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {aiGenerated.skillTags.map((tag) => (
+                            <Badge key={tag} variant="secondary">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {aiGenerated.skillTags.map((tag) => (
-                          <Badge key={tag} variant="secondary">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
 
@@ -715,12 +682,16 @@ function CVBuilderPage() {
                       {cvData.experience.map((exp) => (
                         <div key={exp.id} className="text-sm">
                           <div className="flex justify-between">
-                            <span className="font-semibold">{exp.position || "—"}</span>
+                            <span className="font-semibold">
+                              {exp.position || "—"}
+                            </span>
                             <span className="text-muted-foreground">
                               {exp.startDate} – {exp.endDate}
                             </span>
                           </div>
-                          <p className="text-muted-foreground">{exp.employer}</p>
+                          <p className="text-muted-foreground">
+                            {exp.employer}
+                          </p>
                           {exp.description && (
                             <p className="mt-1">{exp.description}</p>
                           )}
@@ -735,7 +706,9 @@ function CVBuilderPage() {
                     <div className="space-y-2">
                       {cvData.education.map((edu) => (
                         <div key={edu.id} className="text-sm">
-                          <span className="font-semibold">{edu.degree || "—"}</span>
+                          <span className="font-semibold">
+                            {edu.degree || "—"}
+                          </span>
                           {" – "}
                           <span className="text-muted-foreground">
                             {edu.school} ({edu.year})
@@ -745,7 +718,8 @@ function CVBuilderPage() {
                     </div>
                   </div>
                 )}
-                {(cvData.skills.length > 0 || cvData.certifications.length > 0) && (
+                {(cvData.skills.length > 0 ||
+                  cvData.certifications.length > 0) && (
                   <div>
                     <h2 className="text-sm font-semibold mb-2">
                       Skills & Certifications
@@ -756,7 +730,7 @@ function CVBuilderPage() {
                         ? " • "
                         : ""}
                       {cvData.certifications
-                        .map((c) => `${c.name}${c.year ? ` (${c.year})` : ""})
+                        .map((c) => `${c.name}${c.year ? ` (${c.year})` : ""}`)
                         .join(" • ")}
                     </p>
                   </div>
@@ -767,11 +741,7 @@ function CVBuilderPage() {
         </AnimatePresence>
 
         <div className="flex justify-between mt-6 pt-6 border-t">
-          <Button
-            variant="outline"
-            onClick={handlePrev}
-            disabled={isFirstStep}
-          >
+          <Button variant="outline" onClick={handlePrev} disabled={isFirstStep}>
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back
           </Button>

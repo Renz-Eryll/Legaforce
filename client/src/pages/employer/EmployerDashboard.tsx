@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import {
   Briefcase,
   Users,
-  DollarSign,
   ArrowRight,
   ChevronRight,
-  CheckCircle,
   Clock,
   Calendar,
   ArrowUpRight,
@@ -22,13 +20,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { employerService } from "@/services/employerService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-// Animation variants
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -75,82 +71,62 @@ export default function EmployerDashboard() {
       try {
         setIsLoading(true);
 
-        // Fetch all data in parallel
         const [
-          profileRes,
-          jobOrdersRes,
-          upcomingInterviewsRes,
-          recentCandidatesRes,
-          jobOrderCountRes,
-          candidateCountRes,
-          interviewCountRes,
-          deployedWorkerCountRes,
+          profileData,
+          jobOrdersData,
+          interviewsData,
+          candidatesData,
+          statsData,
         ] = await Promise.all([
-          employerService.getProfile().catch(() => ({ data: { data: null } })),
-          employerService.getJobOrders().catch(() => ({ data: { data: [] } })),
-          employerService
-            .getUpcomingInterviews()
-            .catch(() => ({ data: { data: [] } })),
-          employerService
-            .getRecentCandidates()
-            .catch(() => ({ data: { data: [] } })),
-          employerService
-            .getJobOrderCount("ACTIVE")
-            .catch(() => ({ data: { data: 0 } })),
-          employerService
-            .getCandidateCount()
-            .catch(() => ({ data: { data: 0 } })),
-          employerService
-            .getInterviewCount()
-            .catch(() => ({ data: { data: 0 } })),
-          employerService
-            .getDeployedWorkerCount()
-            .catch(() => ({ data: { data: 0 } })),
+          employerService.getProfile().catch(() => null),
+          employerService.getJobOrders().catch(() => []),
+          employerService.getUpcomingInterviews().catch(() => []),
+          employerService.getRecentCandidates().catch(() => []),
+          employerService.getDashboardStats().catch(() => ({
+            activeJobOrders: 0,
+            candidateCount: 0,
+            interviewCount: 0,
+            deployedCount: 0,
+          })),
         ]);
 
-        const employerData = profileRes.data?.data;
-        setEmployer(employerData);
+        setEmployer(profileData);
+        setJobOrders(Array.isArray(jobOrdersData) ? jobOrdersData : []);
+        setUpcomingInterviews(Array.isArray(interviewsData) ? interviewsData : []);
+        setRecentCandidates(Array.isArray(candidatesData) ? candidatesData : []);
 
-        const jobsData = jobOrdersRes.data?.data || [];
-        setJobOrders(jobsData);
-
-        const interviewsData = upcomingInterviewsRes.data?.data || [];
-        setUpcomingInterviews(interviewsData);
-
-        const candidatesData = recentCandidatesRes.data?.data || [];
-        setRecentCandidates(candidatesData);
-
-        // Build quick stats
+        // Build quick stats from actual API response
+        const s = statsData as any || {};
         const stats = [
           {
             label: "Active Job Orders",
-            value: jobOrderCountRes.data?.data?.toString() || "0",
+            value: String(s.activeJobOrders ?? 0),
             icon: Briefcase,
-            trend: "+0 this month",
+            trend: `${s.activeJobOrders ?? 0} total`,
             color: "text-blue-500",
             bg: "bg-blue-500/10",
           },
           {
             label: "Total Candidates",
-            value: candidateCountRes.data?.data?.toString() || "0",
+            value: String(s.candidateCount ?? 0),
             icon: Users,
-            trend: "+0 this week",
+            trend: "across all jobs",
             color: "text-purple-500",
             bg: "bg-purple-500/10",
           },
           {
             label: "Interviews Scheduled",
-            value: interviewCountRes.data?.data?.toString() || "0",
+            value: String(s.interviewCount ?? 0),
             icon: UserCheck,
-            trend: "0 today",
+            trend: "shortlisted & interviewed",
             color: "text-emerald-500",
             bg: "bg-emerald-500/10",
           },
           {
             label: "Deployed Workers",
-            value: deployedWorkerCountRes.data?.data?.toString() || "0",
+            value: String(s.deployedCount ?? 0),
             icon: Globe,
-            trend: "+0 this month",
+            trend: "deployed total",
             color: "text-accent",
             bg: "bg-accent/10",
           },
@@ -170,6 +146,17 @@ export default function EmployerDashboard() {
 
   const companyName =
     employer?.companyName || user?.employer?.companyName || "Company";
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -191,7 +178,7 @@ export default function EmployerDashboard() {
             Manage your job orders and find the best Filipino talent
           </p>
         </div>
-        <Link to="/employer/job-orders">
+        <Link to="/employer/create-job-order">
           <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg hover:shadow-xl hover:shadow-accent/20 transition-all">
             <Plus className="w-4 h-4 mr-2" />
             Post New Job
@@ -264,69 +251,62 @@ export default function EmployerDashboard() {
             </Link>
           </div>
 
-          <div className="space-y-4">
-            {jobOrders.map((job, index) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="card-premium p-5"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{job.title}</h3>
-                      <Badge
-                        className={
-                          statusConfig[job.status?.toUpperCase() || "ACTIVE"]
-                            ?.className || statusConfig["ACTIVE"].className
-                        }
-                      >
-                        {statusConfig[job.status?.toUpperCase() || "ACTIVE"]
-                          ?.label || "Active"}
-                      </Badge>
+          {jobOrders.length === 0 ? (
+            <div className="card-premium p-8 text-center">
+              <Briefcase className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="text-muted-foreground mb-4">No job orders yet</p>
+              <Link to="/employer/create-job-order">
+                <Button className="gradient-bg-accent text-accent-foreground">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Post Your First Job
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {jobOrders.slice(0, 5).map((job, index) => (
+                <motion.div
+                  key={job.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="card-premium p-5"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold">{job.title}</h3>
+                        <Badge
+                          className={
+                            statusConfig[job.status?.toUpperCase() || "ACTIVE"]
+                              ?.className || statusConfig["ACTIVE"].className
+                          }
+                        >
+                          {statusConfig[job.status?.toUpperCase() || "ACTIVE"]
+                            ?.label || "Active"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        {job.location}
+                        <span className="text-border">•</span>
+                        <Calendar className="h-4 w-4" />
+                        {job.salary ? `$${job.salary}/mo` : "Salary TBD"}
+                        <span className="text-border">•</span>
+                        {job.positions} position{job.positions !== 1 ? "s" : ""}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      {job.department}
-                      <span className="text-border">•</span>
-                      <Calendar className="h-4 w-4" />
-                      Deadline: {job.deadline}
-                    </p>
+                    <Link to={`/employer/job-orders/${job.id}`}>
+                      <Button variant="outline" size="sm">
+                        Manage
+                        <ArrowUpRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link to={`/employer/job-orders/${job.id}`}>
-                    <Button variant="outline" size="sm">
-                      Manage
-                      <ArrowUpRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-
-                {/* Pipeline Progress */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 rounded-xl bg-muted/50">
-                    <p className="text-2xl font-display font-bold text-blue-500">
-                      {job.candidates}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Candidates</p>
-                  </div>
-                  <div className="text-center p-3 rounded-xl bg-muted/50">
-                    <p className="text-2xl font-display font-bold text-amber-500">
-                      {job.shortlisted}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Shortlisted</p>
-                  </div>
-                  <div className="text-center p-3 rounded-xl bg-muted/50">
-                    <p className="text-2xl font-display font-bold text-purple-500">
-                      {job.interviewed}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Interviewed</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Right Column */}
@@ -339,39 +319,40 @@ export default function EmployerDashboard() {
                 Upcoming Interviews
               </h3>
               <Badge variant="secondary">
-                {upcomingInterviews.length} today
+                {upcomingInterviews.length} total
               </Badge>
             </div>
             <div className="space-y-3">
-              {upcomingInterviews.map((interview, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/50"
-                >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 text-accent font-semibold text-sm shrink-0">
-                    {interview.candidate
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+              {upcomingInterviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No upcoming interviews</p>
+              ) : (
+                upcomingInterviews.map((interview, index) => (
+                  <div
+                    key={interview.id || index}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/50"
+                  >
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 text-accent font-semibold text-sm shrink-0">
+                      {(interview.candidateName || "?")
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {interview.candidateName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {interview.position}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-medium text-accent">
+                        {interview.date ? new Date(interview.date).toLocaleDateString() : "TBD"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {interview.candidate}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {interview.position}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs font-medium text-accent">
-                      {interview.time.split(",")[0]}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {interview.time.split(",")[1]}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <Link to="/employer/interviews" className="block mt-4">
               <Button variant="outline" size="sm" className="w-full">
@@ -390,36 +371,31 @@ export default function EmployerDashboard() {
               </h3>
             </div>
             <div className="space-y-3">
-              {recentCandidates.map((candidate, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary dark:text-foreground font-semibold text-xs">
-                      {candidate.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{candidate.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {candidate.position}
-                      </p>
+              {recentCandidates.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No candidates yet</p>
+              ) : (
+                recentCandidates.map((candidate, index) => (
+                  <div
+                    key={candidate.id || index}
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary dark:text-foreground font-semibold text-xs">
+                        {(candidate.name || "?")
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{candidate.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {candidate.position}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <Badge
-                    className={
-                      statusConfig[candidate.status?.toUpperCase() || "APPLIED"]
-                        ?.className || statusConfig["APPLIED"].className
-                    }
-                  >
-                    {statusConfig[candidate.status?.toUpperCase() || "APPLIED"]
-                      ?.label || "Applied"}
-                  </Badge>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <Link to="/employer/candidates" className="block mt-4">
               <Button variant="outline" size="sm" className="w-full">
@@ -433,7 +409,7 @@ export default function EmployerDashboard() {
           <div className="card-premium p-5">
             <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <Link to="/employer/job-orders">
+              <Link to="/employer/create-job-order">
                 <Button
                   variant="outline"
                   size="sm"

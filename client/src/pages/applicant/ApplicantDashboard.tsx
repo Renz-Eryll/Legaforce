@@ -67,6 +67,8 @@ export default function ApplicantDashboard() {
         setIsLoading(true);
 
         // Fetch all data in parallel
+        // applicantService methods already unwrap via getData(), so results
+        // are the actual payload (e.g. profile object, array, number).
         const [
           profileRes,
           applicationsRes,
@@ -77,42 +79,33 @@ export default function ApplicantDashboard() {
           matchScoreRes,
           rewardPointsRes,
         ] = await Promise.all([
-          applicantService.getProfile().catch(() => ({ data: { data: null } })),
-          applicantService
-            .getApplications()
-            .catch(() => ({ data: { data: [] } })),
-          applicantService
-            .getNotifications()
-            .catch(() => ({ data: { data: [] } })),
-          applicantService
-            .getProfileCompletion()
-            .catch(() => ({ data: { data: 75 } })),
-          applicantService
-            .getRecommendedJobs()
-            .catch(() => ({ data: { data: [] } })),
-          applicantService
-            .getProfileViews()
-            .catch(() => ({ data: { data: 0 } })),
-          applicantService.getMatchScore().catch(() => ({ data: { data: 0 } })),
-          applicantService
-            .getRewardPoints()
-            .catch(() => ({ data: { data: 0 } })),
+          applicantService.getProfile().catch(() => null),
+          applicantService.getApplications().catch(() => []),
+          applicantService.getNotifications().catch(() => []),
+          applicantService.getProfileCompletion().catch(() => 75),
+          applicantService.getRecommendedJobs().catch(() => []),
+          applicantService.getProfileViews().catch(() => 0),
+          applicantService.getMatchScore().catch(() => 0),
+          applicantService.getRewardPoints().catch(() => 0),
         ]);
 
-        const profile = profileRes.data?.data;
-        setProfile(profile);
+        setProfile(profileRes);
 
-        const appData = applicationsRes.data?.data || [];
+        const appData = Array.isArray(applicationsRes) ? applicationsRes : [];
         setApplications(appData);
 
-        const notifData = notificationsRes.data?.data || [];
+        const notifData = Array.isArray(notificationsRes) ? notificationsRes : [];
         setNotifications(notifData);
 
-        const completion = profileCompletionRes.data?.data || 75;
+        const completion = typeof profileCompletionRes === "number" ? profileCompletionRes : 75;
         setProfileCompletion(completion);
 
-        const recommended = recommendedJobsRes.data?.data || [];
+        const recommended = Array.isArray(recommendedJobsRes) ? recommendedJobsRes : [];
         setRecommendedJobs(recommended);
+
+        const views = typeof profileViewsRes === "number" ? profileViewsRes : 0;
+        const matchScore = typeof matchScoreRes === "number" ? matchScoreRes : 0;
+        const rewards = typeof rewardPointsRes === "number" ? rewardPointsRes : 0;
 
         // Build quick stats
         const stats = [
@@ -126,7 +119,7 @@ export default function ApplicantDashboard() {
           },
           {
             label: "Profile Views",
-            value: profileViewsRes.data?.data?.toString() || "0",
+            value: views.toString(),
             icon: Eye,
             trend: "+0 this week",
             color: "text-purple-500",
@@ -134,7 +127,7 @@ export default function ApplicantDashboard() {
           },
           {
             label: "Match Score",
-            value: (matchScoreRes.data?.data || 0).toString() + "%",
+            value: matchScore.toString() + "%",
             icon: TrendingUp,
             trend: "+0% improvement",
             color: "text-emerald-500",
@@ -142,7 +135,7 @@ export default function ApplicantDashboard() {
           },
           {
             label: "Reward Points",
-            value: rewardPointsRes.data?.data?.toString() || "0",
+            value: rewards.toString(),
             icon: Star,
             trend: "Redeem for benefits",
             color: "text-accent",
@@ -292,18 +285,18 @@ export default function ApplicantDashboard() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted font-display font-bold text-lg shrink-0">
-                    {application.company.charAt(0)}
+                    {(typeof application.employer === "string" ? application.employer : application.employer?.companyName || application.company || "?").charAt(0)}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
                       <div>
                         <h3 className="font-semibold group-hover:text-accent transition-colors">
-                          {application.jobTitle}
+                          {application.position || application.jobTitle || "Untitled Position"}
                         </h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Building2 className="h-4 w-4" />
-                          {application.company}
+                          {(typeof application.employer === "string" ? application.employer : application.employer?.companyName) || application.company || "Unknown Company"}
                         </div>
                       </div>
                       <Badge
@@ -322,16 +315,18 @@ export default function ApplicantDashboard() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
-                        {application.location}
+                        {application.location || "N/A"}
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {application.appliedDate}
+                        {application.createdAt
+                          ? new Date(application.createdAt).toLocaleDateString()
+                          : application.appliedDate || "N/A"}
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-accent" />
                         <span className="text-accent font-medium">
-                          {application.matchScore}% match
+                          {application.aiMatchScore ?? application.matchScore ?? 0}% match
                         </span>
                       </div>
                     </div>

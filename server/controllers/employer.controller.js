@@ -507,3 +507,191 @@ export const getDashboardStats = async (req, res, next) => {
     next(err);
   }
 };
+
+// ──────────────────────────────────────────────
+// Job Order CRUD
+// ──────────────────────────────────────────────
+
+export const createJobOrder = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const { title, description, requirements, salary, location, positions, status } = req.body;
+
+    if (!title || !description || !location) {
+      return res.status(400).json({ success: false, message: "Title, description, and location are required" });
+    }
+
+    const jobOrder = await prisma.jobOrder.create({
+      data: {
+        employerId: employer.id,
+        title,
+        description,
+        requirements: requirements || {},
+        salary: salary ? parseFloat(salary) : null,
+        location,
+        positions: positions ? parseInt(positions) : 1,
+        status: status || "ACTIVE",
+      },
+    });
+    res.status(201).json({ success: true, data: jobOrder });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getJobOrderById = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const jobOrder = await prisma.jobOrder.findFirst({
+      where: {
+        id: req.params.id,
+        employerId: employer.id,
+      },
+      include: {
+        applications: {
+          include: {
+            applicant: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                nationality: true,
+                aiGeneratedCV: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!jobOrder) {
+      return res.status(404).json({ success: false, message: "Job order not found" });
+    }
+
+    // Transform applications into candidates for the frontend
+    const candidates = jobOrder.applications.map((app) => {
+      const a = app.applicant;
+      return {
+        id: app.id,
+        applicantId: a?.id,
+        name: [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant",
+        status: app.status.toLowerCase(),
+        aiMatchScore: app.aiMatchScore || 0,
+        appliedAt: app.createdAt,
+      };
+    });
+
+    const statusCounts = {};
+    for (const app of jobOrder.applications) {
+      const s = app.status;
+      statusCounts[s] = (statusCounts[s] || 0) + 1;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...jobOrder,
+        applicantCount: jobOrder.applications.length,
+        candidates,
+        statusCounts,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateJobOrder = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const existing = await prisma.jobOrder.findFirst({
+      where: { id: req.params.id, employerId: employer.id },
+    });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Job order not found" });
+    }
+
+    const { title, description, requirements, salary, location, positions, status } = req.body;
+    const data = {};
+    if (title != null) data.title = title;
+    if (description != null) data.description = description;
+    if (requirements != null) data.requirements = requirements;
+    if (salary != null) data.salary = parseFloat(salary);
+    if (location != null) data.location = location;
+    if (positions != null) data.positions = parseInt(positions);
+    if (status != null) data.status = status;
+
+    const updated = await prisma.jobOrder.update({
+      where: { id: existing.id },
+      data,
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteJobOrder = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const existing = await prisma.jobOrder.findFirst({
+      where: { id: req.params.id, employerId: employer.id },
+    });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Job order not found" });
+    }
+
+    await prisma.jobOrder.delete({ where: { id: existing.id } });
+    res.json({ success: true, message: "Job order deleted" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateApplicationStatus = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const jobOrderIds = (
+      await prisma.jobOrder.findMany({
+        where: { employerId: employer.id },
+        select: { id: true },
+      })
+    ).map((j) => j.id);
+
+    const application = await prisma.application.findFirst({
+      where: {
+        id: req.params.applicationId,
+        jobOrderId: { in: jobOrderIds },
+      },
+    });
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    const { status, notes } = req.body;
+    const validStatuses = ["APPLIED", "SHORTLISTED", "INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED", "REJECTED"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const data = { status };
+    if (status === "SHORTLISTED" && !application.shortlistedAt) data.shortlistedAt = new Date();
+    if (status === "INTERVIEWED" && !application.interviewedAt) data.interviewedAt = new Date();
+    if (status === "SELECTED" && !application.selectedAt) data.selectedAt = new Date();
+    if (status === "DEPLOYED" && !application.deployedAt) data.deployedAt = new Date();
+    if (notes) data.interviewNotes = notes;
+
+    const updated = await prisma.application.update({
+      where: { id: application.id },
+      data,
+      include: {
+        applicant: { select: { firstName: true, lastName: true } },
+        jobOrder: { select: { title: true } },
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
