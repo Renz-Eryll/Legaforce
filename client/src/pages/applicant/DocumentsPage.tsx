@@ -3,24 +3,23 @@ import { motion } from "framer-motion";
 import {
   Upload,
   FileText,
-  CheckCircle,
-  AlertCircle,
-  Clock,
+  Image,
   Trash2,
   Eye,
   Download,
-  Calendar,
+  FolderOpen,
+  Shield,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Plus,
+  File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -35,112 +34,109 @@ const staggerContainer = {
   },
 };
 
-const mockDocuments = [
-  {
-    id: "DOC-001",
-    name: "Nursing License",
-    type: "License",
-    status: "verified",
-    uploadDate: "2025-01-10",
-    expiryDate: "2026-01-10",
-    daysRemaining: 345,
-    size: "2.4 MB",
-  },
-  {
-    id: "DOC-002",
-    name: "BLS/CPR Certification",
-    type: "Certification",
-    status: "verified",
-    uploadDate: "2024-12-15",
-    expiryDate: "2026-12-15",
-    daysRemaining: 710,
-    size: "1.8 MB",
-  },
-  {
-    id: "DOC-003",
-    name: "Bachelor of Science in Nursing",
-    type: "Education",
-    status: "verified",
-    uploadDate: "2025-01-05",
-    expiryDate: "2099-12-31",
-    daysRemaining: 27319,
-    size: "3.1 MB",
-  },
-  {
-    id: "DOC-004",
-    name: "Work Experience Certificate",
-    type: "Employment",
-    status: "pending",
-    uploadDate: "2025-01-15",
-    expiryDate: "2026-01-15",
-    daysRemaining: 355,
-    size: "1.2 MB",
-  },
-  {
-    id: "DOC-005",
-    name: "Passport Copy",
-    type: "Identification",
-    status: "verified",
-    uploadDate: "2024-11-20",
-    expiryDate: "2034-11-20",
-    daysRemaining: 3652,
-    size: "0.8 MB",
-  },
-  {
-    id: "DOC-006",
-    name: "Medical Clearance",
-    type: "Medical",
-    status: "expiring-soon",
-    uploadDate: "2024-12-01",
-    expiryDate: "2025-03-01",
-    daysRemaining: 45,
-    size: "2.0 MB",
-  },
+type DocumentItem = {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  size: string;
+  uploadedAt: string;
+  status: "verified" | "pending" | "expired";
+};
+
+const DOCUMENT_CATEGORIES = [
+  { id: "passport", label: "Passport / ID", icon: FileText, required: true },
+  { id: "resume", label: "Resume / CV", icon: FileText, required: true },
+  { id: "medical", label: "Medical Certificate", icon: Shield, required: true },
+  { id: "nbi", label: "NBI / Police Clearance", icon: Shield, required: true },
+  { id: "diploma", label: "Diploma / Certificates", icon: FileText, required: false },
+  { id: "photo", label: "Photo (2x2)", icon: Image, required: true },
+  { id: "contract", label: "Employment Contract", icon: File, required: false },
+  { id: "other", label: "Other Documents", icon: FolderOpen, required: false },
 ];
 
 const statusConfig = {
-  verified: {
-    label: "Verified",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    icon: CheckCircle,
-    iconColor: "text-emerald-600",
-  },
-  pending: {
-    label: "Pending Review",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
-    icon: Clock,
-    iconColor: "text-blue-600",
-  },
-  "expiring-soon": {
-    label: "Expiring Soon",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-    icon: AlertCircle,
-    iconColor: "text-amber-600",
-  },
+  verified: { label: "Verified", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", icon: CheckCircle },
+  pending: { label: "Under Review", color: "bg-amber-500/10 text-amber-500 border-amber-500/20", icon: Clock },
+  expired: { label: "Expired", color: "bg-red-500/10 text-red-500 border-red-500/20", icon: AlertCircle },
 };
 
 function DocumentsPage() {
-  const [documents, setDocuments] = useState(mockDocuments);
-  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([
+    // Example documents that would be loaded from API
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileUpload = (files: FileList | null, category?: string) => {
+    if (!files || files.length === 0) return;
+
+    const newDocs: DocumentItem[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
+        continue;
+      }
+
+      // Validate file type
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg",
+        "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`${file.name} is not a supported file type.`);
+        continue;
+      }
+
+      newDocs.push({
+        id: `doc-${Date.now()}-${i}`,
+        name: file.name,
+        type: file.type.includes("image") ? "image" : "document",
+        category: category || "other",
+        size: `${sizeMB} MB`,
+        uploadedAt: new Date().toISOString(),
+        status: "pending",
+      });
+    }
+
+    if (newDocs.length > 0) {
+      setDocuments((d) => [...newDocs, ...d]);
+      toast.success(`${newDocs.length} document(s) uploaded successfully! They will be reviewed by our team.`);
+    }
+  };
 
   const handleDelete = (id: string) => {
-    setDocuments(documents.filter((doc) => doc.id !== id));
+    setDocuments((d) => d.filter((doc) => doc.id !== id));
+    toast.success("Document removed");
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedDocs((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id],
-    );
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
 
-  const requiredDocs = [
-    "Nursing License",
-    "BLS/CPR Certification",
-    "Passport Copy",
-  ];
-  const uploadedRequired = documents.filter((d) =>
-    requiredDocs.includes(d.name),
-  ).length;
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    handleFileUpload(e.dataTransfer.files);
+  };
+
+  const filteredDocuments = selectedCategory === "all"
+    ? documents
+    : documents.filter((d) => d.category === selectedCategory);
+
+  const stats = {
+    total: documents.length,
+    verified: documents.filter((d) => d.status === "verified").length,
+    pending: documents.filter((d) => d.status === "pending").length,
+    expired: documents.filter((d) => d.status === "expired").length,
+  };
 
   return (
     <motion.div
@@ -155,170 +151,192 @@ function DocumentsPage() {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-display font-bold mb-1">Documents</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">Documents</h1>
           <p className="text-muted-foreground">
-            Manage your professional documents
-          </p>
-        </div>
-        <Button className="gradient-bg-accent text-accent-foreground">
-          <Upload className="w-4 h-4 mr-2" />
-          Upload Document
-        </Button>
-      </motion.div>
-
-      {/* Progress */}
-      <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-2">
-            Documents Uploaded
-          </p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-display font-bold">
-              {documents.length}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              / {requiredDocs.length} required
-            </p>
-          </div>
-        </div>
-        <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-2">Verified</p>
-          <p className="text-3xl font-display font-bold">
-            {documents.filter((d) => d.status === "verified").length}
-          </p>
-        </div>
-        <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-2">Expiring Soon</p>
-          <p className="text-3xl font-display font-bold text-amber-600">
-            {documents.filter((d) => d.status === "expiring-soon").length}
+            Upload and manage your important documents — passports, certificates, and more.
           </p>
         </div>
       </motion.div>
 
-      {/* Documents Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b border-border/50">
-              <TableHead className="w-12">
-                <input type="checkbox" className="rounded" />
-              </TableHead>
-              <TableHead>Document</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Upload Date</TableHead>
-              <TableHead>Expiry Date</TableHead>
-              <TableHead>Days Remaining</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {documents.map((doc) => {
-              const statusInfo =
-                statusConfig[doc.status as keyof typeof statusConfig];
-              const StatusIcon = statusInfo?.icon || Clock;
-
-              return (
-                <TableRow key={doc.id} className="border-b border-border/50">
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={selectedDocs.includes(doc.id)}
-                      onChange={() => toggleSelect(doc.id)}
-                      className="rounded"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                      {doc.name}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {doc.type}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`${statusInfo?.color} border`}
-                    >
-                      <StatusIcon
-                        className={`w-3 h-3 mr-1 ${statusInfo?.iconColor}`}
-                      />
-                      {statusInfo?.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(doc.uploadDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(doc.expiryDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`text-sm font-medium ${
-                        doc.daysRemaining < 90 ? "text-amber-600" : ""
-                      }`}
-                    >
-                      {doc.daysRemaining}d
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(doc.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </motion.div>
-
-      {/* Upload Area */}
-      <motion.div variants={fadeInUp} className="card-premium p-8">
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-accent/50 transition-colors cursor-pointer">
-          <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-semibold mb-1">Drop documents here</h3>
+      {/* Upload Drop Zone */}
+      <motion.div variants={fadeInUp}>
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            "border-2 border-dashed rounded-xl p-8 text-center transition-all",
+            isDragging
+              ? "border-accent bg-accent/5 scale-[1.01]"
+              : "border-border hover:border-accent/50 hover:bg-muted/30"
+          )}
+        >
+          <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium mb-1">
+            {isDragging ? "Drop your files here" : "Drag & drop files here"}
+          </p>
           <p className="text-sm text-muted-foreground mb-4">
-            or click to browse (PDF, PNG, JPG, max 5MB)
+            PDF, JPG, PNG, DOC — Max 10MB per file
           </p>
-          <Button variant="outline">Browse Files</Button>
+          <label>
+            <Input
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              className="hidden"
+              onChange={(e) => handleFileUpload(e.target.files)}
+            />
+            <Button variant="outline" className="cursor-pointer" asChild>
+              <span>
+                <Plus className="w-4 h-4 mr-2" />
+                Browse Files
+              </span>
+            </Button>
+          </label>
         </div>
       </motion.div>
 
-      {/* Info */}
+      {/* Document Categories - Upload Shortcuts */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="font-semibold mb-4">Required Documents</h3>
-        <ul className="space-y-3">
-          {requiredDocs.map((doc, idx) => {
-            const isUploaded = documents.some((d) => d.name === doc);
+        <h2 className="text-lg font-display font-semibold mb-4">Required Documents</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {DOCUMENT_CATEGORIES.filter((c) => c.required).map((cat) => {
+            const hasDoc = documents.some((d) => d.category === cat.id);
+            const Icon = cat.icon;
             return (
-              <li key={idx} className="flex items-center gap-3">
-                {isUploaded ? (
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-amber-600" />
-                )}
-                <span className={isUploaded ? "" : "text-muted-foreground"}>
-                  {doc}
-                </span>
-              </li>
+              <label key={cat.id} className="cursor-pointer">
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e.target.files, cat.id)}
+                />
+                <div className={cn(
+                  "p-4 rounded-xl border-2 border-dashed text-center transition-all hover:border-accent hover:bg-accent/5",
+                  hasDoc ? "border-emerald-500/30 bg-emerald-500/5" : "border-border"
+                )}>
+                  <Icon className={cn(
+                    "w-6 h-6 mx-auto mb-2",
+                    hasDoc ? "text-emerald-500" : "text-muted-foreground"
+                  )} />
+                  <p className="text-sm font-medium">{cat.label}</p>
+                  {hasDoc ? (
+                    <Badge className="mt-2 text-xs bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                      Uploaded
+                    </Badge>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Click to upload
+                    </p>
+                  )}
+                </div>
+              </label>
             );
           })}
-        </ul>
+        </div>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div variants={fadeInUp} className="grid sm:grid-cols-4 gap-4">
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Total Documents</p>
+          <p className="text-2xl font-display font-bold">{stats.total}</p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Verified</p>
+          <p className="text-2xl font-display font-bold text-emerald-500">{stats.verified}</p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Under Review</p>
+          <p className="text-2xl font-display font-bold text-amber-500">{stats.pending}</p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Expired</p>
+          <p className="text-2xl font-display font-bold text-red-500">{stats.expired}</p>
+        </div>
+      </motion.div>
+
+      {/* Documents List */}
+      <motion.div variants={fadeInUp} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-display font-semibold">Your Documents</h2>
+          <div className="flex gap-2 flex-wrap">
+            {["all", ...DOCUMENT_CATEGORIES.map((c) => c.id)].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                  selectedCategory === cat
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {cat === "all" ? "All" : DOCUMENT_CATEGORIES.find((c) => c.id === cat)?.label || cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {filteredDocuments.length === 0 ? (
+          <div className="text-center py-12 card-premium">
+            <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium text-muted-foreground mb-2">No documents uploaded</p>
+            <p className="text-sm text-muted-foreground">
+              Upload your documents using the area above or click on a required document category.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredDocuments.map((doc) => {
+              const statusInfo = statusConfig[doc.status];
+              const StatusIcon = statusInfo.icon;
+              return (
+                <motion.div
+                  key={doc.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="card-premium p-4 flex items-center gap-4"
+                >
+                  <div className="p-2 rounded-xl bg-muted">
+                    {doc.type === "image" ? (
+                      <Image className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <FileText className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{doc.name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{doc.size}</span>
+                      <span>•</span>
+                      <span>{DOCUMENT_CATEGORIES.find((c) => c.id === doc.category)?.label || doc.category}</span>
+                      <span>•</span>
+                      <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={cn("text-xs shrink-0", statusInfo.color)}>
+                    <StatusIcon className="w-3 h-3 mr-1" />
+                    {statusInfo.label}
+                  </Badge>
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(doc.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

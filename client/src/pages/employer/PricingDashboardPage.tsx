@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   DollarSign,
@@ -5,6 +6,7 @@ import {
   Users,
   TrendingDown,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { employerService } from "@/services/employerService";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -29,21 +32,42 @@ const staggerContainer = {
   },
 };
 
-// Recruitment Cost Optimization: no physical interviews, no repeated sourcing, transparent pricing
-const mockPricingItems = [
-  { item: "Placement fee (per worker)", amount: 500, unit: "USD", note: "One-time" },
-  { item: "Document verification", amount: 50, unit: "USD", note: "Per batch" },
-  { item: "Video interview slot", amount: 0, unit: "—", note: "Unlimited included" },
-  { item: "Priority sourcing (optional)", amount: 200, unit: "USD", note: "Per job order" },
-];
-
-const mockSavings = [
+const costSavings = [
   { label: "No physical interviews", saving: "Travel & venue costs saved", icon: Video },
   { label: "No repeated sourcing", saving: "Single pool, no duplicate fees", icon: Users },
   { label: "Transparent pricing", saving: "No hidden charges", icon: DollarSign },
 ];
 
 export default function PricingDashboardPage() {
+  const [pricingItems, setPricingItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      try {
+        setIsLoading(true);
+        const data = await employerService.getPricing();
+        setPricingItems(Array.isArray((data as any)?.items) ? (data as any).items : []);
+      } catch (error) {
+        console.error("Failed to fetch pricing:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPricing();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading pricing...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial="initial"
@@ -51,9 +75,9 @@ export default function PricingDashboardPage() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Header - Recruitment Cost Optimization */}
+      {/* Header */}
       <motion.div variants={fadeInUp}>
-        <h1 className="text-3xl font-display font-bold mb-1">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
           Recruitment Cost & Pricing
         </h1>
         <p className="text-muted-foreground">
@@ -63,13 +87,10 @@ export default function PricingDashboardPage() {
 
       {/* Cost optimization callouts */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        {mockSavings.map((item) => {
+        {costSavings.map((item) => {
           const Icon = item.icon;
           return (
-            <div
-              key={item.label}
-              className="card-premium p-5 flex items-start gap-4"
-            >
+            <div key={item.label} className="card-premium p-5 flex items-start gap-4">
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                 <Icon className="w-5 h-5 text-accent" />
               </div>
@@ -82,11 +103,11 @@ export default function PricingDashboardPage() {
         })}
       </motion.div>
 
-      {/* Transparent pricing dashboard */}
+      {/* Transparent pricing table */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-accent" />
-          Transparent pricing dashboard
+          Transparent Pricing Dashboard
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
           All fees are clear upfront. No hidden charges.
@@ -100,7 +121,7 @@ export default function PricingDashboardPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockPricingItems.map((row) => (
+            {pricingItems.map((row: any) => (
               <TableRow key={row.item}>
                 <TableCell className="font-medium">{row.item}</TableCell>
                 <TableCell>
@@ -121,11 +142,11 @@ export default function PricingDashboardPage() {
         </Table>
       </motion.div>
 
-      {/* Summary */}
+      {/* Cost Optimization Summary */}
       <motion.div variants={fadeInUp} className="card-premium p-6 bg-muted/30">
         <div className="flex items-center gap-2 mb-3">
           <TrendingDown className="w-5 h-5 text-emerald-600" />
-          <h3 className="font-semibold">Cost optimization</h3>
+          <h3 className="font-display font-semibold">Cost Optimization</h3>
         </div>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center gap-2">

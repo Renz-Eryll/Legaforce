@@ -295,4 +295,38 @@ export const employerService = {
       throw error;
     }
   },
+
+  // ───── Deployments ─────
+  async getDeployments() {
+    try {
+      const res = await api.get("/employer/deployments");
+      return getData<any[]>(res) ?? [];
+    } catch (error) {
+      console.error("Failed to fetch deployments:", error);
+      throw error;
+    }
+  },
+
+  // ───── Invoices ─────
+  async getInvoices(status?: string) {
+    try {
+      const params = status ? { status } : {};
+      const res = await api.get("/employer/invoices", { params });
+      return getData<any[]>(res) ?? [];
+    } catch (error) {
+      console.error("Failed to fetch invoices:", error);
+      throw error;
+    }
+  },
+
+  // ───── Reports ─────
+  async getReports() {
+    try {
+      const res = await api.get("/employer/reports");
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+      throw error;
+    }
+  },
 };

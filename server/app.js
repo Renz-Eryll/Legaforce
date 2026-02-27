@@ -13,6 +13,7 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import applicantRouter from "./routes/applicant.routes.js";
 import employerRouter from "./routes/employer.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -32,6 +33,10 @@ app.use(arcjetMiddleware);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/applicant", applicantRouter);
 app.use("/api/v1/employer", employerRouter);
+app.use("/api/v1/admin", adminRouter);
+
+// Serve uploaded files (local dev fallback)
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.json({

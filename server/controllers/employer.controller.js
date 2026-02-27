@@ -1,4 +1,5 @@
 import prisma from "../config/database.js";
+import { sendStatusChangeEmail, sendInvoiceEmail } from "../services/email.service.js";
 
 const getEmployerByUser = async (userId) => {
   const employer = await prisma.employer.findUnique({
@@ -676,7 +677,14 @@ export const updateApplicationStatus = async (req, res, next) => {
     }
 
     const data = { status };
-    if (status === "SHORTLISTED" && !application.shortlistedAt) data.shortlistedAt = new Date();
+    if (status === "SHORTLISTED" && !application.shortlistedAt) {
+      data.shortlistedAt = new Date();
+      // Generate a video interview link
+      if (!application.videoInterviewUrl) {
+        const roomId = `legaforce-${application.id.slice(-8)}-${Date.now().toString(36)}`;
+        data.videoInterviewUrl = `https://meet.jit.si/${roomId}`;
+      }
+    }
     if (status === "INTERVIEWED" && !application.interviewedAt) data.interviewedAt = new Date();
     if (status === "SELECTED" && !application.selectedAt) data.selectedAt = new Date();
     if (status === "DEPLOYED" && !application.deployedAt) data.deployedAt = new Date();
@@ -686,11 +694,254 @@ export const updateApplicationStatus = async (req, res, next) => {
       where: { id: application.id },
       data,
       include: {
-        applicant: { select: { firstName: true, lastName: true } },
-        jobOrder: { select: { title: true } },
+        applicant: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            userId: true,
+          },
+        },
+        jobOrder: { select: { title: true, salary: true } },
       },
     });
+
+    // ── Send email notification to applicant ──
+    try {
+      const applicantUser = await prisma.user.findUnique({
+        where: { id: updated.applicant.userId },
+        select: { email: true },
+      });
+      if (applicantUser?.email) {
+        const applicantName = `${updated.applicant.firstName} ${updated.applicant.lastName}`.trim();
+        await sendStatusChangeEmail(
+          applicantUser.email,
+          applicantName,
+          updated.jobOrder.title,
+          status
+        );
+      }
+    } catch (emailErr) {
+      console.error("Failed to send status email:", emailErr.message);
+    }
+
+    // ── Create Deployment record when SELECTED ──
+    if (status === "SELECTED") {
+      try {
+        const existingDeployment = await prisma.deployment.findUnique({
+          where: { applicationId: application.id },
+        });
+        if (!existingDeployment) {
+          await prisma.deployment.create({
+            data: { applicationId: application.id },
+          });
+        }
+      } catch (depErr) {
+        console.error("Failed to create deployment record:", depErr.message);
+      }
+    }
+
+    // ── Auto-generate Invoice when DEPLOYED ──
+    if (status === "DEPLOYED") {
+      try {
+        const invoiceCount = await prisma.invoice.count({ where: { employerId: employer.id } });
+        const invoiceNumber = `INV-${employer.id.slice(-4).toUpperCase()}-${String(invoiceCount + 1).padStart(4, "0")}`;
+        const placementFee = updated.jobOrder.salary ? updated.jobOrder.salary * 0.1 : 500;
+
+        const invoice = await prisma.invoice.create({
+          data: {
+            employerId: employer.id,
+            invoiceNumber,
+            amount: placementFee,
+            currency: "USD",
+            status: "PENDING",
+            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            lineItems: [
+              {
+                item: "Placement fee",
+                description: `Deployment of ${updated.applicant.firstName} ${updated.applicant.lastName} — ${updated.jobOrder.title}`,
+                amount: placementFee,
+              },
+            ],
+          },
+        });
+
+        // Increment employer total hires
+        await prisma.employer.update({
+          where: { id: employer.id },
+          data: { totalHires: { increment: 1 } },
+        });
+
+        // Send invoice email to employer
+        try {
+          const employerUser = await prisma.user.findUnique({
+            where: { id: employer.userId },
+            select: { email: true },
+          });
+          if (employerUser?.email) {
+            await sendInvoiceEmail(
+              employerUser.email,
+              employer.contactPerson || employer.companyName,
+              invoiceNumber,
+              placementFee,
+              "USD"
+            );
+          }
+        } catch (emailErr) {
+          console.error("Failed to send invoice email:", emailErr.message);
+        }
+      } catch (invErr) {
+        console.error("Failed to auto-generate invoice:", invErr.message);
+      }
+    }
+
     res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────
+// Deployments (workers in SELECTED/PROCESSING/DEPLOYED stage)
+// ──────────────────────────────────────────────
+
+export const getDeployments = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const jobOrderIds = (
+      await prisma.jobOrder.findMany({
+        where: { employerId: employer.id },
+        select: { id: true },
+      })
+    ).map((j) => j.id);
+
+    const applications = await prisma.application.findMany({
+      where: {
+        jobOrderId: { in: jobOrderIds },
+        status: { in: ["SELECTED", "PROCESSING", "DEPLOYED"] },
+      },
+      include: {
+        applicant: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            nationality: true,
+          },
+        },
+        jobOrder: { select: { title: true, location: true } },
+        deployment: true,
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    const data = applications.map((app) => ({
+      id: app.id,
+      workerName: [app.applicant?.firstName, app.applicant?.lastName]
+        .filter(Boolean)
+        .join(" ") || "Worker",
+      position: app.jobOrder?.title || "—",
+      destination: app.jobOrder?.location || "—",
+      location: app.jobOrder?.location || "—",
+      status: app.status,
+      deployedAt: app.deployedAt,
+      selectedAt: app.selectedAt,
+      // Compliance from deployment record
+      medicalStatus: app.deployment?.medicalStatus || "PENDING",
+      visaStatus: app.deployment?.visaStatus || "PENDING",
+      oecStatus: app.deployment?.oecStatus || "PENDING",
+      flightDate: app.deployment?.flightDate,
+      arrivalDate: app.deployment?.arrivalDate,
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────
+// Invoices
+// ──────────────────────────────────────────────
+
+export const getInvoices = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const where = { employerId: employer.id };
+    if (req.query.status) where.status = req.query.status;
+
+    const invoices = await prisma.invoice.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const data = invoices.map((inv) => ({
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      amount: inv.amount,
+      currency: inv.currency,
+      status: inv.status,
+      dueDate: inv.dueDate,
+      paidAt: inv.paidAt,
+      lineItems: inv.lineItems,
+      description: Array.isArray(inv.lineItems)
+        ? inv.lineItems.map((li) => li.description || li.item).filter(Boolean).join(", ")
+        : "Recruitment services",
+      createdAt: inv.createdAt,
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────
+// Reports (hiring funnel analytics)
+// ──────────────────────────────────────────────
+
+export const getReports = async (req, res, next) => {
+  try {
+    const employer = await getEmployerByUser(req.user.id);
+    const jobOrderIds = (
+      await prisma.jobOrder.findMany({
+        where: { employerId: employer.id },
+        select: { id: true },
+      })
+    ).map((j) => j.id);
+
+    // Get application counts by status
+    const statusCounts = await prisma.application.groupBy({
+      by: ["status"],
+      where: { jobOrderId: { in: jobOrderIds } },
+      _count: true,
+    });
+
+    const byStatus = Object.fromEntries(
+      statusCounts.map((c) => [c.status, c._count])
+    );
+
+    const totalApplications = Object.values(byStatus).reduce((a, b) => a + b, 0);
+
+    // Job order stats
+    const jobStatusCounts = await prisma.jobOrder.groupBy({
+      by: ["status"],
+      where: { employerId: employer.id },
+      _count: true,
+    });
+    const jobsByStatus = Object.fromEntries(
+      jobStatusCounts.map((c) => [c.status, c._count])
+    );
+
+    res.json({
+      success: true,
+      data: {
+        totalApplications,
+        applicationsByStatus: byStatus,
+        jobsByStatus,
+        totalJobOrders: jobStatusCounts.reduce((sum, c) => sum + c._count, 0),
+      },
+    });
   } catch (err) {
     next(err);
   }

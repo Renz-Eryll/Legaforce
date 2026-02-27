@@ -97,6 +97,26 @@ export const applicantService = {
     }
   },
 
+  async saveJob(jobId: string) {
+    try {
+      const res = await api.post("/applicant/saved-jobs", { jobId });
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to save job:", error);
+      throw error;
+    }
+  },
+
+  async unsaveJob(jobId: string) {
+    try {
+      const res = await api.delete("/applicant/saved-jobs", { data: { jobId } });
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to unsave job:", error);
+      throw error;
+    }
+  },
+
   async getProfileCompletion() {
     try {
       const res = await api.get("/applicant/profile-completion");

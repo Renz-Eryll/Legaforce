@@ -27,9 +27,13 @@ import {
   AlertTriangle,
   Wallet,
   Search,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { applicantService } from "@/services/applicantService";
+import { employerService } from "@/services/employerService";
+import { adminService } from "@/services/adminService";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -48,7 +52,7 @@ interface NavSection {
 }
 
 // Applicant Navigation - will be translated in component
-const getApplicantNavigation = (): NavSection[] => [
+const getApplicantNavigation = (badges: any = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -62,9 +66,9 @@ const getApplicantNavigation = (): NavSection[] => [
         name: "My Applications",
         href: "/app/applications",
         icon: Briefcase,
-        badge: 3,
+        badge: badges.applications || 0,
       },
-      { name: "Saved Jobs", href: "/app/saved-jobs", icon: Star },
+      { name: "Saved Jobs", href: "/app/saved-jobs", icon: Star, badge: badges.savedJobs || 0 },
     ],
   },
   {
@@ -78,15 +82,15 @@ const getApplicantNavigation = (): NavSection[] => [
   {
     title: "Rewards & Support",
     items: [
-      { name: "Rewards", href: "/app/rewards", icon: Star, badge: "250 pts" },
+      { name: "Rewards", href: "/app/rewards", icon: Star, badge: badges.rewards || "0 pts" },
       { name: "Support", href: "/app/support", icon: HelpCircle },
-      { name: "Complaints", href: "/app/complaints", icon: MessageSquare },
+      { name: "Complaints", href: "/app/complaints", icon: MessageSquare, badge: badges.complaints || 0 },
     ],
   },
 ];
 
 // Employer Navigation - will be translated in component
-const getEmployerNavigation = (): NavSection[] => [
+const getEmployerNavigation = (badges: any = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/employer/dashboard", icon: LayoutDashboard },
@@ -99,14 +103,14 @@ const getEmployerNavigation = (): NavSection[] => [
         name: "Job Orders",
         href: "/employer/job-orders",
         icon: Briefcase,
-        badge: 5,
+        badge: badges.jobOrders || 0,
       },
-      { name: "Candidates", href: "/employer/candidates", icon: Users },
+      { name: "Candidates", href: "/employer/candidates", icon: Users, badge: badges.candidates || 0 },
       {
         name: "Interviews",
         href: "/employer/interviews",
         icon: UserCheck,
-        badge: 2,
+        badge: badges.interviews || 0,
       },
     ],
   },
@@ -129,7 +133,7 @@ const getEmployerNavigation = (): NavSection[] => [
 ];
 
 // Admin Navigation - will be translated in component
-const getAdminNavigation = (): NavSection[] => [
+const getAdminNavigation = (badges: any = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -142,15 +146,15 @@ const getAdminNavigation = (): NavSection[] => [
         name: "Applicants",
         href: "/admin/applicants",
         icon: Users,
-        badge: 120,
+        badge: badges.applicants || 0,
       },
       {
         name: "Employers",
         href: "/admin/employers",
         icon: Building2,
-        badge: 45,
+        badge: badges.employers || 0,
       },
-      { name: "Job Orders", href: "/admin/job-orders", icon: Briefcase },
+      { name: "Job Orders", href: "/admin/job-orders", icon: Briefcase, badge: badges.jobOrders || 0 },
     ],
   },
   {
@@ -160,9 +164,9 @@ const getAdminNavigation = (): NavSection[] => [
         name: "Applications",
         href: "/admin/applications",
         icon: ClipboardList,
-        badge: 28,
+        badge: badges.applications || 0,
       },
-      { name: "Deployments", href: "/admin/deployments", icon: Globe },
+      { name: "Deployments", href: "/admin/deployments", icon: Globe, badge: badges.deployments || 0 },
       { name: "Compliance", href: "/admin/compliance", icon: FileCheck },
     ],
   },
@@ -180,7 +184,7 @@ const getAdminNavigation = (): NavSection[] => [
         name: "Complaints",
         href: "/admin/complaints",
         icon: AlertTriangle,
-        badge: 5,
+        badge: badges.complaints || 0,
       },
       { name: "User Verification", href: "/admin/verification", icon: Shield },
     ],
@@ -196,6 +200,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [badges, setBadges] = useState<any>({});
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -205,15 +210,78 @@ export function DashboardLayout({
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Fetch badges
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        if (userRole === "applicant") {
+          const [apps, saved, points, complaints] = await Promise.allSettled([
+            applicantService.getApplications(),
+            applicantService.getSavedJobs(),
+            applicantService.getRewardPoints(),
+            applicantService.getComplaints()
+          ]);
+          
+          setBadges({
+            applications: apps.status === 'fulfilled' ? (apps.value as any[]).length : 0,
+            savedJobs: saved.status === 'fulfilled' ? (saved.value as any[]).length : 0,
+            rewards: points.status === 'fulfilled' ? `${points.value} pts` : "0 pts",
+            complaints: complaints.status === 'fulfilled' ? (complaints.value as any[]).length : 0,
+          });
+        } else if (userRole === "employer") {
+          const [jobs, candidates, interviews] = await Promise.allSettled([
+            employerService.getJobOrderCount("ACTIVE"),
+            employerService.getCandidateCount(),
+            employerService.getInterviewCount()
+          ]);
+
+          setBadges({
+            jobOrders: jobs.status === 'fulfilled' ? jobs.value : 0,
+            candidates: candidates.status === 'fulfilled' ? candidates.value : 0,
+            interviews: interviews.status === 'fulfilled' ? interviews.value : 0,
+          });
+        } else if (userRole === "admin") {
+          // Admin routes use different structure for response unwrap in adminService.ts
+          // so we wrap with try/catch fallback since they aren't fully integrated yet
+          try {
+            const stats = await adminService.getDashboardStats();
+            if (stats && stats.data) {
+              const d = stats.data;
+              setBadges({
+                applicants: d.applicantCount || 0,
+                employers: d.employerCount || 0,
+                jobOrders: d.jobOrderCount || 0,
+                applications: d.applicationCount || 0,
+                complaints: d.complaintCount || 0,
+                deployments: d.deploymentCount || 0,
+              });
+            }
+          } catch (e) {
+            console.warn("Failed to fetch admin badges", e);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching sidebar badges:", error);
+      }
+    };
+
+    if (user) {
+      fetchBadges();
+      // Polling every minute to keep badges updated
+      const interval = setInterval(fetchBadges, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [userRole, user]);
+
   // Get navigation based on role
   const getNavigation = () => {
     switch (userRole) {
       case "employer":
-        return getEmployerNavigation();
+        return getEmployerNavigation(badges);
       case "admin":
-        return getAdminNavigation();
+        return getAdminNavigation(badges);
       default:
-        return getApplicantNavigation();
+        return getApplicantNavigation(badges);
     }
   };
 
