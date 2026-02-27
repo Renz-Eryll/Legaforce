@@ -1,27 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Search,
-  Heart,
+  Bookmark,
   MapPin,
-  Building2,
   DollarSign,
+  Building2,
   Calendar,
-  Eye,
+  ArrowRight,
   Trash2,
-  Filter,
+  Search,
+  Loader2,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { applicantService } from "@/services/applicantService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -36,66 +32,45 @@ const staggerContainer = {
   },
 };
 
-const mockSavedJobs = [
-  {
-    id: "JO-002",
-    title: "Staff Nurse - General Ward",
-    employer: "Dubai Health Authority",
-    location: "Dubai, UAE",
-    salary: "$2,200/mo",
-    matchScore: 88,
-    savedDate: "2025-01-15",
-    type: "Full-time",
-    positions: 10,
-  },
-  {
-    id: "JO-005",
-    title: "Critical Care Nurse",
-    employer: "Oman National Hospital",
-    location: "Muscat, Oman",
-    salary: "$2,350/mo",
-    matchScore: 86,
-    savedDate: "2025-01-12",
-    type: "Full-time",
-    positions: 3,
-  },
-  {
-    id: "JO-006",
-    title: "Pediatric Nurse",
-    employer: "Bahrain Defence Force Hospital",
-    location: "Manama, Bahrain",
-    salary: "$2,300/mo",
-    matchScore: 81,
-    savedDate: "2025-01-10",
-    type: "Full-time",
-    positions: 2,
-  },
-];
-
 function SavedJobsPage() {
-  const [savedJobs, setSavedJobs] = useState(mockSavedJobs);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("recent");
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleRemove = (id: string) => {
-    setSavedJobs(savedJobs.filter((job) => job.id !== id));
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      try {
+        setIsLoading(true);
+        const data = await applicantService.getSavedJobs();
+        setSavedJobs(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch saved jobs:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSavedJobs();
+  }, []);
+
+  const handleRemove = async (id: string) => {
+    try {
+      await applicantService.unsaveJob(id);
+      setSavedJobs((jobs) => jobs.filter((j) => j.id !== id));
+      toast.success("Job removed from saved list");
+    } catch (error) {
+      console.error("Failed to remove saved job:", error);
+      toast.error("Failed to remove job");
+    }
   };
 
-  let filteredJobs = savedJobs.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.employer.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  if (sortBy === "salary-high") {
-    filteredJobs = [...filteredJobs].sort(
-      (a, b) =>
-        parseInt(b.salary.replace(/\D/g, "")) -
-        parseInt(a.salary.replace(/\D/g, "")),
-    );
-  } else if (sortBy === "match") {
-    filteredJobs = [...filteredJobs].sort(
-      (a, b) => b.matchScore - a.matchScore,
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading saved jobs...</p>
+        </div>
+      </div>
     );
   }
 
@@ -112,122 +87,111 @@ function SavedJobsPage() {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-display font-bold mb-1">Saved Jobs</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">Saved Jobs</h1>
           <p className="text-muted-foreground">
-            Your bookmarked job opportunities
+            Jobs you've bookmarked for later review. Apply when you're ready.
           </p>
         </div>
-        <Badge variant="secondary" className="text-base px-3 py-2 w-fit">
-          {savedJobs.length} saved
-        </Badge>
+        <Link to="/app/jobs">
+          <Button className="gradient-bg-accent text-accent-foreground">
+            <Search className="w-4 h-4 mr-2" />
+            Browse More Jobs
+          </Button>
+        </Link>
       </motion.div>
 
-      {/* Filters */}
+      {/* Stats */}
       <motion.div variants={fadeInUp} className="card-premium p-5">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search saved jobs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-accent/10">
+            <Bookmark className="w-5 h-5 text-accent" />
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-48">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="salary-high">Highest Salary</SelectItem>
-              <SelectItem value="match">Best Match</SelectItem>
-            </SelectContent>
-          </Select>
+          <div>
+            <p className="text-sm text-muted-foreground">Saved Jobs</p>
+            <p className="text-2xl font-display font-bold">{savedJobs.length}</p>
+          </div>
         </div>
       </motion.div>
 
-      {/* Jobs List */}
-      {filteredJobs.length > 0 ? (
-        <motion.div variants={fadeInUp} className="space-y-4">
-          {filteredJobs.map((job) => (
-            <div
-              key={job.id}
-              className="card-premium p-5 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{job.title}</h3>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      {job.employer}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      {job.location}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Link to={`/app/jobs/${job.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemove(job.id)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-4 gap-4 p-4 bg-secondary rounded-lg">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Salary</p>
-                  <p className="font-semibold text-accent">{job.salary}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Positions
-                  </p>
-                  <p className="font-medium">{job.positions} open</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Match</p>
-                  <Badge variant="secondary">{job.matchScore}%</Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Saved On</p>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(job.savedDate).toLocaleDateString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      ) : (
-        <motion.div variants={fadeInUp} className="text-center py-12">
-          <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground mb-4">
-            {searchTerm
-              ? "No saved jobs match your search"
-              : "You haven't saved any jobs yet"}
+      {/* Saved Jobs List */}
+      {savedJobs.length === 0 ? (
+        <motion.div variants={fadeInUp} className="text-center py-16 card-premium">
+          <Bookmark className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-30" />
+          <h2 className="text-xl font-display font-semibold mb-2">No Saved Jobs Yet</h2>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Browse available job opportunities and bookmark the ones you're interested in. 
+            They'll appear here for easy access later.
           </p>
           <Link to="/app/jobs">
             <Button className="gradient-bg-accent text-accent-foreground">
-              Browse Jobs
+              <Briefcase className="w-4 h-4 mr-2" />
+              Start Browsing Jobs
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
+        </motion.div>
+      ) : (
+        <motion.div variants={fadeInUp} className="space-y-3">
+          {savedJobs.map((job, index) => (
+            <motion.div
+              key={job.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="card-premium p-5 group hover:shadow-lg transition-all"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted font-display font-bold text-lg shrink-0">
+                  {(job.employer || job.company || "?").charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg group-hover:text-accent transition-colors">
+                    {job.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1">
+                      <Building2 className="w-4 h-4" />
+                      {job.employer || job.company || "Unknown"}
+                    </div>
+                    {job.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {job.location}
+                      </div>
+                    )}
+                    {job.salary && (
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        ${job.salary.toLocaleString()}/mo
+                      </div>
+                    )}
+                  </div>
+                  {job.savedAt && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                      <Calendar className="w-3 h-3" />
+                      Saved on {new Date(job.savedAt).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleRemove(job.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <Link to={`/app/jobs/${job.id}`}>
+                    <Button size="sm" className="gradient-bg-accent text-accent-foreground">
+                      View & Apply
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       )}
     </motion.div>

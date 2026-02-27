@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Gift,
-  Zap,
-  Clock,
-  Award,
   Star,
-  FileCheck,
+  Gift,
+  TrendingUp,
+  Award,
+  Shield,
+  Zap,
+  CheckCircle,
+  Clock,
+  Loader2,
+  Trophy,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { applicantService } from "@/services/applicantService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -26,96 +33,94 @@ const staggerContainer = {
   },
 };
 
-// Rewards & Trust Score: earn for complete docs early, attend interview on time, successful deployment
-// Redeem for: free training, priority processing, discounts on medical/documentation
-const mockRewards = {
-  points: 2850,
-  trustScore: 85,
-  nextMilestone: 3000,
-  history: [
-    {
-      id: "RW-001",
-      type: "Documents",
-      description: "Complete documents early",
-      points: 150,
-      date: "2025-01-15",
-    },
-    {
-      id: "RW-002",
-      type: "Interview",
-      description: "Attended interview on time",
-      points: 200,
-      date: "2025-01-12",
-    },
-    {
-      id: "RW-003",
-      type: "Documents",
-      description: "Uploaded required documents",
-      points: 100,
-      date: "2025-01-10",
-    },
-    {
-      id: "RW-004",
-      type: "Deployment",
-      description: "Successful deployment",
-      points: 500,
-      date: "2024-12-20",
-    },
-  ],
-  available: [
-    {
-      id: "REWARD-001",
-      name: "Free training",
-      cost: 800,
-      description: "Eligibility for free skills or compliance training",
-      type: "training",
-    },
-    {
-      id: "REWARD-002",
-      name: "Priority processing",
-      cost: 1000,
-      description: "3 months priority in application processing",
-      type: "service",
-    },
-    {
-      id: "REWARD-003",
-      name: "Medical / documentation discount",
-      cost: 600,
-      description: "Discount on medical or documentation fees",
-      type: "discount",
-    },
-    {
-      id: "REWARD-004",
-      name: "Premium training bundle",
-      cost: 1200,
-      description: "Full professional development course",
-      type: "training",
-    },
-  ],
-  redeemed: [
-    {
-      id: "RED-001",
-      name: "Medical / documentation discount",
-      date: "2024-12-20",
-      cost: 600,
-    },
-    {
-      id: "RED-002",
-      name: "Free training",
-      date: "2024-12-10",
-      cost: 800,
-    },
-  ],
+const WAYS_TO_EARN = [
+  { action: "Complete your profile", points: 100, icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { action: "Upload all required documents", points: 150, icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { action: "Generate AI CV", points: 200, icon: Zap, color: "text-purple-500", bg: "bg-purple-500/10" },
+  { action: "Apply to a job", points: 50, icon: Target, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { action: "Get shortlisted", points: 100, icon: Star, color: "text-accent", bg: "bg-accent/10" },
+  { action: "Successfully deployed", points: 500, icon: Trophy, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+];
+
+const rewardTypeConfig: Record<string, { icon: any; color: string; bg: string }> = {
+  training: { icon: Award, color: "text-blue-500", bg: "bg-blue-500/10" },
+  service: { icon: Zap, color: "text-purple-500", bg: "bg-purple-500/10" },
+  discount: { icon: Gift, color: "text-emerald-500", bg: "bg-emerald-500/10" },
 };
 
 function RewardsPage() {
-  const [points, setPoints] = useState(mockRewards.points);
+  const [points, setPoints] = useState(0);
+  const [catalog, setCatalog] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRedeeming, setIsRedeeming] = useState<string | null>(null);
 
-  const handleRedeem = (cost: number) => {
-    if (points >= cost) {
-      setPoints(points - cost);
+  useEffect(() => {
+    const fetchRewardsData = async () => {
+      try {
+        setIsLoading(true);
+        const [pointsRes, catalogRes, historyRes] = await Promise.allSettled([
+          applicantService.getRewardPoints(),
+          applicantService.getRewardCatalog(),
+          applicantService.getRewardHistory(),
+        ]);
+
+        if (pointsRes.status === "fulfilled") {
+          setPoints(typeof pointsRes.value === "number" ? pointsRes.value : 0);
+        }
+        if (catalogRes.status === "fulfilled" && Array.isArray(catalogRes.value)) {
+          setCatalog(catalogRes.value);
+        }
+        if (historyRes.status === "fulfilled" && Array.isArray(historyRes.value)) {
+          setHistory(historyRes.value);
+        }
+      } catch (error) {
+        console.error("Failed to load rewards:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRewardsData();
+  }, []);
+
+  const handleRedeem = async (rewardId: string, cost: number) => {
+    if (points < cost) {
+      toast.error("Insufficient points for this reward");
+      return;
+    }
+
+    setIsRedeeming(rewardId);
+    try {
+      await applicantService.redeemReward(rewardId);
+      setPoints((p) => p - cost);
+      toast.success("Reward redeemed successfully!");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Reward redemption is not available yet");
+    } finally {
+      setIsRedeeming(null);
     }
   };
+
+  // Calculate trust score tier
+  const getTrustTier = () => {
+    if (points >= 1000) return { tier: "Gold", color: "text-amber-500", progress: 100 };
+    if (points >= 500) return { tier: "Silver", color: "text-gray-400", progress: (points / 1000) * 100 };
+    return { tier: "Bronze", color: "text-amber-700", progress: (points / 500) * 100 };
+  };
+
+  const trustTier = getTrustTier();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading rewards...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -124,210 +129,180 @@ function RewardsPage() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Header - Rewards & Trust Score */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-3xl font-display font-bold mb-1">
-            Rewards & Trust Score
-          </h1>
-          <p className="text-muted-foreground">
-            Earn points for completing documents early, attending interviews on
-            time, and successful deployment. Redeem for training, priority
-            processing, or discounts.
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <div className="bg-accent/10 text-accent px-6 py-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">Your Points</p>
-            <p className="text-3xl font-display font-bold">{points}</p>
-          </div>
-          <div className="bg-muted/50 px-6 py-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">Trust Score</p>
-            <p className="text-2xl font-display font-bold">
-              {mockRewards.trustScore}%
-            </p>
-          </div>
-        </div>
+      {/* Header */}
+      <motion.div variants={fadeInUp}>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
+          Rewards & Trust Score
+        </h1>
+        <p className="text-muted-foreground">
+          Earn points for completing your profile, applying to jobs, and engaging with the platform.
+        </p>
       </motion.div>
 
-      {/* How you earn */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="font-semibold mb-4">Earn points for</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-            <FileCheck className="w-6 h-6 text-accent shrink-0 mt-0.5" />
+      {/* Points Balance & Trust Score */}
+      <motion.div variants={fadeInUp} className="grid sm:grid-cols-2 gap-4">
+        <div className="card-premium p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-xl bg-accent/10">
+              <Star className="w-6 h-6 text-accent" />
+            </div>
             <div>
-              <p className="font-medium">Complete documents early</p>
-              <p className="text-sm text-muted-foreground">Up to 150 pts</p>
+              <p className="text-sm text-muted-foreground">Total Points</p>
+              <p className="text-3xl font-display font-bold">{points.toLocaleString()}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-            <Clock className="w-6 h-6 text-accent shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">Attend interviews on time</p>
-              <p className="text-sm text-muted-foreground">Up to 200 pts</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-            <Award className="w-6 h-6 text-accent shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">Successful deployment</p>
-              <p className="text-sm text-muted-foreground">Up to 500 pts</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Progress */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="font-semibold mb-4">Next Milestone</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">
-              {points} / {mockRewards.nextMilestone} points
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            <span className="text-sm text-emerald-500 font-medium">
+              Earn more by completing profile actions
             </span>
-            <Badge variant="secondary">
-              {Math.round((points / mockRewards.nextMilestone) * 100)}%
-            </Badge>
           </div>
-          <Progress
-            value={(points / mockRewards.nextMilestone) * 100}
-            className="h-3"
-          />
-          <p className="text-sm text-muted-foreground">
-            {mockRewards.nextMilestone - points} points to next reward tier
-          </p>
         </div>
-      </motion.div>
 
-      {/* Tabs */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
-        <Tabs defaultValue="available" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="available">Available</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="redeemed">Redeemed</TabsTrigger>
-          </TabsList>
-
-          {/* Available Rewards */}
-          <TabsContent value="available" className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              {mockRewards.available.map((reward) => {
-                const canRedeem = points >= reward.cost;
-                return (
-                  <div
-                    key={reward.id}
-                    className="p-4 border border-border rounded-lg"
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      {(reward.type === "voucher" || reward.type === "discount") && (
-                        <Gift className="w-5 h-5 text-accent" />
-                      )}
-                      {reward.type === "service" && (
-                        <Star className="w-5 h-5 text-accent" />
-                      )}
-                      {reward.type === "training" && (
-                        <Award className="w-5 h-5 text-accent" />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{reward.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {reward.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <span className="font-semibold text-accent">
-                        {reward.cost} pts
-                      </span>
-                      <Button
-                        size="sm"
-                        onClick={() => handleRedeem(reward.cost)}
-                        disabled={!canRedeem}
-                        className={
-                          canRedeem
-                            ? "gradient-bg-accent text-accent-foreground"
-                            : ""
-                        }
-                      >
-                        {canRedeem ? "Redeem" : "Not Enough"}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+        <div className="card-premium p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-xl bg-amber-500/10">
+              <Trophy className={cn("w-6 h-6", trustTier.color)} />
             </div>
-          </TabsContent>
-
-          {/* Points History */}
-          <TabsContent value="history" className="space-y-3">
-            {mockRewards.history.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between items-center p-4 bg-secondary rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{item.description}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(item.date).toLocaleDateString()}
-                  </p>
-                </div>
-                <span className="font-semibold text-emerald-600">
-                  +{item.points}
-                </span>
-              </div>
-            ))}
-          </TabsContent>
-
-          {/* Redeemed */}
-          <TabsContent value="redeemed" className="space-y-3">
-            {mockRewards.redeemed.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between items-center p-4 bg-secondary rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(item.date).toLocaleDateString()}
-                  </p>
-                </div>
-                <span className="font-semibold text-red-600">-{item.cost}</span>
-              </div>
-            ))}
-          </TabsContent>
-        </Tabs>
-      </motion.div>
-
-      {/* Redeem for: Free training, Priority processing, Discounts */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="font-semibold mb-4">Redeem for</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="text-center p-4 rounded-lg bg-muted/50">
-            <Award className="w-8 h-8 text-accent mx-auto mb-2" />
-            <p className="text-sm font-medium">Free training</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Skills and compliance courses
-            </p>
+            <div>
+              <p className="text-sm text-muted-foreground">Trust Level</p>
+              <p className={cn("text-3xl font-display font-bold", trustTier.color)}>
+                {trustTier.tier}
+              </p>
+            </div>
           </div>
-          <div className="text-center p-4 rounded-lg bg-muted/50">
-            <Zap className="w-8 h-8 text-accent mx-auto mb-2" />
-            <p className="text-sm font-medium">Priority processing</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Faster application handling
-            </p>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-muted/50">
-            <Gift className="w-8 h-8 text-accent mx-auto mb-2" />
-            <p className="text-sm font-medium">Discounts</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Medical & documentation fees
-            </p>
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted-foreground">Progress to next tier</span>
+              <span className="font-medium">{Math.round(trustTier.progress)}%</span>
+            </div>
+            <Progress value={trustTier.progress} className="h-2" />
           </div>
         </div>
+      </motion.div>
+
+      {/* Ways to Earn */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-accent" />
+          Ways to Earn Points
+        </h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {WAYS_TO_EARN.map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+              >
+                <div className={cn("p-2 rounded-lg shrink-0", item.bg)}>
+                  <Icon className={cn("w-4 h-4", item.color)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{item.action}</p>
+                </div>
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  +{item.points} pts
+                </Badge>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Redeem Catalog */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+          <Gift className="w-5 h-5 text-accent" />
+          Redeem Rewards
+        </h2>
+        {catalog.length === 0 ? (
+          <div className="text-center py-8">
+            <Gift className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <p className="text-muted-foreground">No rewards available at this time</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {catalog.map((reward) => {
+              const config = rewardTypeConfig[reward.type] || rewardTypeConfig.service;
+              const Icon = config.icon;
+              const canAfford = points >= reward.cost;
+
+              return (
+                <motion.div
+                  key={reward.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={cn(
+                    "p-5 rounded-xl border transition-all",
+                    canAfford
+                      ? "border-accent/30 bg-accent/5 hover:shadow-lg"
+                      : "border-border bg-muted/30 opacity-70"
+                  )}
+                >
+                  <div className={cn("p-3 rounded-xl w-fit mb-3", config.bg)}>
+                    <Icon className={cn("w-6 h-6", config.color)} />
+                  </div>
+                  <h3 className="font-semibold mb-1">{reward.name}</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Star className="w-4 h-4 text-accent" />
+                    <span className="text-sm font-medium">{reward.cost} points</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    className={cn(
+                      "w-full",
+                      canAfford
+                        ? "gradient-bg-accent text-accent-foreground"
+                        : ""
+                    )}
+                    variant={canAfford ? "default" : "outline"}
+                    disabled={!canAfford || isRedeeming === reward.id}
+                    onClick={() => handleRedeem(reward.id, reward.cost)}
+                  >
+                    {isRedeeming === reward.id ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : null}
+                    {canAfford ? "Redeem" : `Need ${reward.cost - points} more pts`}
+                  </Button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
+      {/* History */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-muted-foreground" />
+          Earning History
+        </h2>
+        {history.length === 0 ? (
+          <div className="text-center py-8">
+            <Clock className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <p className="text-muted-foreground text-sm">
+              No earning history yet. Start earning by completing profile actions!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {history.map((item: any, idx: number) => (
+              <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{item.action || item.description}</p>
+                  <p className="text-xs text-muted-foreground">{item.date || item.createdAt}</p>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  +{item.points} pts
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

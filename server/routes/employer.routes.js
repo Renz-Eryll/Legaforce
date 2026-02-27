@@ -24,6 +24,9 @@ import {
   getDeployedWorkerCount,
   getDashboardStats,
   updateApplicationStatus,
+  getDeployments,
+  getInvoices,
+  getReports,
 } from "../controllers/employer.controller.js";
 
 const router = Router();
@@ -31,6 +34,7 @@ const router = Router();
 router.use(authorize);
 router.use(authorizeRoles("EMPLOYER"));
 
+// Profile
 router.get("/profile", getProfile);
 router.patch("/profile", updateProfile);
 
@@ -57,8 +61,17 @@ router.patch("/applications/:applicationId/status", updateApplicationStatus);
 router.get("/documents", getDocuments);
 router.post("/documents", uploadDocument);
 
+// Deployments
+router.get("/deployments", getDeployments);
+
+// Invoices
+router.get("/invoices", getInvoices);
+
 // Pricing
 router.get("/pricing", getPricing);
+
+// Reports
+router.get("/reports", getReports);
 
 // Dashboard data
 router.get("/upcoming-interviews", getUpcomingInterviews);
