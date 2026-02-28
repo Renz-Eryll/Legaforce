@@ -17,6 +17,7 @@ import adminRouter from "./routes/admin.routes.js";
 
 const app = express();
 
+app.set("trust proxy", 1); // Allow proxy IP resolution (useful for Vercel/Render)
 app.use(helmet());
 app.use(
   cors({
