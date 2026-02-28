@@ -226,7 +226,7 @@ function ReportsPage() {
           </div>
           <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
             <p className="text-sm">
-              <span className="font-semibold">✅ Success Rate:</span> Current
+              <span className="font-semibold"> Success Rate:</span> Current
               deployment success rate stands at 98%, with an average processing
               time of 18 days.
             </p>

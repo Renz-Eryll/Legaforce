@@ -156,7 +156,7 @@ function VerificationPage() {
       >
         <div>
           <h1 className="text-3xl font-display font-bold mb-1">
-            Document Verification ✅
+            Document Verification 
           </h1>
           <p className="text-muted-foreground">
             Review and approve applicant & employer documents

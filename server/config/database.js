@@ -17,7 +17,7 @@ const prisma = new PrismaClient({
 export const connectToDatabase = async () => {
   try {
     await prisma.$connect();
-    console.log(`✅ Connected to PostgreSQL database in ${NODE_ENV} mode`);
+    console.log(` Connected to PostgreSQL database in ${NODE_ENV} mode`);
   } catch (error) {
     console.error("❌ Database connection error:", error);
     process.exit(1);

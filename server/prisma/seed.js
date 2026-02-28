@@ -32,7 +32,7 @@ async function main() {
       isEmailVerified: true,
     },
   });
-  console.log(`✅ Admin:      admin@legaforce.com / ${DEMO_PASSWORD}`);
+  console.log(` Admin:      admin@legaforce.com / ${DEMO_PASSWORD}`);
 
   // ── 2. Employer account ──────────────────────
   const employerUser = await prisma.user.upsert({
@@ -65,7 +65,7 @@ async function main() {
       ],
     },
   });
-  console.log(`✅ Employer:   employer@legaforce.com / ${DEMO_PASSWORD}`);
+  console.log(` Employer:   employer@legaforce.com / ${DEMO_PASSWORD}`);
 
   // ── 3. Applicant account ─────────────────────
   const applicantUser = await prisma.user.upsert({
@@ -141,7 +141,7 @@ async function main() {
       },
     },
   });
-  console.log(`✅ Applicant:  applicant@legaforce.com / ${DEMO_PASSWORD}`);
+  console.log(` Applicant:  applicant@legaforce.com / ${DEMO_PASSWORD}`);
 
   // ── 4. Sample Job Orders ─────────────────────
   const jobOrder1 = await prisma.jobOrder.upsert({
@@ -204,7 +204,7 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 3 sample job orders`);
+  console.log(` Created 3 sample job orders`);
 
   // ── 5. Sample Application ────────────────────
   const application = await prisma.application.upsert({
@@ -220,7 +220,7 @@ async function main() {
       videoInterviewUrl: "https://meet.jit.si/legaforce-demo-interview",
     },
   });
-  console.log(`✅ Created sample application (SHORTLISTED)`);
+  console.log(` Created sample application (SHORTLISTED)`);
 
   // ── Done ─────────────────────────────────────
   console.log("\n🎉 Seed complete! Demo credentials:");

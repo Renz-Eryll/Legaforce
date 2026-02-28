@@ -47,74 +47,6 @@ const staggerContainer = {
 };
 
 // Real-time pipeline: Applied → Shortlisted → Interview → Selected → Processing → Deployed
-const mockApplications = [
-  {
-    id: "APP-001",
-    position: "Registered Nurse (ICU)",
-    employer: "King Faisal Hospital",
-    location: "Riyadh, Saudi Arabia",
-    salary: "$2,500/mo",
-    status: "interviewed",
-    matchScore: 92,
-    appliedDate: "Jan 15, 2026",
-    interviewDate: "Jan 28, 2026",
-  },
-  {
-    id: "APP-002",
-    position: "Staff Nurse - General Ward",
-    employer: "Dubai Health Authority",
-    location: "Dubai, UAE",
-    salary: "$2,200/mo",
-    status: "shortlisted",
-    matchScore: 88,
-    appliedDate: "Jan 18, 2026",
-    interviewDate: null,
-  },
-  {
-    id: "APP-003",
-    position: "Senior Nurse",
-    employer: "Hamad Medical Corporation",
-    location: "Doha, Qatar",
-    salary: "$2,600/mo",
-    status: "applied",
-    matchScore: 85,
-    appliedDate: "Jan 22, 2026",
-    interviewDate: null,
-  },
-  {
-    id: "APP-004",
-    position: "OR Nurse",
-    employer: "Kuwait Hospital",
-    location: "Kuwait City, Kuwait",
-    salary: "$2,400/mo",
-    status: "processing",
-    matchScore: 90,
-    appliedDate: "Jan 10, 2026",
-    interviewDate: "Jan 25, 2026",
-  },
-  {
-    id: "APP-005",
-    position: "Caregiver",
-    employer: "Gulf Family Services",
-    location: "Abu Dhabi, UAE",
-    salary: "$600/mo",
-    status: "deployed",
-    matchScore: 88,
-    appliedDate: "Dec 01, 2025",
-    interviewDate: "Dec 15, 2025",
-  },
-  {
-    id: "APP-006",
-    position: "Domestic Helper",
-    employer: "Gulf Home Services",
-    location: "Abu Dhabi, UAE",
-    salary: "$500/mo",
-    status: "rejected",
-    matchScore: 65,
-    appliedDate: "Jan 05, 2026",
-    interviewDate: null,
-  },
-];
 
 type AppRow = {
   id: string;
@@ -132,7 +64,7 @@ function mapApiToRow(app: any): AppRow {
   const job = app.jobOrder || {};
   const created = app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
   const interviewed = app.interviewedAt ? new Date(app.interviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
-  const salary = job.salary != null ? (typeof job.salary === "number" ? `$${job.salary}/mo` : job.salary) : "—";
+  const salary = job.salary != null ? (typeof job.salary === "number" ? `$${job.salary.toLocaleString()}/mo` : job.salary) : "—";
   // job.employer is an object { companyName: "..." } from the Prisma include
   const employerName =
     typeof job.employer === "string" ? job.employer :
@@ -155,7 +87,7 @@ function mapApiToRow(app: any): AppRow {
 function ApplicationsListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [applications, setApplications] = useState<AppRow[]>(mockApplications);
+  const [applications, setApplications] = useState<AppRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -165,11 +97,11 @@ function ApplicationsListPage() {
       .then((data: any) => {
         if (cancelled) return;
         const list = Array.isArray(data) ? data : (data?.items ?? []);
-        const rows = list.length ? list.map(mapApiToRow) : mockApplications;
-        setApplications(rows);
+        setApplications(list.map(mapApiToRow));
       })
-      .catch(() => {
-        if (!cancelled) setApplications(mockApplications);
+      .catch((err) => {
+        console.error("Failed to load applications:", err);
+        if (!cancelled) setApplications([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -375,7 +307,19 @@ function ApplicationsListPage() {
       {!loading && filteredApplications.length === 0 && (
         <motion.div variants={fadeInUp} className="text-center py-12">
           <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground">No applications found</p>
+          {applications.length === 0 ? (
+            <>
+              <p className="text-lg font-medium mb-1">No applications yet</p>
+              <p className="text-muted-foreground mb-4">Browse available jobs and start applying!</p>
+              <Link to="/app/jobs">
+                <Button className="gradient-bg-accent text-accent-foreground">
+                  Browse Jobs
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <p className="text-muted-foreground">No applications match your filters</p>
+          )}
         </motion.div>
       )}
     </motion.div>

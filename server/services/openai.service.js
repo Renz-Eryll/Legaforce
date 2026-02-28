@@ -12,7 +12,7 @@ import { OPENAI_API_KEY, NODE_ENV } from "../config/env.js";
 const isEnabled = !!OPENAI_API_KEY;
 
 if (isEnabled) {
-  console.log("✅ OpenAI API initialized");
+  console.log(" OpenAI API initialized");
 } else {
   console.log("⚠️  OpenAI API key not configured — using local fallback");
 }

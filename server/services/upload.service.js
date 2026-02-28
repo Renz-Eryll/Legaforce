@@ -25,7 +25,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isS3Enabled = !!(AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY && AWS_S3_BUCKET);
 
 if (isS3Enabled) {
-  console.log(`✅ S3 file upload enabled (bucket: ${AWS_S3_BUCKET})`);
+  console.log(` S3 file upload enabled (bucket: ${AWS_S3_BUCKET})`);
 } else {
   console.log("⚠️  AWS S3 not configured — using local file storage");
 }
