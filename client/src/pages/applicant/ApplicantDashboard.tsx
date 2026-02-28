@@ -275,71 +275,84 @@ export default function ApplicantDashboard() {
           </div>
 
           <div className="space-y-3">
-            {applications.map((application, index) => (
-              <motion.div
-                key={application.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="card-premium p-5 group"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted font-display font-bold text-lg shrink-0">
-                    {(typeof application.employer === "string" ? application.employer : application.employer?.companyName || application.company || "?").charAt(0)}
-                  </div>
+            {applications.length > 0 ? (
+              applications.map((application, index) => (
+                <motion.div
+                  key={application.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="card-premium p-5 group"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted font-display font-bold text-lg shrink-0">
+                      {(typeof application.employer === "string" ? application.employer : application.employer?.companyName || application.company || "?").charAt(0)}
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                      <div>
-                        <h3 className="font-semibold group-hover:text-accent transition-colors">
-                          {application.position || application.jobTitle || "Untitled Position"}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Building2 className="h-4 w-4" />
-                          {(typeof application.employer === "string" ? application.employer : application.employer?.companyName) || application.company || "Unknown Company"}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                        <div>
+                          <h3 className="font-semibold group-hover:text-accent transition-colors">
+                            {application.position || application.jobTitle || "Untitled Position"}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Building2 className="h-4 w-4" />
+                            {(typeof application.employer === "string" ? application.employer : application.employer?.companyName) || application.company || "Unknown Company"}
+                          </div>
+                        </div>
+                        <Badge
+                          className={
+                            statusConfig[
+                              application.status?.toUpperCase() || "APPLIED"
+                            ]?.className || statusConfig["APPLIED"].className
+                          }
+                        >
+                          {statusConfig[
+                            application.status?.toUpperCase() || "APPLIED"
+                          ]?.label || "Applied"}
+                        </Badge>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {application.location || "N/A"}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {application.createdAt
+                            ? new Date(application.createdAt).toLocaleDateString()
+                            : application.appliedDate || "N/A"}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-accent" />
+                          <span className="text-accent font-medium">
+                            {application.aiMatchScore ?? application.matchScore ?? 0}% match
+                          </span>
                         </div>
                       </div>
-                      <Badge
-                        className={
-                          statusConfig[
-                            application.status?.toUpperCase() || "APPLIED"
-                          ]?.className || statusConfig["APPLIED"].className
-                        }
-                      >
-                        {statusConfig[
-                          application.status?.toUpperCase() || "APPLIED"
-                        ]?.label || "Applied"}
-                      </Badge>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {application.location || "N/A"}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {application.createdAt
-                          ? new Date(application.createdAt).toLocaleDateString()
-                          : application.appliedDate || "N/A"}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-accent" />
-                        <span className="text-accent font-medium">
-                          {application.aiMatchScore ?? application.matchScore ?? 0}% match
-                        </span>
-                      </div>
-                    </div>
+                    <Link to={`/app/applications/${application.id}`}>
+                      <Button variant="ghost" size="icon" className="shrink-0">
+                        <ArrowUpRight className="h-5 w-5" />
+                      </Button>
+                    </Link>
                   </div>
-
-                  <Link to={`/app/applications/${application.id}`}>
-                    <Button variant="ghost" size="icon" className="shrink-0">
-                      <ArrowUpRight className="h-5 w-5" />
-                    </Button>
-                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center card-premium border-dashed border-2 bg-muted/20">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Briefcase className="h-6 w-6 text-muted-foreground" />
                 </div>
-              </motion.div>
-            ))}
+                <h3 className="text-lg font-medium text-foreground mb-1">No applications yet</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-sm">When you apply for jobs, they will appear here. Start browsing to find your next opportunity.</p>
+                <Link to="/app/jobs">
+                  <Button variant="outline" className="border-accent/20 text-accent hover:bg-accent/10">Browse Jobs</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -357,51 +370,58 @@ export default function ApplicantDashboard() {
             </div>
 
             <div className="space-y-3">
-              {notifications.map((notification, index) => (
-                <motion.div
-                  key={notification.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="card-premium p-4"
-                >
-                  <div className="flex gap-3">
-                    <div
-                      className={cn(
-                        "flex items-center justify-center w-9 h-9 rounded-xl shrink-0",
-                        notification.type === "success" &&
-                          "bg-success/10 text-success",
-                        notification.type === "info" &&
-                          "bg-blue-500/10 text-blue-500",
-                        notification.type === "warning" &&
-                          "bg-warning/10 text-warning",
-                      )}
-                    >
-                      {notification.type === "success" && (
-                        <CheckCircle className="h-4 w-4" />
-                      )}
-                      {notification.type === "info" && (
-                        <Bell className="h-4 w-4" />
-                      )}
-                      {notification.type === "warning" && (
-                        <AlertCircle className="h-4 w-4" />
-                      )}
+              {notifications.length > 0 ? (
+                notifications.map((notification, index) => (
+                  <motion.div
+                    key={notification.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="card-premium p-4"
+                  >
+                    <div className="flex gap-3">
+                      <div
+                        className={cn(
+                          "flex items-center justify-center w-9 h-9 rounded-xl shrink-0",
+                          notification.type === "success" &&
+                            "bg-success/10 text-success",
+                          notification.type === "info" &&
+                            "bg-blue-500/10 text-blue-500",
+                          notification.type === "warning" &&
+                            "bg-warning/10 text-warning",
+                        )}
+                      >
+                        {notification.type === "success" && (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
+                        {notification.type === "info" && (
+                          <Bell className="h-4 w-4" />
+                        )}
+                        {notification.type === "warning" && (
+                          <AlertCircle className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {notification.time}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {notification.time}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-center card-premium border-dashed border-2 bg-muted/20">
+                  <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground">No new notifications</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -412,22 +432,30 @@ export default function ApplicantDashboard() {
               Recommended for You
             </h3>
             <div className="space-y-3">
-              {recommendedJobs.map((job, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {job.company} • {job.location}
-                    </p>
+              {recommendedJobs.length > 0 ? (
+                recommendedJobs.map((job, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {job.company} • {job.location}
+                      </p>
+                    </div>
+                    <Badge className="bg-accent/10 text-accent border-accent/20">
+                      {job.match}% match
+                    </Badge>
                   </div>
-                  <Badge className="bg-accent/10 text-accent border-accent/20">
-                    {job.match}% match
-                  </Badge>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center border rounded-xl border-dashed bg-muted/20">
+                  <Sparkles className="h-6 w-6 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground">No recommendations yet</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Check back later or complete your profile</p>
                 </div>
-              ))}
+              )}
             </div>
             <Link to="/app/jobs" className="block mt-4">
               <Button variant="outline" size="sm" className="w-full">

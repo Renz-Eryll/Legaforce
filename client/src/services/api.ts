@@ -44,13 +44,12 @@ api.interceptors.response.use(
       toast.error("Session expired. Please login again.");
     } else if (status === 403) {
       toast.error("You do not have permission to perform this action.");
-    } else if (status === 404) {
-      toast.error("Resource not found.");
     } else if (status === 500) {
       toast.error("Server error. Please try again later.");
     }
     // Don't show toast for 401 on login/register pages - let the page handle it
-    else if (status !== 401) {
+    // Don't show generic toast for 404 to avoid noisy UI when lists/resources are naturally empty
+    else if (status !== 401 && status !== 404) {
       toast.error(message);
     }
 
