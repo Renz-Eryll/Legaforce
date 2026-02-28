@@ -4,7 +4,7 @@ import { EMAIL_PASSWORD, NODE_ENV } from "./env.js";
 // Initialize SendGrid
 if (EMAIL_PASSWORD && NODE_ENV === "production") {
   sgMail.setApiKey(EMAIL_PASSWORD);
-  console.log("✅ SendGrid API initialized");
+  console.log(" SendGrid API initialized");
 } else if (NODE_ENV !== "production") {
   console.log("📧 SendGrid disabled in development");
 } else {

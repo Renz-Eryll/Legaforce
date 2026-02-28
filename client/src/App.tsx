@@ -1,4 +1,3 @@
-// src/App.tsx - ALL PORTALS FULLY INTEGRATED
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -123,7 +122,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             >
-              {/* ✅ All Applicant pages — fully integrated */}
+              {/*  All Applicant pages — fully integrated */}
               <Route path="dashboard" element={<ApplicantDashboard />} />
               <Route path="jobs" element={<JobsListPage />} />
               <Route path="jobs/:id" element={<JobDetailsPage />} />
@@ -151,7 +150,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             >
-              {/* ✅ All employer pages */}
+              {/*  All employer pages */}
               <Route path="dashboard" element={<EmployerDashboard />} />
               <Route path="job-orders" element={<EmployerJobOrdersListPage />} />
               <Route path="job-orders/:id" element={<JobOrderDetailsPage />} />

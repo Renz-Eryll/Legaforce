@@ -278,7 +278,7 @@ export default function RegisterPage() {
                 <Label htmlFor="firstName">First</Label>
                 <Input
                   id="firstName"
-                  placeholder="Juan"
+                  placeholder="First Name"
                   className="h-10"
                   {...register("firstName")}
                 />
@@ -292,7 +292,7 @@ export default function RegisterPage() {
                 <Label htmlFor="lastName">Last</Label>
                 <Input
                   id="lastName"
-                  placeholder="Dela Cruz"
+                  placeholder="Last Name "
                   className="h-10"
                   {...register("lastName")}
                 />
@@ -312,7 +312,7 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder="Enter your email"
                   className="ps-10 h-10"
                   {...register("email")}
                 />
@@ -332,7 +332,7 @@ export default function RegisterPage() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+63 912 345 6789"
+                  placeholder="Enter your phone number"
                   className="ps-10 h-10"
                   {...register("phone")}
                 />
@@ -352,7 +352,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   className="ps-10 pe-10 h-10"
                   {...register("password")}
                 />
@@ -383,7 +383,7 @@ export default function RegisterPage() {
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Confirm your password"
                   className="ps-10 pe-10 h-10"
                   {...register("confirmPassword")}
                 />

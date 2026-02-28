@@ -73,7 +73,7 @@ const sendOtpEmail = async (email, otp, firstName) => {
 
   try {
     await sgMail.send(msg);
-    console.log(`✅ OTP email sent to ${email}`);
+    console.log(` OTP email sent to ${email}`);
   } catch (error) {
     console.error("❌ SendGrid error:", error.response?.body || error.message);
     throw new Error("Failed to send verification email");
