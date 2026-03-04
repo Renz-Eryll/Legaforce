@@ -186,14 +186,27 @@ export const getApplicants = async (req, res, next) => {
         take: parseInt(limit),
         orderBy: { createdAt: "desc" },
         include: {
-          user: { select: { email: true, isActive: true, isEmailVerified: true, createdAt: true } },
+          user: {
+            select: {
+              email: true,
+              isActive: true,
+              isEmailVerified: true,
+              createdAt: true,
+            },
+          },
           _count: { select: { applications: true, complaints: true } },
         },
       }),
       prisma.profile.count({ where }),
     ]);
 
-    res.json({ success: true, data: applicants, total, page: parseInt(page), limit: parseInt(limit) });
+    res.json({
+      success: true,
+      data: applicants,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
   } catch (err) {
     next(err);
   }
@@ -238,7 +251,13 @@ export const getEmployers = async (req, res, next) => {
       prisma.employer.count({ where }),
     ]);
 
-    res.json({ success: true, data: employers, total, page: parseInt(page), limit: parseInt(limit) });
+    res.json({
+      success: true,
+      data: employers,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
   } catch (err) {
     next(err);
   }
@@ -275,7 +294,10 @@ export const toggleUserActive = async (req, res, next) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const updated = await prisma.user.update({
       where: { id },
@@ -357,7 +379,9 @@ export const getApplications = async (req, res, next) => {
         take: parseInt(limit),
         orderBy: { updatedAt: "desc" },
         include: {
-          applicant: { select: { firstName: true, lastName: true, nationality: true } },
+          applicant: {
+            select: { firstName: true, lastName: true, nationality: true },
+          },
           jobOrder: {
             select: {
               title: true,
@@ -370,6 +394,35 @@ export const getApplications = async (req, res, next) => {
     ]);
 
     res.json({ success: true, data: applications, total });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getApplicationDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const application = await prisma.application.findUnique({
+      where: { id },
+      include: {
+        applicant: true,
+        jobOrder: {
+          include: {
+            employer: true,
+          },
+        },
+        deployment: true,
+      },
+    });
+
+    if (!application) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Application not found" });
+    }
+
+    res.json({ success: true, data: application });
   } catch (err) {
     next(err);
   }
@@ -420,7 +473,9 @@ export const getDeployments = async (req, res, next) => {
       include: {
         application: {
           include: {
-            applicant: { select: { firstName: true, lastName: true, nationality: true } },
+            applicant: {
+              select: { firstName: true, lastName: true, nationality: true },
+            },
             jobOrder: {
               select: {
                 title: true,
@@ -452,7 +507,10 @@ export const getDeploymentStats = async (req, res, next) => {
   try {
     const [total, byMedical, byVisa, byOec] = await Promise.all([
       prisma.deployment.count(),
-      prisma.deployment.groupBy({ by: ["medicalStatus"], _count: { id: true } }),
+      prisma.deployment.groupBy({
+        by: ["medicalStatus"],
+        _count: { id: true },
+      }),
       prisma.deployment.groupBy({ by: ["visaStatus"], _count: { id: true } }),
       prisma.deployment.groupBy({ by: ["oecStatus"], _count: { id: true } }),
     ]);
@@ -461,11 +519,52 @@ export const getDeploymentStats = async (req, res, next) => {
       success: true,
       data: {
         total,
-        medical: byMedical.reduce((acc, m) => { acc[m.medicalStatus] = m._count.id; return acc; }, {}),
-        visa: byVisa.reduce((acc, v) => { acc[v.visaStatus] = v._count.id; return acc; }, {}),
-        oec: byOec.reduce((acc, o) => { acc[o.oecStatus] = o._count.id; return acc; }, {}),
+        medical: byMedical.reduce((acc, m) => {
+          acc[m.medicalStatus] = m._count.id;
+          return acc;
+        }, {}),
+        visa: byVisa.reduce((acc, v) => {
+          acc[v.visaStatus] = v._count.id;
+          return acc;
+        }, {}),
+        oec: byOec.reduce((acc, o) => {
+          acc[o.oecStatus] = o._count.id;
+          return acc;
+        }, {}),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getDeploymentDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deployment = await prisma.deployment.findUnique({
+      where: { id },
+      include: {
+        application: {
+          include: {
+            applicant: true,
+            jobOrder: {
+              include: {
+                employer: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!deployment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Deployment not found" });
+    }
+
+    res.json({ success: true, data: deployment });
   } catch (err) {
     next(err);
   }
@@ -611,11 +710,20 @@ export const getReports = async (req, res, next) => {
     res.json({
       success: true,
       data: {
-        applicationsByStatus: applicationsByStatus.reduce((acc, a) => { acc[a.status] = a._count.id; return acc; }, {}),
-        jobsByStatus: jobsByStatus.reduce((acc, j) => { acc[j.status] = j._count.id; return acc; }, {}),
+        applicationsByStatus: applicationsByStatus.reduce((acc, a) => {
+          acc[a.status] = a._count.id;
+          return acc;
+        }, {}),
+        jobsByStatus: jobsByStatus.reduce((acc, j) => {
+          acc[j.status] = j._count.id;
+          return acc;
+        }, {}),
         monthlyApplications,
         topEmployers,
-        topNationalities: topNationalities.map((n) => ({ nationality: n.nationality, count: n._count.id })),
+        topNationalities: topNationalities.map((n) => ({
+          nationality: n.nationality,
+          count: n._count.id,
+        })),
       },
     });
   } catch (err) {

@@ -14,8 +14,10 @@ import {
   getJobOrderCount,
   updateJobOrderStatus,
   getApplications,
+  getApplicationDetail,
   updateApplicationStatus,
   getDeployments,
+  getDeploymentDetail,
   getDeploymentCount,
   getDeploymentStats,
   updateDeployment,
@@ -56,10 +58,12 @@ router.patch("/job-orders/:id/status", updateJobOrderStatus);
 
 // Applications
 router.get("/applications", getApplications);
+router.get("/applications/:id", getApplicationDetail);
 router.patch("/applications/:id/status", updateApplicationStatus);
 
 // Deployments
 router.get("/deployments", getDeployments);
+router.get("/deployments/:id", getDeploymentDetail);
 router.get("/deployment-count", getDeploymentCount);
 router.get("/deployment-stats", getDeploymentStats);
 router.patch("/deployments/:id", updateDeployment);

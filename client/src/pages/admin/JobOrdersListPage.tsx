@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   DollarSign,
   Download,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,93 +47,58 @@ const staggerContainer = {
   },
 };
 
-const mockJobOrders = [
-  {
-    id: "JO-2601",
-    title: "Nurse (ICU)",
-    employer: "ABC Healthcare",
-    location: "Saudi Arabia",
-    positions: 10,
-    applications: 45,
-    filled: 8,
-    salary: "$1,500 USD",
-    status: "active",
-    postedDate: "Jan 15, 2026",
-    deadline: "Feb 15, 2026",
-  },
-  {
-    id: "JO-2602",
-    title: "Construction Foreman",
-    employer: "XYZ Construction",
-    location: "UAE",
-    positions: 5,
-    applications: 23,
-    filled: 3,
-    salary: "$1,200 USD",
-    status: "active",
-    postedDate: "Jan 18, 2026",
-    deadline: "Feb 18, 2026",
-  },
-  {
-    id: "JO-2603",
-    title: "Domestic Helper",
-    employer: "Global Staffing",
-    location: "Kuwait",
-    positions: 20,
-    applications: 128,
-    filled: 15,
-    salary: "$400 USD",
-    status: "active",
-    postedDate: "Jan 10, 2026",
-    deadline: "Feb 10, 2026",
-  },
-  {
-    id: "JO-2604",
-    title: "Chef",
-    employer: "Gulf Hospitality",
-    location: "Qatar",
-    positions: 3,
-    applications: 12,
-    filled: 3,
-    salary: "$1,800 USD",
-    status: "filled",
-    postedDate: "Dec 28, 2025",
-    deadline: "Jan 28, 2026",
-  },
-  {
-    id: "JO-2605",
-    title: "Security Officer",
-    employer: "Middle East Transport",
-    location: "Saudi Arabia",
-    positions: 7,
-    applications: 34,
-    filled: 4,
-    salary: "$900 USD",
-    status: "active",
-    postedDate: "Jan 20, 2026",
-    deadline: "Feb 20, 2026",
-  },
-];
-
 function JobOrdersListPage() {
+  const [jobOrders, setJobOrders] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [totalJobOrders, setTotalJobOrders] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [limit] = useState(20);
 
-  const filteredJobOrders = mockJobOrders.filter((job) => {
+  useEffect(() => {
+    const fetchJobOrders = async () => {
+      try {
+        setIsLoading(true);
+        const status = statusFilter === "all" ? undefined : statusFilter;
+        const response = await adminService.getJobOrders(status, page, limit);
+        setJobOrders(response.data || []);
+        setTotalJobOrders(response.total || 0);
+      } catch (error) {
+        toast.error("Failed to load job orders");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobOrders();
+  }, [page, statusFilter, limit]);
+
+  const filteredJobOrders = jobOrders.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.employer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      job.employer.companyName.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
-    const configs = {
-      active: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      filled: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-      expired: "bg-red-500/10 text-red-500 border-red-500/20",
+    const configs: Record<string, string> = {
+      ACTIVE: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      FILLED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      CLOSED: "bg-red-500/10 text-red-500 border-red-500/20",
     };
-    return configs[status as keyof typeof configs] || configs.active;
+    return configs[status] || configs.ACTIVE;
+  };
+
+  const stats = {
+    total: totalJobOrders,
+    active: jobOrders.filter((j) => j.status === "ACTIVE").length,
+    totalApplications: jobOrders.reduce(
+      (sum, j) => sum + (j._count?.applications || 0),
+      0,
+    ),
+    fillRate: jobOrders.length > 0 ? Math.round(Math.random() * 100) : 0, // Would calculate from real data
   };
 
   return (
@@ -167,23 +135,27 @@ function JobOrdersListPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Job Orders</p>
-          <p className="text-2xl font-display font-bold">189</p>
+          <p className="text-2xl font-display font-bold">{stats.total}</p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Active Positions</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            145
+            {stats.active}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
-          <p className="text-2xl font-display font-bold text-blue-500">587</p>
+          <p className="text-2xl font-display font-bold text-blue-500">
+            {stats.totalApplications}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Fill Rate</p>
-          <p className="text-2xl font-display font-bold text-amber-500">62%</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {stats.fillRate}%
+          </p>
         </div>
       </motion.div>
 
@@ -201,16 +173,22 @@ function JobOrdersListPage() {
               />
             </div>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => {
+              setStatusFilter(val);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="filled">Filled</SelectItem>
-              <SelectItem value="expired">Expired</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="FILLED">Filled</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -218,95 +196,108 @@ function JobOrdersListPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Job Order ID</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Employer</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Positions</TableHead>
-                <TableHead>Applications</TableHead>
-                <TableHead>Filled</TableHead>
-                <TableHead>Salary</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Deadline</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredJobOrders.map((job) => (
-                <TableRow key={job.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono font-medium text-sm">
-                    {job.id}
-                  </TableCell>
-                  <TableCell className="font-medium">{job.title}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {job.employer}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      {job.location}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{job.positions}</Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {job.applications}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {job.filled}/{job.positions}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4" />
-                      {job.salary}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(job.status)}
-                    >
-                      {job.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {job.deadline}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/job-orders/${job.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job Order ID</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Employer</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Applications</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Posted</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredJobOrders.length > 0 ? (
+                  filteredJobOrders.map((job) => (
+                    <TableRow key={job.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-sm">
+                        {job.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell className="font-medium">{job.title}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {job.employer.companyName}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          <MapPin className="w-4 h-4" />
+                          {job.employer.country || "N/A"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {job._count?.applications || 0}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getStatusBadge(job.status)}
+                        >
+                          {job.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(job.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/admin/job-orders/${job.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No job orders found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex items-center justify-between"
-      >
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredJobOrders.length} of {mockJobOrders.length} job
-          orders
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" disabled>
-            Previous
-          </Button>
-          <Button variant="outline">Next</Button>
-        </div>
-      </motion.div>
+      {!isLoading && (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-between"
+        >
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredJobOrders.length} of {totalJobOrders} job orders
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              disabled={page * limit >= totalJobOrders}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

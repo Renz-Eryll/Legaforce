@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Download,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,79 +47,49 @@ const staggerContainer = {
   },
 };
 
-const mockApplicants = [
-  {
-    id: "APP001",
-    name: "Maria Santos",
-    email: "maria@email.com",
-    phone: "+63 917 123 4567",
-    applications: 5,
-    trustScore: 92,
-    status: "verified",
-    location: "Manila, PH",
-    joinDate: "Jan 15, 2026",
-  },
-  {
-    id: "APP002",
-    name: "Juan Reyes",
-    email: "juan@email.com",
-    phone: "+63 917 234 5678",
-    applications: 3,
-    trustScore: 85,
-    status: "verified",
-    location: "Cebu, PH",
-    joinDate: "Jan 10, 2026",
-  },
-  {
-    id: "APP003",
-    name: "Ana Fernandez",
-    email: "ana@email.com",
-    phone: "+63 917 345 6789",
-    applications: 8,
-    trustScore: 78,
-    status: "pending",
-    location: "Davao, PH",
-    joinDate: "Jan 05, 2026",
-  },
-  {
-    id: "APP004",
-    name: "Miguel Torres",
-    email: "miguel@email.com",
-    phone: "+63 917 456 7890",
-    applications: 2,
-    trustScore: 65,
-    status: "unverified",
-    location: "Quezon City, PH",
-    joinDate: "Dec 28, 2025",
-  },
-  {
-    id: "APP005",
-    name: "Rosa Diaz",
-    email: "rosa@email.com",
-    phone: "+63 917 567 8901",
-    applications: 12,
-    trustScore: 95,
-    status: "verified",
-    location: "Makati, PH",
-    joinDate: "Dec 20, 2025",
-  },
-];
-
 function ApplicantsListPage() {
+  const [applicants, setApplicants] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredApplicants = mockApplicants.filter((applicant) => {
+  useEffect(() => {
+    const fetchApplicants = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getApplicants();
+        setApplicants(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load applicants");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApplicants();
+  }, []);
+
+  const filteredApplicants = applicants.filter((applicant) => {
+    const fullName = `${applicant.firstName} ${applicant.lastName}`;
     const matchesSearch =
-      applicant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      applicant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      applicant.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || applicant.status === statusFilter;
+      statusFilter === "all" || applicant.verificationStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  const applicantStats = {
+    total: applicants.length,
+    verified: applicants.filter((a) => a.verificationStatus === "verified")
+      .length,
+    pending: applicants.filter((a) => a.verificationStatus === "pending")
+      .length,
+  };
+
   const getStatusBadge = (status: string) => {
-    const configs = {
+    const configs: Record<string, { className: string }> = {
       verified: {
         className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
       },
@@ -127,7 +100,7 @@ function ApplicantsListPage() {
         className: "bg-red-500/10 text-red-500 border-red-500/20",
       },
     };
-    return configs[status as keyof typeof configs] || configs.pending;
+    return configs[status] || configs.pending;
   };
 
   return (
@@ -166,17 +139,21 @@ function ApplicantsListPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Applicants</p>
-          <p className="text-2xl font-display font-bold">12,458</p>
+          <p className="text-2xl font-display font-bold">
+            {applicantStats.total}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Verified</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            10,234
+            {applicantStats.verified}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-          <p className="text-2xl font-display font-bold text-amber-500">342</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {applicantStats.pending}
+          </p>
         </div>
       </motion.div>
 
@@ -211,62 +188,66 @@ function ApplicantsListPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Applications</TableHead>
-                <TableHead>Trust Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Join Date</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredApplicants.map((applicant) => (
-                <TableRow key={applicant.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">
-                    {applicant.name}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {applicant.email}
-                  </TableCell>
-                  <TableCell>{applicant.location}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{applicant.applications}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                      <span>{applicant.trustScore}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(applicant.status).className}
-                    >
-                      {applicant.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {applicant.joinDate}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/user/${applicant.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredApplicants.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Users className="w-12 h-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No applicants found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created Date</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredApplicants.map((applicant) => (
+                  <TableRow key={applicant.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      {applicant.firstName} {applicant.lastName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {applicant.email}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {applicant.phone || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          getStatusBadge(applicant.verificationStatus).className
+                        }
+                      >
+                        {applicant.verificationStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(applicant.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Link to={`/admin/user/${applicant.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
@@ -275,8 +256,7 @@ function ApplicantsListPage() {
         className="flex items-center justify-between"
       >
         <p className="text-sm text-muted-foreground">
-          Showing {filteredApplicants.length} of {mockApplicants.length}{" "}
-          applicants
+          Showing {filteredApplicants.length} of {applicants.length} applicants
         </p>
         <div className="flex gap-2">
           <Button variant="outline" disabled>

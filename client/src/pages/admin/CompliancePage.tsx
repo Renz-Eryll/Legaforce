@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Clock,
   Download,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,84 +47,90 @@ const staggerContainer = {
   },
 };
 
-const mockComplianceData = [
-  {
-    id: "DEP-001",
-    applicant: "Maria Santos",
-    position: "OFW - Nurse",
-    medical: { status: "approved", expiryDate: "Jan 25, 2027" },
-    visa: { status: "approved", expiryDate: "Feb 10, 2027" },
-    oec: { status: "approved", number: "OEC-2026-001" },
-    flightDate: "Feb 01, 2026",
-    overallStatus: "ready",
-  },
-  {
-    id: "DEP-002",
-    applicant: "Juan Reyes",
-    position: "Construction Worker",
-    medical: { status: "pending", expiryDate: null },
-    visa: { status: "in-progress", expiryDate: null },
-    oec: { status: "pending", number: null },
-    flightDate: "Feb 15, 2026",
-    overallStatus: "in-progress",
-  },
-  {
-    id: "DEP-003",
-    applicant: "Ana Fernandez",
-    position: "Domestic Helper",
-    medical: { status: "approved", expiryDate: "Mar 10, 2027" },
-    visa: { status: "pending", expiryDate: null },
-    oec: { status: "approved", number: "OEC-2026-002" },
-    flightDate: "Mar 01, 2026",
-    overallStatus: "in-progress",
-  },
-  {
-    id: "DEP-004",
-    applicant: "Miguel Torres",
-    position: "OFW - Driver",
-    medical: { status: "rejected", expiryDate: null },
-    visa: { status: "pending", expiryDate: null },
-    oec: { status: "pending", number: null },
-    flightDate: "Feb 20, 2026",
-    overallStatus: "delayed",
-  },
-];
-
 function CompliancePage() {
+  const [deployments, setDeployments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredCompliance = mockComplianceData.filter((item) => {
+  useEffect(() => {
+    const fetchDeployments = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getDeployments();
+        setDeployments(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load compliance data");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDeployments();
+  }, []);
+
+  const filteredCompliance = deployments.filter((item) => {
+    const applicantName = `${item.applicant?.firstName} ${item.applicant?.lastName}`;
     const matchesSearch =
-      item.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.position.toLowerCase().includes(searchTerm.toLowerCase());
+      applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.position?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || item.overallStatus === statusFilter;
+      statusFilter === "all" || item.deploymentStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  const complianceStats = {
+    total: deployments.length,
+    ready: deployments.filter(
+      (d) =>
+        d.medicalStatus === "approved" &&
+        d.visaStatus === "approved" &&
+        d.oecStatus === "approved",
+    ).length,
+    inProgress: deployments.filter(
+      (d) =>
+        !(
+          d.medicalStatus === "approved" &&
+          d.visaStatus === "approved" &&
+          d.oecStatus === "approved"
+        ) &&
+        !(
+          d.medicalStatus === "rejected" ||
+          d.visaStatus === "rejected" ||
+          d.oecStatus === "rejected"
+        ),
+    ).length,
+    delayed: deployments.filter(
+      (d) =>
+        d.medicalStatus === "rejected" ||
+        d.visaStatus === "rejected" ||
+        d.oecStatus === "rejected",
+    ).length,
+  };
+
   const getComplianceStatusBadge = (status: string) => {
-    const configs = {
+    const configs: Record<string, string> = {
       approved:
         "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 flex items-center gap-1",
       pending:
         "bg-amber-500/10 text-amber-500 border-amber-500/20 flex items-center gap-1",
-      "in-progress":
+      in_progress:
         "bg-blue-500/10 text-blue-500 border-blue-500/20 flex items-center gap-1",
       rejected:
         "bg-red-500/10 text-red-500 border-red-500/20 flex items-center gap-1",
     };
-    return configs[status as keyof typeof configs] || configs.pending;
+    return configs[status] || configs.pending;
   };
 
   const getOverallStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       ready: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      "in-progress": "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      in_progress: "bg-blue-500/10 text-blue-500 border-blue-500/20",
       delayed: "bg-red-500/10 text-red-500 border-red-500/20",
       completed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     };
-    return colors[status as keyof typeof colors] || colors["in-progress"];
+    return colors[status] || colors.in_progress;
   };
 
   return (
@@ -154,23 +163,29 @@ function CompliancePage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">In Deployment</p>
-          <p className="text-2xl font-display font-bold">1,245</p>
+          <p className="text-2xl font-display font-bold">
+            {complianceStats.total}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">
-            Documents Pending
+            Documentation Ready
           </p>
-          <p className="text-2xl font-display font-bold text-amber-500">34</p>
-        </div>
-        <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Compliance Rate</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            98.5%
+            {complianceStats.ready}
           </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Expiring Soon</p>
-          <p className="text-2xl font-display font-bold text-red-500">12</p>
+          <p className="text-sm text-muted-foreground mb-1">In Progress</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {complianceStats.inProgress}
+          </p>
+        </div>
+        <div className="card-premium p-4">
+          <p className="text-sm text-muted-foreground mb-1">Delayed</p>
+          <p className="text-2xl font-display font-bold text-red-500">
+            {complianceStats.delayed}
+          </p>
         </div>
       </motion.div>
 
@@ -204,121 +219,122 @@ function CompliancePage() {
       </motion.div>
 
       {/* Compliance Items */}
-      <motion.div variants={fadeInUp} className="space-y-4">
-        {filteredCompliance.map((item) => (
-          <div key={item.id} className="card-premium p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 pb-4 border-b">
-              <div>
-                <h3 className="text-lg font-semibold">{item.applicant}</h3>
-                <p className="text-sm text-muted-foreground">{item.position}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge
-                  variant="outline"
-                  className={getOverallStatusColor(item.overallStatus)}
-                >
-                  {item.overallStatus.replace("-", " ")}
-                </Badge>
-                <Link to={`/admin/compliance/${item.id}`}>
-                  <Button variant="ghost" size="sm">
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Compliance Documents Grid */}
-            <div className="grid sm:grid-cols-3 gap-4 mb-4">
-              {/* Medical */}
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Medical Exam</span>
-                  {item.medical.status === "approved" ? (
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  ) : item.medical.status === "pending" ? (
-                    <Clock className="w-4 h-4 text-amber-500" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-red-500" />
-                  )}
-                </div>
-                <Badge
-                  variant="outline"
-                  className={getComplianceStatusBadge(item.medical.status)}
-                >
-                  {item.medical.status}
-                </Badge>
-                {item.medical.expiryDate && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Expires: {item.medical.expiryDate}
-                  </p>
-                )}
-              </div>
-
-              {/* Visa */}
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Visa</span>
-                  {item.visa.status === "approved" ? (
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  ) : item.visa.status === "in-progress" ? (
-                    <Clock className="w-4 h-4 text-blue-500" />
-                  ) : (
-                    <Clock className="w-4 h-4 text-amber-500" />
-                  )}
-                </div>
-                <Badge
-                  variant="outline"
-                  className={getComplianceStatusBadge(item.visa.status)}
-                >
-                  {item.visa.status}
-                </Badge>
-                {item.visa.expiryDate && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Expires: {item.visa.expiryDate}
-                  </p>
-                )}
-              </div>
-
-              {/* OEC */}
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">OEC Clearance</span>
-                  {item.oec.status === "approved" ? (
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  ) : (
-                    <Clock className="w-4 h-4 text-amber-500" />
-                  )}
-                </div>
-                <Badge
-                  variant="outline"
-                  className={getComplianceStatusBadge(item.oec.status)}
-                >
-                  {item.oec.status}
-                </Badge>
-                {item.oec.number && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {item.oec.number}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Flight Info */}
-            <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
-              <p className="text-sm">
-                <span className="font-medium">Flight Date:</span>{" "}
-                <span className="text-accent">{item.flightDate}</span>
-              </p>
-            </div>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* No results */}
-      {filteredCompliance.length === 0 && (
+      {isLoading ? (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-center py-12"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </motion.div>
+      ) : filteredCompliance.length === 0 ? (
         <motion.div variants={fadeInUp} className="text-center py-12">
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">No compliance records found</p>
+        </motion.div>
+      ) : (
+        <motion.div variants={fadeInUp} className="space-y-4">
+          {filteredCompliance.map((item) => (
+            <div key={item.id} className="card-premium p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 pb-4 border-b">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {item.applicant?.firstName} {item.applicant?.lastName}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {item.position}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge
+                    variant="outline"
+                    className={getOverallStatusColor(item.deploymentStatus)}
+                  >
+                    {item.deploymentStatus}
+                  </Badge>
+                  <Link to={`/admin/deployments/${item.id}`}>
+                    <Button variant="ghost" size="sm">
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Compliance Documents Grid */}
+              <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                {/* Medical */}
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Medical Exam</span>
+                    {item.medicalStatus === "approved" ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    ) : item.medicalStatus === "pending" ? (
+                      <Clock className="w-4 h-4 text-amber-500" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                    )}
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={getComplianceStatusBadge(item.medicalStatus)}
+                  >
+                    {item.medicalStatus}
+                  </Badge>
+                </div>
+
+                {/* Visa */}
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Visa</span>
+                    {item.visaStatus === "approved" ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    ) : item.visaStatus === "in_progress" ? (
+                      <Clock className="w-4 h-4 text-blue-500" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-amber-500" />
+                    )}
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={getComplianceStatusBadge(item.visaStatus)}
+                  >
+                    {item.visaStatus}
+                  </Badge>
+                </div>
+
+                {/* OEC */}
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">OEC Clearance</span>
+                    {item.oecStatus === "approved" ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-amber-500" />
+                    )}
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={getComplianceStatusBadge(item.oecStatus)}
+                  >
+                    {item.oecStatus}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Deployment Info */}
+              <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                <p className="text-sm">
+                  <span className="font-medium">Expected Deployment:</span>{" "}
+                  <span className="text-accent">
+                    {item.expectedDeploymentDate
+                      ? new Date(
+                          item.expectedDeploymentDate,
+                        ).toLocaleDateString()
+                      : "TBD"}
+                  </span>
+                </p>
+              </div>
+            </div>
+          ))}
         </motion.div>
       )}
     </motion.div>
