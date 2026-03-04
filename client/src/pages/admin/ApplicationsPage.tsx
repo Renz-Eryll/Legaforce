@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -9,6 +9,7 @@ import {
   Download,
   TrendingUp,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -42,81 +45,66 @@ const staggerContainer = {
   },
 };
 
-const mockApplications = [
-  {
-    id: "APP-2401",
-    applicant: "Maria Santos",
-    position: "OFW - Nurse",
-    employer: "ABC Healthcare",
-    status: "deployed",
-    matchScore: 95,
-    submittedDate: "Jan 20, 2026",
-    deployedDate: "Jan 25, 2026",
-  },
-  {
-    id: "APP-2402",
-    applicant: "Juan Reyes",
-    position: "Construction Worker",
-    employer: "XYZ Construction",
-    status: "selected",
-    matchScore: 87,
-    submittedDate: "Jan 18, 2026",
-    deployedDate: null,
-  },
-  {
-    id: "APP-2403",
-    applicant: "Ana Fernandez",
-    position: "Domestic Helper",
-    employer: "Global Staffing",
-    status: "interviewed",
-    matchScore: 78,
-    submittedDate: "Jan 15, 2026",
-    deployedDate: null,
-  },
-  {
-    id: "APP-2404",
-    applicant: "Miguel Torres",
-    position: "OFW - Driver",
-    employer: "Middle East Transport",
-    status: "shortlisted",
-    matchScore: 82,
-    submittedDate: "Jan 12, 2026",
-    deployedDate: null,
-  },
-  {
-    id: "APP-2405",
-    applicant: "Rosa Diaz",
-    position: "Chef",
-    employer: "Gulf Hospitality",
-    status: "applied",
-    matchScore: 91,
-    submittedDate: "Jan 10, 2026",
-    deployedDate: null,
-  },
-];
-
 function ApplicationsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [applications, setApplications] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalApplications, setTotalApplications] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [limit] = useState(20);
 
-  const filteredApplications = mockApplications.filter((app) => {
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setIsLoading(true);
+        const status = statusFilter === "all" ? undefined : statusFilter;
+        const response = await adminService.getApplications(
+          status,
+          page,
+          limit,
+        );
+        setApplications(response.data || []);
+        setTotalApplications(response.total || 0);
+      } catch (error) {
+        toast.error("Failed to load applications");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [page, statusFilter, limit]);
+
+  const filteredApplications = applications.filter((app) => {
+    const applicantName = `${app.applicant.firstName} ${app.applicant.lastName}`;
     const matchesSearch =
-      app.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.position.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.jobOrder.title.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
-    const configs = {
-      applied: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-      shortlisted: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-      interviewed: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      selected: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
-      processing: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-      deployed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    const configs: Record<string, string> = {
+      APPLIED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      SHORTLISTED: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      INTERVIEWED: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      SELECTED: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+      PROCESSING: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+      DEPLOYED: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      REJECTED: "bg-red-500/10 text-red-500 border-red-500/20",
     };
-    return configs[status as keyof typeof configs] || configs.applied;
+    return configs[status] || configs.APPLIED;
+  };
+
+  const statusStats = {
+    total: totalApplications,
+    pending: applications.filter((a) =>
+      ["APPLIED", "SHORTLISTED"].includes(a.status),
+    ).length,
+    deployed: applications.filter((a) => a.status === "DEPLOYED").length,
+    avgScore: "87%", // Would need to calculate from data if available
   };
 
   return (
@@ -151,23 +139,25 @@ function ApplicationsPage() {
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
-          <p className="text-2xl font-display font-bold">5,234</p>
+          <p className="text-2xl font-display font-bold">{statusStats.total}</p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-          <p className="text-2xl font-display font-bold text-amber-500">342</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {statusStats.pending}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Deployed</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            1,245
+            {statusStats.deployed}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Match Score</p>
           <p className="text-2xl font-display font-bold flex items-center gap-1">
             <TrendingUp className="w-5 h-5 text-blue-500" />
-            87%
+            {statusStats.avgScore}
           </p>
         </div>
       </motion.div>
@@ -186,18 +176,24 @@ function ApplicationsPage() {
               />
             </div>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => {
+              setStatusFilter(val);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="applied">Applied</SelectItem>
-              <SelectItem value="shortlisted">Shortlisted</SelectItem>
-              <SelectItem value="interviewed">Interviewed</SelectItem>
-              <SelectItem value="selected">Selected</SelectItem>
-              <SelectItem value="deployed">Deployed</SelectItem>
+              <SelectItem value="APPLIED">Applied</SelectItem>
+              <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
+              <SelectItem value="INTERVIEWED">Interviewed</SelectItem>
+              <SelectItem value="SELECTED">Selected</SelectItem>
+              <SelectItem value="DEPLOYED">Deployed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -205,75 +201,102 @@ function ApplicationsPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Application ID</TableHead>
-                <TableHead>Applicant</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Employer</TableHead>
-                <TableHead>Match Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredApplications.map((app) => (
-                <TableRow key={app.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono font-medium text-sm">
-                    {app.id}
-                  </TableCell>
-                  <TableCell>{app.applicant}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {app.position}
-                  </TableCell>
-                  <TableCell>{app.employer}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{app.matchScore}%</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(app.status)}
-                    >
-                      {app.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {app.submittedDate}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/applications/${app.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Application ID</TableHead>
+                  <TableHead>Applicant</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Employer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applied</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredApplications.length > 0 ? (
+                  filteredApplications.map((app) => (
+                    <TableRow key={app.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-sm">
+                        {app.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell>
+                        {app.applicant.firstName} {app.applicant.lastName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {app.jobOrder.title}
+                      </TableCell>
+                      <TableCell>{app.jobOrder.employer.companyName}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getStatusBadge(app.status)}
+                        >
+                          {app.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(app.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/admin/applications/${app.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No applications found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex items-center justify-between"
-      >
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredApplications.length} of {mockApplications.length}{" "}
-          applications
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" disabled>
-            Previous
-          </Button>
-          <Button variant="outline">Next</Button>
-        </div>
-      </motion.div>
+      {!isLoading && (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-between"
+        >
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredApplications.length} of {totalApplications}{" "}
+            applications
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              disabled={page * limit >= totalApplications}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

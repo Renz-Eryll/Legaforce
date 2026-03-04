@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -10,6 +10,7 @@ import {
   Plus,
   Calendar,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -43,101 +46,63 @@ const staggerContainer = {
   },
 };
 
-const mockInvoices = [
-  {
-    id: "INV-2601-001",
-    invoiceNumber: "INV-2601-001",
-    employer: "ABC Healthcare",
-    amount: 45000,
-    currency: "PHP",
-    status: "paid",
-    issuedDate: "Jan 25, 2026",
-    dueDate: "Feb 25, 2026",
-    paidDate: "Feb 20, 2026",
-    description: "Recruitment & Placement Services",
-  },
-  {
-    id: "INV-2601-002",
-    invoiceNumber: "INV-2601-002",
-    employer: "XYZ Construction",
-    amount: 28500,
-    currency: "PHP",
-    status: "paid",
-    issuedDate: "Jan 20, 2026",
-    dueDate: "Feb 20, 2026",
-    paidDate: "Feb 19, 2026",
-    description: "Recruitment & Placement Services",
-  },
-  {
-    id: "INV-2602-001",
-    invoiceNumber: "INV-2602-001",
-    employer: "Global Staffing",
-    amount: 35600,
-    currency: "PHP",
-    status: "pending",
-    issuedDate: "Feb 01, 2026",
-    dueDate: "Mar 01, 2026",
-    paidDate: null,
-    description: "Recruitment & Placement Services",
-  },
-  {
-    id: "INV-2602-002",
-    invoiceNumber: "INV-2602-002",
-    employer: "Gulf Hospitality",
-    amount: 12300,
-    currency: "PHP",
-    status: "overdue",
-    issuedDate: "Jan 01, 2026",
-    dueDate: "Feb 01, 2026",
-    paidDate: null,
-    description: "Recruitment & Placement Services",
-  },
-  {
-    id: "INV-2602-003",
-    invoiceNumber: "INV-2602-003",
-    employer: "Middle East Transport",
-    amount: 42100,
-    currency: "PHP",
-    status: "pending",
-    issuedDate: "Feb 05, 2026",
-    dueDate: "Mar 05, 2026",
-    paidDate: null,
-    description: "Recruitment & Placement Services",
-  },
-];
-
 function InvoicesPage() {
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredInvoices = mockInvoices.filter((invoice) => {
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setIsLoading(true);
+        const status = statusFilter === "all" ? undefined : statusFilter;
+        const response = await adminService.getInvoices(status);
+        setInvoices(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load invoices");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, [statusFilter]);
+
+  const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.employer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || invoice.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      invoice.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.employer.companyName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
-    const configs = {
-      paid: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      pending: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      overdue: "bg-red-500/10 text-red-500 border-red-500/20",
+    const configs: Record<string, string> = {
+      PAID: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      PENDING: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      OVERDUE: "bg-red-500/10 text-red-500 border-red-500/20",
+      DISPUTED: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+      REFUNDED: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
     };
-    return configs[status as keyof typeof configs] || configs.pending;
+    return configs[status] || configs.PENDING;
   };
 
   const totalAmount = filteredInvoices.reduce(
-    (sum, inv) => sum + inv.amount,
+    (sum, inv) => sum + (inv.amount || 0),
     0,
   );
   const paidAmount = filteredInvoices
-    .filter((inv) => inv.status === "paid")
-    .reduce((sum, inv) => sum + inv.amount, 0);
+    .filter((inv) => inv.status === "PAID")
+    .reduce((sum, inv) => sum + (inv.amount || 0), 0);
   const pendingAmount = filteredInvoices
-    .filter((inv) => inv.status === "pending")
-    .reduce((sum, inv) => sum + inv.amount, 0);
+    .filter((inv) => inv.status === "PENDING")
+    .reduce((sum, inv) => sum + (inv.amount || 0), 0);
+  const overdueAmount = filteredInvoices
+    .filter((inv) => inv.status === "OVERDUE")
+    .reduce((sum, inv) => sum + (inv.amount || 0), 0);
 
   return (
     <motion.div
@@ -191,7 +156,9 @@ function InvoicesPage() {
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Overdue</p>
-          <p className="text-2xl font-display font-bold text-red-500">₱12.3K</p>
+          <p className="text-2xl font-display font-bold text-red-500">
+            ₱{(overdueAmount / 1000).toFixed(1)}K
+          </p>
         </div>
       </motion.div>
 
@@ -216,9 +183,10 @@ function InvoicesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="PAID">Paid</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="OVERDUE">Overdue</SelectItem>
+              <SelectItem value="DISPUTED">Disputed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -226,88 +194,103 @@ function InvoicesPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice Number</TableHead>
-                <TableHead>Employer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Issued Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Paid Date</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono font-medium text-sm">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                      {invoice.invoiceNumber}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {invoice.employer}
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    ₱{invoice.amount.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {invoice.description}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {invoice.issuedDate}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {invoice.dueDate}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(invoice.status)}
-                    >
-                      {invoice.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {invoice.paidDate || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/invoices/${invoice.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice Number</TableHead>
+                  <TableHead>Employer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Paid Date</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.length > 0 ? (
+                  filteredInvoices.map((invoice) => (
+                    <TableRow key={invoice.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-sm">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          {invoice.invoiceNumber}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {invoice.employer.companyName}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        ₱{(invoice.amount || 0).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(invoice.dueDate).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getStatusBadge(invoice.status)}
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {invoice.paidAt
+                          ? new Date(invoice.paidAt).toLocaleDateString()
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/admin/invoices/${invoice.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No invoices found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex items-center justify-between"
-      >
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredInvoices.length} of {mockInvoices.length} invoices
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" disabled>
-            Previous
-          </Button>
-          <Button variant="outline">Next</Button>
-        </div>
-      </motion.div>
+      {!isLoading && (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-between"
+        >
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredInvoices.length} of {invoices.length} invoices
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" disabled>
+              Previous
+            </Button>
+            <Button variant="outline" disabled={filteredInvoices.length < 20}>
+              Next
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

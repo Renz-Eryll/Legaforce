@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   CheckCircle,
   AlertCircle,
   Plane,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,107 +47,69 @@ const staggerContainer = {
   },
 };
 
-const mockDeployments = [
-  {
-    id: "DEP-2601",
-    applicant: "Maria Santos",
-    position: "OFW - Nurse",
-    destination: "Saudi Arabia",
-    employer: "Gulf Healthcare",
-    deploymentDate: "Jan 25, 2026",
-    arrivalDate: "Jan 28, 2026",
-    flightDate: "Jan 25, 2026",
-    status: "deployed",
-    duration: "2 years",
-    salary: "$1,500 USD",
-  },
-  {
-    id: "DEP-2602",
-    applicant: "Juan Reyes",
-    position: "Construction Worker",
-    destination: "UAE",
-    employer: "Middle East Construction",
-    deploymentDate: "Feb 01, 2026",
-    arrivalDate: null,
-    flightDate: "Feb 01, 2026",
-    status: "in-transit",
-    duration: "3 years",
-    salary: "$900 USD",
-  },
-  {
-    id: "DEP-2603",
-    applicant: "Ana Fernandez",
-    position: "Domestic Helper",
-    destination: "Kuwait",
-    employer: "Gulf Family Services",
-    deploymentDate: "Feb 10, 2026",
-    arrivalDate: null,
-    flightDate: "Feb 10, 2026",
-    status: "processing",
-    duration: "2 years",
-    salary: "$400 USD",
-  },
-  {
-    id: "DEP-2604",
-    applicant: "Miguel Torres",
-    position: "OFW - Driver",
-    destination: "Qatar",
-    employer: "Doha Transport",
-    deploymentDate: "Mar 15, 2026",
-    arrivalDate: null,
-    flightDate: "Mar 15, 2026",
-    status: "scheduled",
-    duration: "3 years",
-    salary: "$1,200 USD",
-  },
-  {
-    id: "DEP-2605",
-    applicant: "Rosa Diaz",
-    position: "Chef",
-    destination: "UAE",
-    employer: "Emirates Hospitality",
-    deploymentDate: "Jan 10, 2026",
-    arrivalDate: "Jan 13, 2026",
-    flightDate: "Jan 10, 2026",
-    status: "deployed",
-    duration: "2 years",
-    salary: "$1,800 USD",
-  },
-];
-
 function DeploymentsListPage() {
+  const [deployments, setDeployments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredDeployments = mockDeployments.filter((deployment) => {
+  useEffect(() => {
+    const fetchDeployments = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getDeployments();
+        setDeployments(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load deployments");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDeployments();
+  }, []);
+
+  const filteredDeployments = deployments.filter((deployment) => {
+    const applicantName = `${deployment.application.applicant.firstName} ${deployment.application.applicant.lastName}`;
+    const location = deployment.application.jobOrder.location || "";
     const matchesSearch =
-      deployment.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deployment.destination.toLowerCase().includes(searchTerm.toLowerCase());
+      applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || deployment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: string) => {
-    const configs = {
-      scheduled: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-      processing: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      "in-transit": "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
-      deployed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    const configs: Record<string, string> = {
+      PENDING: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      PROCESSING: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      APPROVED: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+      DEPLOYED: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     };
-    return configs[status as keyof typeof configs] || configs.scheduled;
+    return configs[status] || configs.PENDING;
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "deployed":
-        return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-      case "in-transit":
-        return <Plane className="w-4 h-4 text-cyan-500" />;
-      default:
-        return <AlertCircle className="w-4 h-4 text-amber-500" />;
-    }
+  const deploymentStats = {
+    total: deployments.length,
+    thisMonth: deployments.filter(
+      (d) =>
+        new Date(d.createdAt).getMonth() === new Date().getMonth() &&
+        new Date(d.createdAt).getFullYear() === new Date().getFullYear(),
+    ).length,
+    inTransit: deployments.filter((d) => d.status === "APPROVED").length,
+    deployed: deployments.filter((d) => d.status === "DEPLOYED").length,
   };
+
+  const successRate =
+    deploymentStats.total > 0
+      ? Math.round(
+          ((deploymentStats.deployed + deploymentStats.inTransit) /
+            deploymentStats.total) *
+            100,
+        )
+      : 0;
 
   return (
     <motion.div
@@ -172,48 +137,27 @@ function DeploymentsListPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Deployed</p>
-          <p className="text-2xl font-display font-bold">1,245</p>
+          <p className="text-2xl font-display font-bold">
+            {deploymentStats.deployed}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">This Month</p>
-          <p className="text-2xl font-display font-bold text-blue-500">45</p>
+          <p className="text-2xl font-display font-bold text-blue-500">
+            {deploymentStats.thisMonth}
+          </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">In Transit</p>
-          <p className="text-2xl font-display font-bold text-cyan-500">23</p>
+          <p className="text-sm text-muted-foreground mb-1">Processing</p>
+          <p className="text-2xl font-display font-bold text-cyan-500">
+            {deploymentStats.inTransit}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Success Rate</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            98%
+            {successRate}%
           </p>
-        </div>
-      </motion.div>
-
-      {/* Top Destinations */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
-        <h2 className="text-lg font-semibold mb-4">
-          Top Deployment Destinations
-        </h2>
-        <div className="grid sm:grid-cols-5 gap-4">
-          {[
-            { country: "Saudi Arabia", count: 345, icon: "🇸🇦" },
-            { country: "UAE", count: 298, icon: "🇦🇪" },
-            { country: "Qatar", count: 189, icon: "🇶🇦" },
-            { country: "Kuwait", count: 156, icon: "🇰🇼" },
-            { country: "Others", count: 257, icon: "🌍" },
-          ].map((dest) => (
-            <div
-              key={dest.country}
-              className="p-4 rounded-lg bg-muted/50 text-center"
-            >
-              <span className="text-2xl mb-2 block">{dest.icon}</span>
-              <p className="text-sm font-medium">{dest.country}</p>
-              <p className="text-2xl font-bold text-accent mt-1">
-                {dest.count}
-              </p>
-            </div>
-          ))}
         </div>
       </motion.div>
 
@@ -238,10 +182,10 @@ function DeploymentsListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="in-transit">In Transit</SelectItem>
-              <SelectItem value="deployed">Deployed</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="PROCESSING">Processing</SelectItem>
+              <SelectItem value="APPROVED">In Transit</SelectItem>
+              <SelectItem value="DEPLOYED">Deployed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -249,96 +193,115 @@ function DeploymentsListPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Applicant</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Flight Date</TableHead>
-                <TableHead>Arrival Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDeployments.map((deployment) => (
-                <TableRow key={deployment.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono font-medium text-sm">
-                    {deployment.id}
-                  </TableCell>
-                  <TableCell>{deployment.applicant}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {deployment.position}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {deployment.destination}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Plane className="w-4 h-4" />
-                      {deployment.flightDate}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {deployment.arrivalDate ? (
-                      <div className="flex items-center gap-1 text-sm">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        {deployment.arrivalDate}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">
-                        Pending
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(deployment.status)}
-                    >
-                      {deployment.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {deployment.duration}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/deployments/${deployment.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Applicant</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Employer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Medical</TableHead>
+                  <TableHead>Visa</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredDeployments.length > 0 ? (
+                  filteredDeployments.map((deployment) => (
+                    <TableRow key={deployment.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-sm">
+                        {deployment.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell>
+                        {deployment.application.applicant.firstName}{" "}
+                        {deployment.application.applicant.lastName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {deployment.application.jobOrder.title}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          {deployment.application.jobOrder.location}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {deployment.application.jobOrder.employer.companyName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getStatusBadge(deployment.status)}
+                        >
+                          {deployment.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {deployment.medicalStatus || "PENDING"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {deployment.visaStatus || "PENDING"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/admin/deployments/${deployment.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No deployments found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex items-center justify-between"
-      >
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredDeployments.length} of {mockDeployments.length}{" "}
-          deployments
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" disabled>
-            Previous
-          </Button>
-          <Button variant="outline">Next</Button>
-        </div>
-      </motion.div>
+      {!isLoading && (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-between"
+        >
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredDeployments.length} of {deployments.length}{" "}
+            deployments
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" disabled>
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              disabled={filteredDeployments.length < 20}
+            >
+              Next
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

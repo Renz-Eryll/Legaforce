@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   ChevronLeft,
   Mail,
@@ -13,10 +14,13 @@ import {
   AlertCircle,
   Award,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -31,77 +35,44 @@ const staggerContainer = {
   },
 };
 
-// Mock user data
-const mockUser = {
-  id: "APP001",
-  name: "Maria Santos",
-  email: "maria@email.com",
-  phone: "+63 917 123 4567",
-  avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-  location: "Manila, Philippines",
-  joinDate: "Jan 15, 2026",
-  status: "verified",
-  trustScore: 92,
-  rewardPoints: 450,
-  bio: "Experienced nurse with 5 years of healthcare industry experience.",
-  employment: [
-    {
-      company: "St. Luke's Medical Center",
-      position: "RN - ICU",
-      duration: "2021 - Present",
-    },
-    {
-      company: "Philippine General Hospital",
-      position: "RN - Emergency",
-      duration: "2019 - 2021",
-    },
-  ],
-  skills: [
-    "Nursing",
-    "Patient Care",
-    "ICU Experience",
-    "Medical Documentation",
-  ],
-  certifications: [
-    { name: "RN License", number: "RN-2019-12345", status: "active" },
-    { name: "BLS Certification", number: "BLS-2025", status: "active" },
-  ],
-  applications: [
-    {
-      id: "APP-2401",
-      position: "Nurse (ICU)",
-      employer: "ABC Healthcare",
-      status: "deployed",
-      date: "Jan 25, 2026",
-    },
-    {
-      id: "APP-2402",
-      position: "Nurse (General)",
-      employer: "Gulf Medical Center",
-      status: "selected",
-      date: "Jan 20, 2026",
-    },
-  ],
-  ratings: [
-    {
-      rater: "ABC Healthcare",
-      rating: 5,
-      comment: "Excellent nurse, very professional",
-    },
-  ],
-  documents: [
-    { name: "Passport", status: "verified", uploadDate: "Jan 10, 2026" },
-    {
-      name: "Medical Certificate",
-      status: "verified",
-      uploadDate: "Jan 12, 2026",
-    },
-    { name: "NBI Clearance", status: "verified", uploadDate: "Jan 14, 2026" },
-  ],
-};
-
 function UserDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserDetail = async () => {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const response = await adminService.getUserDetail(id);
+        setUser(response.data);
+      } catch (error) {
+        toast.error("Failed to load user details");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserDetail();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">User not found</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -124,8 +95,11 @@ function UserDetailsPage() {
           {/* Avatar */}
           <div className="flex flex-col sm:flex-row sm:items-start gap-6 flex-1">
             <img
-              src={mockUser.avatar}
-              alt={mockUser.name}
+              src={
+                user.avatar ||
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"
+              }
+              alt={`${user.firstName} ${user.lastName}`}
               className="w-24 h-24 rounded-xl object-cover"
             />
 
@@ -134,13 +108,15 @@ function UserDetailsPage() {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div>
                   <h1 className="text-3xl font-display font-bold mb-1">
-                    {mockUser.name}
+                    {user.firstName} {user.lastName}
                   </h1>
-                  <p className="text-muted-foreground">{mockUser.bio}</p>
+                  <p className="text-muted-foreground">
+                    {user.bio || "No bio provided"}
+                  </p>
                 </div>
                 <Badge className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
                   <CheckCircle className="w-3 h-3 mr-1" />
-                  {mockUser.status}
+                  {user.verificationStatus || "pending"}
                 </Badge>
               </div>
 
@@ -148,43 +124,39 @@ function UserDetailsPage() {
               <div className="grid sm:grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span>{mockUser.email}</span>
+                  <span>{user.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span>{mockUser.phone}</span>
+                  <span>{user.phone || "-"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <span>{mockUser.location}</span>
+                  <span>{user.address || "-"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span>Joined {mockUser.joinDate}</span>
+                  <span>
+                    Joined {new Date(user.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
 
               {/* Trust & Rewards */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Trust Score
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-1">Status</p>
                   <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                    <span className="text-lg font-bold">
-                      {mockUser.trustScore}
-                    </span>
+                    <Badge>{user.verificationStatus}</Badge>
                   </div>
                 </div>
                 <div className="p-3 rounded-lg bg-purple-500/5 border border-purple-500/20">
                   <p className="text-sm text-muted-foreground mb-1">
-                    Reward Points
+                    Account Type
                   </p>
                   <div className="flex items-center gap-2">
-                    <Award className="w-4 h-4 fill-purple-500 text-purple-500" />
                     <span className="text-lg font-bold">
-                      {mockUser.rewardPoints}
+                      {user.userType || "applicant"}
                     </span>
                   </div>
                 </div>
@@ -196,131 +168,81 @@ function UserDetailsPage() {
 
       {/* Tabs */}
       <motion.div variants={fadeInUp} className="card-premium">
-        <Tabs defaultValue="employment" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-muted p-1">
-            <TabsTrigger value="employment">Employment</TabsTrigger>
+        <Tabs defaultValue="applications" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="ratings">Ratings</TabsTrigger>
             <TabsTrigger value="actions">Actions</TabsTrigger>
           </TabsList>
 
-          {/* Employment Tab */}
-          <TabsContent value="employment" className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Employment History</h3>
+          {/* Applications Tab */}
+          <TabsContent value="applications" className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Job Applications</h3>
             <div className="space-y-4">
-              {mockUser.employment.map((emp, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-lg bg-muted/50 border border-border/50"
-                >
-                  <h4 className="font-semibold">{emp.position}</h4>
-                  <p className="text-sm text-muted-foreground">{emp.company}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {emp.duration}
-                  </p>
-                </div>
-              ))}
+              {user.applications && user.applications.length > 0 ? (
+                user.applications.map((app: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-lg bg-muted/50 border border-border/50"
+                  >
+                    <h4 className="font-semibold">{app.position}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {app.employer || "Unknown Employer"}
+                    </p>
+                    <Badge className="mt-2">{app.status}</Badge>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground">No applications yet</p>
+              )}
             </div>
 
             <div className="mt-6">
               <h4 className="font-semibold mb-3">Skills</h4>
               <div className="flex flex-wrap gap-2">
-                {mockUser.skills.map((skill, idx) => (
-                  <Badge key={idx} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Applications Tab */}
-          <TabsContent value="applications" className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Applications</h3>
-            <div className="space-y-3">
-              {mockUser.applications.map((app) => (
-                <div
-                  key={app.id}
-                  className="p-4 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-between"
-                >
-                  <div>
-                    <h4 className="font-semibold">{app.position}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {app.employer}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">
-                      {app.date}
-                    </span>
-                    <Badge
-                      className={
-                        app.status === "deployed"
-                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                          : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                      }
-                    >
-                      {app.status}
+                {user.skills && user.skills.length > 0 ? (
+                  user.skills.map((skill: string, idx: number) => (
+                    <Badge key={idx} variant="secondary">
+                      {skill}
                     </Badge>
-                  </div>
-                </div>
-              ))}
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">No skills listed</p>
+                )}
+              </div>
             </div>
           </TabsContent>
 
           {/* Documents Tab */}
           <TabsContent value="documents" className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Documents</h3>
+            <h3 className="text-lg font-semibold mb-4">Uploaded Documents</h3>
             <div className="space-y-3">
-              {mockUser.documents.map((doc, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{doc.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Uploaded {doc.uploadDate}
-                      </p>
+              {user.documents && user.documents.length > 0 ? (
+                user.documents.map((doc: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-lg bg-muted/50 border border-border/50 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">
+                          {doc.name || doc.documentType}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(doc.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
+                    <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      verified
+                    </Badge>
                   </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {doc.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Ratings Tab */}
-          <TabsContent value="ratings" className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Employer Ratings</h3>
-            <div className="space-y-3">
-              {mockUser.ratings.map((rating, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-lg bg-muted/50 border border-border/50"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold">{rating.rater}</p>
-                    <div className="flex gap-1">
-                      {[...Array(rating.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-4 h-4 fill-amber-500 text-amber-500"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {rating.comment}
-                  </p>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-muted-foreground">No documents uploaded</p>
+              )}
             </div>
           </TabsContent>
 

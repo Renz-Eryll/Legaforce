@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   Download,
   Plus,
   MapPin,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,76 +47,48 @@ const staggerContainer = {
   },
 };
 
-const mockEmployers = [
-  {
-    id: "EMP-001",
-    company: "ABC Healthcare",
-    contact: "John Smith",
-    country: "Saudi Arabia",
-    email: "contact@abchealthcare.com",
-    phone: "+966 11 234 5678",
-    jobOrders: 12,
-    hires: 245,
-    trustScore: 95,
-    status: "verified",
-    joinDate: "Jan 15, 2025",
-  },
-  {
-    id: "EMP-002",
-    company: "XYZ Construction",
-    contact: "Ahmed Ali",
-    country: "UAE",
-    email: "info@xyzcons.com",
-    phone: "+971 4 567 8901",
-    jobOrders: 8,
-    hires: 156,
-    trustScore: 88,
-    status: "verified",
-    joinDate: "Feb 20, 2025",
-  },
-  {
-    id: "EMP-003",
-    company: "Global Staffing",
-    contact: "Maria Garcia",
-    country: "Kuwait",
-    email: "hr@globalstaff.com",
-    phone: "+965 9876 5432",
-    jobOrders: 5,
-    hires: 89,
-    trustScore: 82,
-    status: "pending",
-    joinDate: "Mar 10, 2025",
-  },
-  {
-    id: "EMP-004",
-    company: "Gulf Hospitality",
-    contact: "Fatima Al-Rashid",
-    country: "Qatar",
-    email: "recruitment@gulftv.com",
-    phone: "+974 4456 7890",
-    jobOrders: 3,
-    hires: 45,
-    trustScore: 75,
-    status: "unverified",
-    joinDate: "Dec 01, 2025",
-  },
-];
-
 function EmployersListPage() {
+  const [employers, setEmployers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredEmployers = mockEmployers.filter((employer) => {
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getEmployers();
+        setEmployers(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load employers");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployers();
+  }, []);
+
+  const filteredEmployers = employers.filter((employer) => {
     const matchesSearch =
-      employer.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      employer.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employer.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || employer.status === statusFilter;
+      statusFilter === "all" || employer.verificationStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  const employerStats = {
+    total: employers.length,
+    verified: employers.filter((e) => e.verificationStatus === "verified")
+      .length,
+    pending: employers.filter((e) => e.verificationStatus === "pending").length,
+    activeJobs: employers.reduce((sum, e) => sum + (e.jobOrderCount || 0), 0),
+  };
+
   const getStatusBadge = (status: string) => {
-    const configs = {
+    const configs: Record<string, { className: string }> = {
       verified: {
         className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
       },
@@ -124,7 +99,7 @@ function EmployersListPage() {
         className: "bg-red-500/10 text-red-500 border-red-500/20",
       },
     };
-    return configs[status as keyof typeof configs] || configs.pending;
+    return configs[status] || configs.pending;
   };
 
   return (
@@ -163,23 +138,29 @@ function EmployersListPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Employers</p>
-          <p className="text-2xl font-display font-bold">523</p>
+          <p className="text-2xl font-display font-bold">
+            {employerStats.total}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Verified</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            456
+            {employerStats.verified}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-          <p className="text-2xl font-display font-bold text-amber-500">45</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {employerStats.pending}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Active Job Orders
           </p>
-          <p className="text-2xl font-display font-bold text-blue-500">189</p>
+          <p className="text-2xl font-display font-bold text-blue-500">
+            {employerStats.activeJobs}
+          </p>
         </div>
       </motion.div>
 
@@ -214,73 +195,73 @@ function EmployersListPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Job Orders</TableHead>
-                <TableHead>Total Hires</TableHead>
-                <TableHead>Trust Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Join Date</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployers.map((employer) => (
-                <TableRow key={employer.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">
-                    {employer.company}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {employer.contact}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {employer.country}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{employer.jobOrders}</Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {employer.hires}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm">{employer.trustScore}</span>
-                      {employer.trustScore >= 90 && (
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(employer.status).className}
-                    >
-                      {employer.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {employer.joinDate}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/employers/${employer.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredEmployers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Building2 className="w-12 h-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No employers found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Contact Person</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created Date</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployers.map((employer) => (
+                  <TableRow key={employer.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      {employer.companyName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {employer.contactPerson || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {employer.country || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {employer.email}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          getStatusBadge(employer.verificationStatus).className
+                        }
+                      >
+                        {employer.verificationStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(employer.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Link to={`/admin/employers/${employer.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
@@ -289,7 +270,7 @@ function EmployersListPage() {
         className="flex items-center justify-between"
       >
         <p className="text-sm text-muted-foreground">
-          Showing {filteredEmployers.length} of {mockEmployers.length} employers
+          Showing {filteredEmployers.length} of {employers.length} employers
         </p>
         <div className="flex gap-2">
           <Button variant="outline" disabled>

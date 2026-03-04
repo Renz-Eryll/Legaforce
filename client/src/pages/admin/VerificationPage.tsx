@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   Filter,
   Download,
   Zap,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,89 +47,56 @@ const staggerContainer = {
   },
 };
 
-const mockVerifications = [
-  {
-    id: "VER-001",
-    name: "Maria Santos",
-    type: "applicant",
-    docType: "Passport",
-    status: "pending",
-    priority: "high",
-    submittedDate: "Jan 24, 2026",
-    expiryDate: "2027-05-15",
-  },
-  {
-    id: "VER-002",
-    name: "Juan Reyes",
-    type: "applicant",
-    docType: "Medical Certificate",
-    status: "pending",
-    priority: "high",
-    submittedDate: "Jan 23, 2026",
-    expiryDate: "2027-01-15",
-  },
-  {
-    id: "VER-003",
-    name: "ABC Healthcare",
-    type: "employer",
-    docType: "Business Registration",
-    status: "approved",
-    priority: "medium",
-    submittedDate: "Jan 15, 2026",
-    expiryDate: "2027-01-15",
-  },
-  {
-    id: "VER-004",
-    name: "Ana Fernandez",
-    type: "applicant",
-    docType: "NBI Clearance",
-    status: "pending",
-    priority: "medium",
-    submittedDate: "Jan 22, 2026",
-    expiryDate: "2028-02-10",
-  },
-  {
-    id: "VER-005",
-    name: "XYZ Construction",
-    type: "employer",
-    docType: "Tax Compliance",
-    status: "rejected",
-    priority: "high",
-    submittedDate: "Jan 20, 2026",
-    expiryDate: "2025-12-31",
-  },
-];
-
 function VerificationPage() {
+  const [verifications, setVerifications] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredVerifications = mockVerifications.filter((ver) => {
+  useEffect(() => {
+    const fetchVerifications = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getVerificationQueue();
+        setVerifications(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load verification queue");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVerifications();
+  }, []);
+  const filteredVerifications = verifications.filter((ver) => {
     const matchesSearch =
-      ver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ver.docType.toLowerCase().includes(searchTerm.toLowerCase());
+      (ver.applicantName || ver.employerName)
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (ver.documentType || ver.docType)
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || ver.status === statusFilter;
     const matchesType = typeFilter === "all" || ver.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const verificationStats = {
+    pending: verifications.filter((v) => v.status === "pending").length,
+    highPriority: verifications.filter((v) => v.priority === "high").length,
+    approved: verifications.filter((v) => v.status === "approved").length,
+    avgTime: "2.3 hours",
+  };
+
   const getStatusBadge = (status: string) => {
-    const configs = {
+    const configs: Record<string, string> = {
       pending: "bg-amber-500/10 text-amber-500 border-amber-500/20",
       approved: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
       rejected: "bg-red-500/10 text-red-500 border-red-500/20",
     };
-    return configs[status as keyof typeof configs] || configs.pending;
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const configs = {
-      high: "bg-red-500/10 text-red-500 border-red-500/20",
-      medium: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    };
-    return configs[priority as keyof typeof configs] || configs.medium;
+    return configs[status] || configs.pending;
   };
 
   const getStatusIcon = (status: string) => {
@@ -156,7 +126,7 @@ function VerificationPage() {
       >
         <div>
           <h1 className="text-3xl font-display font-bold mb-1">
-            Document Verification 
+            Document Verification
           </h1>
           <p className="text-muted-foreground">
             Review and approve applicant & employer documents
@@ -172,23 +142,29 @@ function VerificationPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Pending</p>
-          <p className="text-2xl font-display font-bold">45</p>
+          <p className="text-2xl font-display font-bold">
+            {verificationStats.pending}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">High Priority</p>
-          <p className="text-2xl font-display font-bold text-red-500">8</p>
+          <p className="text-2xl font-display font-bold text-red-500">
+            {verificationStats.highPriority}
+          </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Approved</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            234
+            {verificationStats.approved}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Avg. Time to Review
           </p>
-          <p className="text-2xl font-display font-bold">2.3 hours</p>
+          <p className="text-2xl font-display font-bold">
+            {verificationStats.avgTime}
+          </p>
         </div>
       </motion.div>
 
@@ -252,70 +228,76 @@ function VerificationPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead></TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Document</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredVerifications.map((ver) => (
-                <TableRow key={ver.id} className="hover:bg-muted/50">
-                  <TableCell>{getStatusIcon(ver.status)}</TableCell>
-                  <TableCell className="font-medium">{ver.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {ver.type === "applicant"
-                        ? "👤 Applicant"
-                        : "🏢 Employer"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {ver.docType}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getPriorityBadge(ver.priority)}
-                    >
-                      {ver.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusBadge(ver.status)}
-                    >
-                      {ver.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {ver.submittedDate}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {ver.expiryDate}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/verification/${ver.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredVerifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <FileCheck className="w-12 h-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No verifications found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead></TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Document</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Expiry Date</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredVerifications.map((ver) => (
+                  <TableRow key={ver.id} className="hover:bg-muted/50">
+                    <TableCell>{getStatusIcon(ver.status)}</TableCell>
+                    <TableCell className="font-medium">
+                      {ver.applicantName || ver.employerName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {ver.type === "applicant"
+                          ? "👤 Applicant"
+                          : "🏢 Employer"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {ver.documentType || ver.docType}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={getStatusBadge(ver.status)}
+                      >
+                        {ver.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(ver.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {ver.expiryDate
+                        ? new Date(ver.expiryDate).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Link to={`/admin/verification/${ver.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
@@ -324,8 +306,7 @@ function VerificationPage() {
         className="flex items-center justify-between"
       >
         <p className="text-sm text-muted-foreground">
-          Showing {filteredVerifications.length} of {mockVerifications.length}{" "}
-          items
+          Showing {filteredVerifications.length} of {verifications.length} items
         </p>
         <div className="flex gap-2">
           <Button variant="outline" disabled>

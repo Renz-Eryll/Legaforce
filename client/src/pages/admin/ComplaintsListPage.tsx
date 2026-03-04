@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -8,7 +8,7 @@ import {
   ChevronRight,
   MessageCircle,
   Clock,
-  Zap,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -42,89 +44,62 @@ const staggerContainer = {
   },
 };
 
-const mockComplaints = [
-  {
-    id: "COMP-001",
-    applicant: "Maria Santos",
-    category: "Employer Issue",
-    priority: "high",
-    status: "escalated",
-    description: "Delayed salary payment",
-    filedDate: "Jan 24, 2026",
-    escalationLevel: 2,
-  },
-  {
-    id: "COMP-002",
-    applicant: "Anonymous",
-    category: "Abuse",
-    priority: "high",
-    status: "escalated",
-    description: "Workplace harassment",
-    filedDate: "Jan 23, 2026",
-    escalationLevel: 3,
-  },
-  {
-    id: "COMP-003",
-    applicant: "Juan Reyes",
-    category: "Contract Violation",
-    priority: "medium",
-    status: "under-review",
-    description: "Terms not honored",
-    filedDate: "Jan 22, 2026",
-    escalationLevel: 1,
-  },
-  {
-    id: "COMP-004",
-    applicant: "Ana Fernandez",
-    category: "Deployment Delay",
-    priority: "medium",
-    status: "under-review",
-    description: "Medical exam pending",
-    filedDate: "Jan 20, 2026",
-    escalationLevel: 1,
-  },
-  {
-    id: "COMP-005",
-    applicant: "Miguel Torres",
-    category: "Agency Issue",
-    priority: "low",
-    status: "resolved",
-    description: "Document processing error",
-    filedDate: "Jan 18, 2026",
-    escalationLevel: 1,
-  },
-];
-
 function ComplaintsListPage() {
+  const [complaints, setComplaints] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredComplaints = mockComplaints.filter((complaint) => {
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        setIsLoading(true);
+        const status = statusFilter === "all" ? undefined : statusFilter;
+        const response = await adminService.getComplaints(status);
+        setComplaints(response.data || []);
+      } catch (error) {
+        toast.error("Failed to load complaints");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, [statusFilter]);
+
+  const filteredComplaints = complaints.filter((complaint) => {
+    const applicantName = `${complaint.applicant?.firstName} ${complaint.applicant?.lastName}`;
     const matchesSearch =
-      complaint.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || complaint.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const getPriorityColor = (priority: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       high: "bg-red-500/10 text-red-500 border-red-500/20",
       medium: "bg-amber-500/10 text-amber-500 border-amber-500/20",
       low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     };
-    return colors[priority as keyof typeof colors] || colors.medium;
+    return colors[priority] || colors.medium;
   };
 
   const getStatusColor = (status: string) => {
-    const colors = {
-      submitted: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-      "under-review": "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      escalated: "bg-red-500/10 text-red-500 border-red-500/20",
-      resolved: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    const colors: Record<string, string> = {
+      SUBMITTED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      OPEN: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      ESCALATED: "bg-red-500/10 text-red-500 border-red-500/20",
+      RESOLVED: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     };
-    return colors[status as keyof typeof colors] || colors.submitted;
+    return colors[status] || colors.SUBMITTED;
+  };
+
+  const complaintStats = {
+    total: complaints.length,
+    open: complaints.filter((c) => c.status === "OPEN").length,
+    escalated: complaints.filter((c) => c.status === "ESCALATED").length,
+    resolved: complaints.filter((c) => c.status === "RESOLVED").length,
   };
 
   return (
@@ -153,20 +128,26 @@ function ComplaintsListPage() {
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Complaints</p>
-          <p className="text-2xl font-display font-bold">245</p>
+          <p className="text-2xl font-display font-bold">
+            {complaintStats.total}
+          </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Pending</p>
-          <p className="text-2xl font-display font-bold text-amber-500">23</p>
+          <p className="text-sm text-muted-foreground mb-1">Open</p>
+          <p className="text-2xl font-display font-bold text-amber-500">
+            {complaintStats.open}
+          </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">High Priority</p>
-          <p className="text-2xl font-display font-bold text-red-500">8</p>
+          <p className="text-sm text-muted-foreground mb-1">Escalated</p>
+          <p className="text-2xl font-display font-bold text-red-500">
+            {complaintStats.escalated}
+          </p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Resolution Rate</p>
+          <p className="text-sm text-muted-foreground mb-1">Resolved</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
-            92%
+            {complaintStats.resolved}
           </p>
         </div>
       </motion.div>
@@ -192,10 +173,9 @@ function ComplaintsListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="under-review">Under Review</SelectItem>
-              <SelectItem value="escalated">Escalated</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="OPEN">Open</SelectItem>
+              <SelectItem value="ESCALATED">Escalated</SelectItem>
+              <SelectItem value="RESOLVED">Resolved</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -203,81 +183,80 @@ function ComplaintsListPage() {
 
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Applicant</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Escalation</TableHead>
-                <TableHead>Filed Date</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredComplaints.map((complaint) => (
-                <TableRow key={complaint.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono font-medium text-sm">
-                    {complaint.id}
-                  </TableCell>
-                  <TableCell>
-                    {complaint.applicant === "Anonymous" ? (
-                      <span className="text-muted-foreground italic">
-                        {complaint.applicant}
-                      </span>
-                    ) : (
-                      complaint.applicant
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {complaint.category}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate text-sm">
-                    {complaint.description}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getPriorityColor(complaint.priority)}
-                    >
-                      {complaint.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusColor(complaint.status)}
-                    >
-                      {complaint.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      <span className="text-sm">
-                        Level {complaint.escalationLevel}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {complaint.filedDate}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/admin/complaints/${complaint.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredComplaints.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <MessageCircle className="w-12 h-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No complaints found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Applicant</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Filed Date</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredComplaints.map((complaint) => (
+                  <TableRow key={complaint.id} className="hover:bg-muted/50">
+                    <TableCell className="font-mono font-medium text-sm">
+                      {complaint.id}
+                    </TableCell>
+                    <TableCell>
+                      {complaint.applicant?.firstName &&
+                      complaint.applicant?.lastName
+                        ? `${complaint.applicant.firstName} ${complaint.applicant.lastName}`
+                        : "Anonymous"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {complaint.category}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate text-sm">
+                      {complaint.description}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={getPriorityColor(complaint.priority)}
+                      >
+                        {complaint.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={getStatusColor(complaint.status)}
+                      >
+                        {complaint.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(complaint.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Link to={`/admin/complaints/${complaint.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </motion.div>
 
       {/* Pagination */}
@@ -286,8 +265,7 @@ function ComplaintsListPage() {
         className="flex items-center justify-between"
       >
         <p className="text-sm text-muted-foreground">
-          Showing {filteredComplaints.length} of {mockComplaints.length}{" "}
-          complaints
+          Showing {filteredComplaints.length} of {complaints.length} complaints
         </p>
         <div className="flex gap-2">
           <Button variant="outline" disabled>
