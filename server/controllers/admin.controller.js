@@ -591,7 +591,31 @@ export const updateDeployment = async (req, res, next) => {
 export const getComplaints = async (req, res, next) => {
   try {
     const { status } = req.query;
-    const where = status ? { status } : {};
+
+    // Valid complaint statuses from schema
+    const validStatuses = [
+      "SUBMITTED",
+      "UNDER_REVIEW",
+      "ESCALATED",
+      "RESOLVED",
+      "CLOSED",
+    ];
+
+    // Map common frontend statuses to correct enum values
+    const statusMap = {
+      open: "SUBMITTED",
+      OPEN: "SUBMITTED",
+      pending: "SUBMITTED",
+      PENDING: "SUBMITTED",
+    };
+
+    let where = {};
+    if (status) {
+      const mappedStatus = statusMap[status] || status;
+      if (validStatuses.includes(mappedStatus)) {
+        where.status = mappedStatus;
+      }
+    }
 
     const complaints = await prisma.complaint.findMany({
       where,
@@ -612,8 +636,32 @@ export const updateComplaint = async (req, res, next) => {
     const { id } = req.params;
     const { status, assignedAdminId, resolution } = req.body;
 
+    const validStatuses = [
+      "SUBMITTED",
+      "UNDER_REVIEW",
+      "ESCALATED",
+      "RESOLVED",
+      "CLOSED",
+    ];
+    const statusMap = {
+      open: "SUBMITTED",
+      OPEN: "SUBMITTED",
+      pending: "SUBMITTED",
+      PENDING: "SUBMITTED",
+    };
+
     const data = {};
-    if (status) data.status = status;
+    if (status) {
+      const mappedStatus = statusMap[status] || status;
+      if (validStatuses.includes(mappedStatus)) {
+        data.status = mappedStatus;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+        });
+      }
+    }
     if (assignedAdminId) data.assignedAdminId = assignedAdminId;
     if (resolution) {
       data.resolution = resolution;

@@ -1,34 +1,114 @@
-# Legaforce Phase 1 — Master Status Report
+# Legaforce MVP
 
-**Last Updated:** March 2, 2026 (Post-Admin Portal API Integration)  
-**Audit Status:** 89% Complete (actual) vs 95% claimed  
-**Production Readiness:** 85% — 4 critical issues must be fixed before launch  
-**Timeline to Launch:** 1-2 weeks (6-8 hours fix time + 2-3 days QA)
+**Date:** March 4, 2026
+**Overall Completion:** 80–85%
+
+> We're at Sprint 4 na po and the Legaforce platform is about 80–85% complete.
+> We've reached this point in 5–6 weeks — the original plan is Weeks 7–8.
 
 ---
 
-## Executive Summary for Leadership
+## Admin Portal — 85–90% 🟡
+
+> ⚠️ Still in testing
+
+**What's Working**
+
+- Live dashboard with platform-wide stats
+- Full user management (applicants and employers)
+- Employer document verification
+- Job order oversight and approvals
+- Complaint and welfare case management
+- Deployment and compliance tracking (visa, medical, OEC, flights)
+- Invoice viewing and reports
+- All pages connected to real data
+
+---
+
+## Applicant Portal — 92–94% 🟡
+
+**What's Working**
+
+- Registration with OTP verification
+- Full profile building
+- AI-powered CV builder with 5 tabs (personal, experience, education, skills, certifications)
+- AI CV generation _(fully built, waiting on OpenAI key)_
+- Job browsing with search and filters
+- One-click apply with duplicate prevention
+- Application status tracking: `Applied → Shortlisted → Interview → Selected → Processing → Deployed`
+- Complaint filing for worker protection
+- Document uploads
+- Rewards and points system
+- Email notifications via SendGrid
+
+---
+
+## Employer Portal — 90–92% 🟡
+
+**What's Working**
+
+- Company registration and verification
+- Full job order management (create, read, update, delete)
+- Candidate browsing with search and filtering
+- Shortlisting candidates
+- Interview rating and feedback
+- Full hiring pipeline: `Shortlist → Interview → Select → Deploy`
+- Deployment tracking (visa, medical, OEC, flights)
+- Automatic invoice generation upon deployment
+- Document uploads
+- Trust score calculation
+- AI candidate matching _(fully built, waiting on OpenAI key)_
+
+---
+
+## What's Left to Finish
+
+- [ ] Save job buttons on job list and detail pages — backend done, UI wiring only
+- [ ] Email notifications when application status changes
+- [ ] Input validation on API endpoints — security fix
+- [ ] Invoice status workflow — completion and testing
+- [ ] Deployment document upload UI for visa/OEC/medical files
+
+---
+
+## What We Need from the Team
+
+| #   | Item                           | Purpose                                                                                                               |
+| --- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| 1   | **OpenAI API Key**             | Activates AI CV generation and AI candidate matching — both already fully built                                       |
+| 2   | **AWS S3 Credentials**         | Activates cloud file storage for CVs, documents, and photos — currently on local fallback                             |
+| 3   | **Company Email for SendGrid** | Switch from dev email to official Legaforce email for all outgoing system emails (OTP, status updates, notifications) |
+
+---
+
+_Prepared by the Development Team · Legaforce MVP Phase 1 · March 4, 2026_
+
+# Legaforce Phase 1
+
+**Last Updated:** March 4, 2026
+**Audit Status:** 80%-85% Complete
+**Production Readiness:** 80%
+
+---
 
 ### What We Have
-
-✅ **Production-Ready Infrastructure** (100%)
 
 - Full database schema with 10+ models and 2 migrations
 - All 40+ API endpoints built and tested
 - Authentication & authorization (JWT + role-based)
 - Email service (SendGrid) configured and working
 - File upload service (S3 + local fallback)
-- Security hardening (Arcjet rate limiting, input sanitization)
+- Security (Arcjet rate limiting, input sanitization)
 
 ✅ **Fully Functional Portals** (92-95%)
 
-- **Admin Portal:** 100% converted to real API (NEW - this session)
+- **Admin Portal:** 90% feature complete
 - **Applicant Portal:** 92-94% feature complete
 - **Employer Portal:** 90-92% feature complete
 
 ### What Needs Fixing
 
-🔴 **4 Critical Issues** (6-8 hours to fix)
+🔴 **4 Critical Issues**
 
 1. Save Job feature broken (backend 100%, UI 0%)
 2. Email notifications on status changes missing
@@ -42,14 +122,6 @@
 3. Complaint detail/timeline views
 4. Recommendation engine
 5. And 3 more minor enhancements
-
-### Timeline
-
-```
-Week 1:  Fix 4 critical blockers (6-8 hours)
-Week 2:  QA & staging testing (2-3 days)
-Week 3:  Production launch ✅
-```
 
 ---
 
@@ -110,10 +182,10 @@ client/
 
 ## Current Status by Portal
 
-### 1. Admin Portal — ✅ 100% REAL API (NEW THIS SESSION)
+### 1. Admin Portal — ✅ 100%
 
 **Status:** All pages converted from mock data to real API  
-**Last Updated:** Today (March 2, 2026)
+**Last Updated:** Today (March 4, 2026)
 
 #### Pages Completed
 
