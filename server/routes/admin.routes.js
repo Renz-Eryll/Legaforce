@@ -6,8 +6,10 @@ import {
   getPendingApprovals,
   getApplicants,
   getApplicantCount,
+  getApplicantDetail,
   getEmployers,
   getEmployerCount,
+  getEmployerDetail,
   verifyEmployer,
   toggleUserActive,
   getJobOrders,
@@ -42,10 +44,12 @@ router.get("/pending-approvals", getPendingApprovals);
 // Applicants
 router.get("/applicants", getApplicants);
 router.get("/applicant-count", getApplicantCount);
+router.get("/applicants/:id", getApplicantDetail);
 
 // Employers
 router.get("/employers", getEmployers);
 router.get("/employer-count", getEmployerCount);
+router.get("/employers/:id", getEmployerDetail);
 router.patch("/employers/:id/verify", verifyEmployer);
 
 // Users
@@ -83,3 +87,4 @@ router.get("/reports", getReports);
 router.get("/verification-queue", getVerificationQueue);
 
 export default router;
+

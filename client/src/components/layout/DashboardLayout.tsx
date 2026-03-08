@@ -72,6 +72,12 @@ const getApplicantNavigation = (badges: any = {}): NavSection[] => [
     ],
   },
   {
+    title: "Tracking",
+    items: [
+      { name: "Status Report", href: "/app/status-report", icon: ClipboardList },
+    ],
+  },
+  {
     title: "Profile",
     items: [
       { name: "My Profile", href: "/app/profile", icon: User },

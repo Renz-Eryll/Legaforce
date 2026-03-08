@@ -1,13 +1,14 @@
 export { default as AdminDashboard } from "./AdminDashboard";
+export { default as ApplicantDetailPage } from "./ApplicantDetailPage";
 export { default as ApplicantsListPage } from "./ApplicantsListPage";
 export { default as ApplicationsPage } from "./ApplicationsPage";
 export { default as ComplaintsListPage } from "./ComplaintsListPage";
 export { default as CompliancePage } from "./CompliancePage";
 export { default as DeploymentsListPage } from "./DeploymentsListPage";
+export { default as EmployerDetailPage } from "./EmployerDetailPage";
 export { default as EmployersListPage } from "./EmployersListPage";
 export { default as InvoicesPage } from "./InvoicesPage";
 export { default as JobOrdersListPage } from "./JobOrdersListPage";
 export { default as ReportsPage } from "./ReportsPage";
 export { default as SettingsPage } from "./SettingsPage";
-export { default as UserDetailsPage } from "./UserDetailsPage";
 export { default as VerificationPage } from "./VerificationPage";

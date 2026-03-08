@@ -1,21 +1,38 @@
 /**
  * Email Notification Service — Legaforce
  *
- * Sends transactional emails for key application lifecycle events
- * via SendGrid. Falls back to console log in dev mode.
+ * Sends transactional emails for key application lifecycle events.
+ * Uses Gmail/nodemailer in dev, SendGrid in production.
  */
 import sgMail from "../config/sendgrid.js";
-import { NODE_ENV, FRONTEND_URL } from "../config/env.js";
+import devMailer from "../config/mailer.js";
+import { NODE_ENV, FRONTEND_URL, EMAIL_USER } from "../config/env.js";
 
 const FROM_EMAIL = "noreply@legaforce.com";
 const FROM_NAME = "Legaforce Recruitment";
 
 async function sendEmail(to, subject, html) {
+  // ── Development: send via nodemailer (Gmail) ──
   if (NODE_ENV !== "production") {
     console.log(`📧 [DEV] Email to: ${to} | Subject: ${subject}`);
+
+    if (devMailer) {
+      try {
+        await devMailer.sendMail({
+          from: `"${FROM_NAME}" <${EMAIL_USER}>`,
+          to,
+          subject,
+          html,
+        });
+        console.log(`✅ Dev email sent to ${to}`);
+      } catch (err) {
+        console.warn(`⚠️  Dev email failed: ${err.message}`);
+      }
+    }
     return true;
   }
 
+  // ── Production: send via SendGrid ──
   try {
     await sgMail.send({
       to,

@@ -11,6 +11,8 @@ import {
   Smartphone,
   Loader2,
   Users,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,9 +59,18 @@ function JobsListPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [savingJobId, setSavingJobId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchJobs();
+    // Load saved jobs to know which ones are already bookmarked
+    applicantService.getSavedJobs()
+      .then((data: any) => {
+        const ids = (Array.isArray(data) ? data : []).map((j: any) => j.jobOrderId || j.id);
+        setSavedJobIds(new Set(ids));
+      })
+      .catch(() => {});
   }, []);
 
   const fetchJobs = async (search?: string, location?: string) => {
@@ -89,6 +100,31 @@ function JobsListPage() {
     }, 400);
     return () => clearTimeout(timeout);
   }, [searchTerm, locationFilter]);
+
+  const handleToggleSave = async (jobId: string) => {
+    if (savingJobId) return;
+    try {
+      setSavingJobId(jobId);
+      if (savedJobIds.has(jobId)) {
+        await applicantService.unsaveJob(jobId);
+        setSavedJobIds((prev) => {
+          const next = new Set(prev);
+          next.delete(jobId);
+          return next;
+        });
+        toast.success("Job removed from saved list");
+      } else {
+        await applicantService.saveJob(jobId);
+        setSavedJobIds((prev) => new Set(prev).add(jobId));
+        toast.success("Job saved!");
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Failed to save job";
+      toast.error(msg);
+    } finally {
+      setSavingJobId(null);
+    }
+  };
 
   const formatSalary = (salary: number | string | null) => {
     if (salary === null || salary === undefined) return "Negotiable";
@@ -250,6 +286,19 @@ function JobsListPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleToggleSave(job.id)}
+                    disabled={savingJobId === job.id}
+                    className={savedJobIds.has(job.id) ? "text-amber-500 border-amber-500/30 hover:text-amber-600" : ""}
+                  >
+                    {savedJobIds.has(job.id) ? (
+                      <BookmarkCheck className="w-4 h-4" />
+                    ) : (
+                      <Bookmark className="w-4 h-4" />
+                    )}
+                  </Button>
                   <Link to={`/app/jobs/${job.id}`}>
                     <Button className="gradient-bg-accent text-accent-foreground">
                       <Eye className="w-4 h-4 mr-2" />

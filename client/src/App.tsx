@@ -37,17 +37,20 @@ import {
   RewardsPage,
   SavedJobsPage,
   SettingsPage as ApplicantSettingsPage,
+  StatusReportPage,
   SupportPage,
 } from "./pages/applicant";
 
 // Pages — Admin
 import {
   AdminDashboard,
+  ApplicantDetailPage,
   ApplicantsListPage,
   ApplicationsPage,
   ComplaintsListPage,
   CompliancePage,
   DeploymentsListPage,
+  EmployerDetailPage,
   EmployersListPage,
   InvoicesPage,
   JobOrdersListPage,
@@ -79,6 +82,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 30 * 1000, // 30s — avoid re-fetching on page navigations
+      gcTime: 5 * 60 * 1000, // 5min — keep cached data in memory
     },
   },
 });
@@ -135,6 +140,7 @@ const App = () => {
               <Route path="rewards" element={<RewardsPage />} />
               <Route path="support" element={<SupportPage />} />
               <Route path="complaints" element={<ComplaintsPage />} />
+              <Route path="status-report" element={<StatusReportPage />} />
               <Route path="settings" element={<ApplicantSettingsPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
@@ -181,7 +187,9 @@ const App = () => {
             >
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="applicants" element={<ApplicantsListPage />} />
+              <Route path="applicants/:id" element={<ApplicantDetailPage />} />
               <Route path="employers" element={<EmployersListPage />} />
+              <Route path="employers/:id" element={<EmployerDetailPage />} />
               <Route path="job-orders" element={<JobOrdersListPage />} />
               <Route path="applications" element={<ApplicationsPage />} />
               <Route path="deployments" element={<DeploymentsListPage />} />

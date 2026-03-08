@@ -13,6 +13,8 @@ import {
   DollarSign,
   Clock,
   Briefcase,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +55,8 @@ function JobDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -69,6 +73,17 @@ function JobDetailsPage() {
       }
     };
     fetchJob();
+  }, [id]);
+
+  // Check if job is already saved
+  useEffect(() => {
+    if (!id) return;
+    applicantService.getSavedJobs()
+      .then((data: any) => {
+        const jobs = Array.isArray(data) ? data : [];
+        setSaved(jobs.some((j: any) => (j.jobOrderId || j.id) === id));
+      })
+      .catch(() => {});
   }, [id]);
 
   const handleApply = async () => {
@@ -88,6 +103,26 @@ function JobDetailsPage() {
       }
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleToggleSave = async () => {
+    if (!id || saving) return;
+    try {
+      setSaving(true);
+      if (saved) {
+        await applicantService.unsaveJob(id);
+        setSaved(false);
+        toast.success("Job removed from saved list");
+      } else {
+        await applicantService.saveJob(id);
+        setSaved(true);
+        toast.success("Job saved!");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to save job");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -337,6 +372,32 @@ function JobDetailsPage() {
                   </>
                 ) : (
                   "Apply Now"
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                className={`w-full ${
+                  saved ? "text-amber-500 border-amber-500/30" : ""
+                }`}
+                onClick={handleToggleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : saved ? (
+                  <>
+                    <BookmarkCheck className="w-4 h-4 mr-2" />
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    Save Job
+                  </>
                 )}
               </Button>
             </div>
