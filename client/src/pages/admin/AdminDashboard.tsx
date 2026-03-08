@@ -70,87 +70,70 @@ export default function AdminDashboard() {
       try {
         setIsLoading(true);
 
-        // Fetch all data in parallel
+        // Use getDashboardStats which returns all counts in ONE query
+        // instead of 8 separate API calls
         const [
-          applicantCountRes,
-          employerCountRes,
-          jobOrderCountRes,
-          deploymentCountRes,
+          statsRes,
           recentActivityRes,
-          pendingApprovalsRes,
           complaintsRes,
-          deploymentStatsRes,
         ] = await Promise.all([
-          adminService.getApplicantCount().catch(() => ({ data: { data: 0 } })),
-          adminService.getEmployerCount().catch(() => ({ data: { data: 0 } })),
-          adminService
-            .getJobOrderCount("ACTIVE")
-            .catch(() => ({ data: { data: 0 } })),
-          adminService
-            .getDeploymentCount()
-            .catch(() => ({ data: { data: 0 } })),
-          adminService
-            .getRecentActivity(5)
-            .catch(() => ({ data: { data: [] } })),
-          adminService
-            .getPendingApprovals()
-            .catch(() => ({ data: { data: [] } })),
-          adminService
-            .getComplaints("open")
-            .catch(() => ({ data: { data: [] } })),
-          adminService
-            .getDeploymentStats()
-            .catch(() => ({ data: { data: null } })),
+          adminService.getDashboardStats().catch(() => ({ data: {} })),
+          adminService.getRecentActivity(5).catch(() => ({ data: [] })),
+          adminService.getComplaints("SUBMITTED").catch(() => ({ data: [] })),
         ]);
 
-        // Build quick stats from fetched data
+        const s = statsRes.data || {};
+
+        // Build quick stats from the consolidated response
         const stats = [
           {
             label: "Total Applicants",
-            value: applicantCountRes.data?.data?.toString() || "0",
+            value: (s.totalApplicants || 0).toString(),
             icon: Users,
-            trend: "+0 this month",
+            trend: `${s.recentApplications || 0} apps this month`,
             color: "text-blue-500",
             bg: "bg-blue-500/10",
           },
           {
             label: "Partner Employers",
-            value: employerCountRes.data?.data?.toString() || "0",
+            value: (s.totalEmployers || 0).toString(),
             icon: Building2,
-            trend: "+0 this month",
+            trend: `${s.pendingVerifications || 0} pending verification`,
             color: "text-purple-500",
             bg: "bg-purple-500/10",
           },
           {
             label: "Active Job Orders",
-            value: jobOrderCountRes.data?.data?.toString() || "0",
+            value: (s.activeJobOrders || 0).toString(),
             icon: Briefcase,
-            trend: "+0 this week",
+            trend: `${s.totalJobOrders || 0} total`,
             color: "text-emerald-500",
             bg: "bg-emerald-500/10",
           },
           {
             label: "Deployments (YTD)",
-            value: deploymentCountRes.data?.data?.toString() || "0",
+            value: (s.totalDeployments || 0).toString(),
             icon: Globe,
-            trend: "0% success rate",
+            trend: `${s.totalComplaints || 0} complaints`,
             color: "text-accent",
             bg: "bg-accent/10",
           },
         ];
 
         setQuickStats(stats);
-        setRecentActivity(recentActivityRes.data?.data || []);
-        setPendingApprovals(pendingApprovalsRes.data?.data || []);
-        setComplaints(complaintsRes.data?.data || []);
-        setDeploymentStats(
-          deploymentStatsRes.data?.data || {
-            thisMonth: 0,
-            lastMonth: 0,
-            growth: 0,
-            byCountry: [],
-          },
+        setRecentActivity(recentActivityRes.data || []);
+        setPendingApprovals(
+          s.pendingVerifications
+            ? [{ type: "Employer Verification", count: s.pendingVerifications, status: "pending" }]
+            : [],
         );
+        setComplaints(complaintsRes.data || []);
+        setDeploymentStats({
+          thisMonth: s.totalDeployments || 0,
+          lastMonth: 0,
+          growth: 0,
+          byCountry: [],
+        });
       } catch (error: any) {
         console.error("Failed to fetch dashboard data:", error);
         toast.error("Failed to load dashboard data");

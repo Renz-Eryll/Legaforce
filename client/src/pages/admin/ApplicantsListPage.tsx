@@ -236,7 +236,7 @@ function ApplicantsListPage() {
                       {new Date(applicant.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Link to={`/admin/user/${applicant.id}`}>
+                      <Link to={`/admin/applicants/${applicant.id}`}>
                         <Button variant="ghost" size="sm">
                           <ChevronRight className="w-4 h-4" />
                         </Button>

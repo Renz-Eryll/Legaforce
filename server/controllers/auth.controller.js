@@ -7,8 +7,10 @@ import {
   JWT_SECRET,
   FRONTEND_URL,
   NODE_ENV,
+  EMAIL_USER,
 } from "../config/env.js";
 import sgMail from "../config/sendgrid.js";
+import devMailer from "../config/mailer.js";
 
 
 // Generate a 6-digit OTP
@@ -19,61 +21,86 @@ const generateOtp = () => {
 // OTP expires in 10 minutes
 const OTP_EXPIRY_MINUTES = 10;
 
-// Send OTP email
+// Build the OTP email HTML template
+const buildOtpEmailHtml = (firstName, otp) => `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); padding: 40px 32px 32px; text-align: center;">
+      <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <span style="font-size: 28px; font-weight: 700; color: #ffffff;">L</span>
+      </div>
+      <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 4px;">Email Verification</h1>
+      <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin: 0;">Legaforce Global Recruitment</p>
+    </div>
+    
+    <!-- Body -->
+    <div style="padding: 32px;">
+      <p style="color: #334155; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+        Hi <strong>${firstName}</strong>,<br/>
+        Welcome to Legaforce! Please use the verification code below to complete your registration.
+      </p>
+      
+      <!-- OTP Code -->
+      <div style="background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+        <p style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 8px; font-weight: 600;">Your Verification Code</p>
+        <p style="font-size: 36px; font-weight: 800; color: #1a365d; letter-spacing: 8px; margin: 0; font-family: 'Courier New', monospace;">${otp}</p>
+      </div>
+      
+      <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0 0 8px;">
+        ⏱ This code expires in <strong>10 minutes</strong>.
+      </p>
+      <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0;">
+        If you didn't create an account on Legaforce, you can safely ignore this email.
+      </p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="color: #94a3b8; font-size: 11px; margin: 0;">© 2026 Legaforce. POEA Licensed Platform.</p>
+    </div>
+  </div>
+`;
+
+// Send OTP email — uses Gmail/nodemailer in dev, SendGrid in production
 const sendOtpEmail = async (email, otp, firstName) => {
-  // Skip email in development
+  const subject = "Verify Your Email - Legaforce";
+  const html = buildOtpEmailHtml(firstName, otp);
+
+  // ── Development: send via nodemailer (Gmail) ──
   if (NODE_ENV !== "production") {
-    console.log(`📧 [DEV] Would send OTP ${otp} to ${email}`);
+    console.log(`📧 [DEV] OTP for ${email}: ${otp}`);
+
+    if (!devMailer) {
+      console.log("⚠️  No dev mailer configured — OTP logged to console only");
+      return;
+    }
+
+    try {
+      await devMailer.sendMail({
+        from: `"Legaforce" <${EMAIL_USER}>`,
+        to: email,
+        subject,
+        html,
+      });
+      console.log(`✅ OTP email sent to ${email} via Gmail`);
+    } catch (error) {
+      // Don't throw in dev — OTP is still in console & devOtp response
+      console.warn(`⚠️  Gmail send failed (OTP still in console): ${error.message}`);
+    }
     return;
   }
 
+  // ── Production: send via SendGrid ──
   const msg = {
     to: email,
     from: "renzeryll09@gmail.com",
-    subject: "Verify Your Email - Legaforce",
-    html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); padding: 40px 32px 32px; text-align: center;">
-          <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-            <span style="font-size: 28px; font-weight: 700; color: #ffffff;">L</span>
-          </div>
-          <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 4px;">Email Verification</h1>
-          <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin: 0;">Legaforce Global Recruitment</p>
-        </div>
-        
-        <!-- Body -->
-        <div style="padding: 32px;">
-          <p style="color: #334155; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
-            Hi <strong>${firstName}</strong>,<br/>
-            Welcome to Legaforce! Please use the verification code below to complete your registration.
-          </p>
-          
-          <!-- OTP Code -->
-          <div style="background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
-            <p style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 8px; font-weight: 600;">Your Verification Code</p>
-            <p style="font-size: 36px; font-weight: 800; color: #1a365d; letter-spacing: 8px; margin: 0; font-family: 'Courier New', monospace;">${otp}</p>
-          </div>
-          
-          <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0 0 8px;">
-            ⏱ This code expires in <strong>10 minutes</strong>.
-          </p>
-          <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0;">
-            If you didn't create an account on Legaforce, you can safely ignore this email.
-          </p>
-        </div>
-        
-        <!-- Footer -->
-        <div style="background: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-          <p style="color: #94a3b8; font-size: 11px; margin: 0;">© 2026 Legaforce. POEA Licensed Platform.</p>
-        </div>
-      </div>
-    `,
+    subject,
+    html,
   };
 
   try {
     await sgMail.send(msg);
-    console.log(` OTP email sent to ${email}`);
+    console.log(`✅ OTP email sent to ${email}`);
   } catch (error) {
     console.error("❌ SendGrid error:", error.response?.body || error.message);
     throw new Error("Failed to send verification email");

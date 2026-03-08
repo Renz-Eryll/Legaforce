@@ -10,4 +10,5 @@ export { default as ProfilePage } from "./ProfilePage";
 export { default as RewardsPage } from "./RewardsPage";
 export { default as SavedJobsPage } from "./SavedJobsPage";
 export { default as SettingsPage } from "./SettingsPage";
+export { default as StatusReportPage } from "./StatusReportPage";
 export { default as SupportPage } from "./SupportPage";

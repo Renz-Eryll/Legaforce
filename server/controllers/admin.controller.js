@@ -221,6 +221,58 @@ export const getApplicantCount = async (req, res, next) => {
   }
 };
 
+export const getApplicantDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const applicant = await prisma.profile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            isActive: true,
+            isEmailVerified: true,
+            role: true,
+            createdAt: true,
+          },
+        },
+        applications: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            jobOrder: {
+              select: {
+                title: true,
+                location: true,
+                employer: { select: { companyName: true } },
+              },
+            },
+            deployment: true,
+          },
+        },
+        complaints: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+        _count: {
+          select: { applications: true, complaints: true },
+        },
+      },
+    });
+
+    if (!applicant) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Applicant not found" });
+    }
+
+    res.json({ success: true, data: applicant });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ── Employer Management ────────────────────────
 
 export const getEmployers = async (req, res, next) => {
@@ -267,6 +319,51 @@ export const getEmployerCount = async (req, res, next) => {
   try {
     const count = await prisma.employer.count();
     res.json({ success: true, data: count });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getEmployerDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const employer = await prisma.employer.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            isActive: true,
+            isEmailVerified: true,
+            role: true,
+            createdAt: true,
+          },
+        },
+        jobOrders: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            _count: { select: { applications: true } },
+          },
+        },
+        invoices: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+        _count: {
+          select: { jobOrders: true, invoices: true },
+        },
+      },
+    });
+
+    if (!employer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Employer not found" });
+    }
+
+    res.json({ success: true, data: employer });
   } catch (err) {
     next(err);
   }

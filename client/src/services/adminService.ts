@@ -31,16 +31,7 @@ export const adminService = {
     }
   },
 
-  async getComplaints(status?: string) {
-    try {
-      const params = status ? `?status=${status}` : "";
-      const { data } = await api.get(`/admin/complaints${params}`);
-      return data;
-    } catch (error) {
-      console.error("Failed to fetch complaints:", error);
-      throw error;
-    }
-  },
+
 
   async getDeploymentStats() {
     try {
@@ -215,11 +206,11 @@ export const adminService = {
     }
   },
 
-  async getApplicants(page: number = 1, limit: number = 20) {
+  async getApplicants(page: number = 1, limit: number = 20, search?: string) {
     try {
-      const { data } = await api.get(
-        `/admin/applicants?page=${page}&limit=${limit}`,
-      );
+      let url = `/admin/applicants?page=${page}&limit=${limit}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      const { data } = await api.get(url);
       return data;
     } catch (error) {
       console.error("Failed to fetch applicants:", error);
@@ -227,14 +218,34 @@ export const adminService = {
     }
   },
 
-  async getEmployers(page: number = 1, limit: number = 20) {
+  async getApplicantDetail(id: string) {
     try {
-      const { data } = await api.get(
-        `/admin/employers?page=${page}&limit=${limit}`,
-      );
+      const { data } = await api.get(`/admin/applicants/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch applicant detail:", error);
+      throw error;
+    }
+  },
+
+  async getEmployers(page: number = 1, limit: number = 20, search?: string) {
+    try {
+      let url = `/admin/employers?page=${page}&limit=${limit}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      const { data } = await api.get(url);
       return data;
     } catch (error) {
       console.error("Failed to fetch employers:", error);
+      throw error;
+    }
+  },
+
+  async getEmployerDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/employers/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch employer detail:", error);
       throw error;
     }
   },
@@ -247,6 +258,16 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to verify employer:", error);
+      throw error;
+    }
+  },
+
+  async toggleUserActive(userId: string) {
+    try {
+      const { data } = await api.patch(`/admin/users/${userId}/toggle-active`);
+      return data;
+    } catch (error) {
+      console.error("Failed to toggle user active status:", error);
       throw error;
     }
   },
