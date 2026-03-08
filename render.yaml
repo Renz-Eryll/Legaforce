@@ -41,4 +41,4 @@ services:
         value: info
     healthCheckPath: /api/v1/health
     autoDeploy: true
-    preDeployCommand: npm run prisma:push && npm run prisma:seed || true
+    preDeployCommand: npm run prisma:generate && npm run prisma:push && npm run prisma:seed || true

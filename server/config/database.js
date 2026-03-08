@@ -5,6 +5,11 @@ import { NODE_ENV } from "./env.js";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: parseInt(process.env.DB_POOL_MAX || "5"),
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  // Both Neon (dev) and Render (prod) require SSL
+  ssl: { rejectUnauthorized: false },
 });
 
 const adapter = new PrismaPg(pool);

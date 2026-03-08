@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import { FRONTEND_URL } from "./config/env.js";
 
 process.env.DEBUG = "";
@@ -28,17 +29,9 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+app.use(compression());
 
-app.use(arcjetMiddleware);
-
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/applicant", applicantRouter);
-app.use("/api/v1/employer", employerRouter);
-app.use("/api/v1/admin", adminRouter);
-
-// Serve uploaded files (local dev fallback)
-app.use("/uploads", express.static("uploads"));
-
+// ── Health check & root — BEFORE rate limiter ──
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -54,6 +47,17 @@ app.get("/api/v1/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Serve uploaded files (local dev fallback)
+app.use("/uploads", express.static("uploads"));
+
+// ── Rate limiting — only on API routes ──
+app.use("/api", arcjetMiddleware);
+
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/applicant", applicantRouter);
+app.use("/api/v1/employer", employerRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.use(errorMiddleware);
 

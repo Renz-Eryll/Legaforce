@@ -1,17 +1,20 @@
 import prisma from "../config/database.js";
 import { sendStatusChangeEmail, sendInvoiceEmail } from "../services/email.service.js";
 
-const getEmployerByUser = async (userId) => {
-  const employer = await prisma.employer.findUnique({
-    where: { userId },
-  });
-  if (!employer) throw new Error("Employer profile not found");
+// Use employer already loaded by auth middleware — zero extra DB queries
+const getEmployerFromReq = (req) => {
+  const employer = req.user.employer;
+  if (!employer) {
+    const err = new Error("Employer profile not found");
+    err.statusCode = 404;
+    throw err;
+  }
   return employer;
 };
 
 export const getProfile = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { email: true },
@@ -37,7 +40,7 @@ export const getProfile = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const { companyName, contactPerson, phone, country, clientType } = req.body;
     const data = {};
     if (companyName != null) data.companyName = companyName;
@@ -56,7 +59,7 @@ export const updateProfile = async (req, res, next) => {
 
 export const getJobOrders = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const status = req.query.status;
     const where = { employerId: employer.id };
     if (status) where.status = status;
@@ -72,14 +75,10 @@ export const getJobOrders = async (req, res, next) => {
 
 export const getCandidates = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrders = await prisma.jobOrder.findMany({
-      where: { employerId: employer.id },
-      select: { id: true },
-    });
-    const jobOrderIds = jobOrders.map((j) => j.id);
+    const employer = getEmployerFromReq(req);
+    // Use relational filter — no sub-query for jobOrderIds
     const applications = await prisma.application.findMany({
-      where: { jobOrderId: { in: jobOrderIds } },
+      where: { jobOrder: { employerId: employer.id } },
       include: {
         applicant: {
           select: {
@@ -130,17 +129,12 @@ export const getCandidates = async (req, res, next) => {
 
 export const getCandidateById = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
+    // Use relational filter instead of sub-query
     const application = await prisma.application.findFirst({
       where: {
         applicantId: req.params.id,
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
       },
       include: {
         applicant: true,
@@ -176,16 +170,10 @@ export const getCandidateById = async (req, res, next) => {
 
 export const getInterviews = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const applications = await prisma.application.findMany({
       where: {
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
         status: { in: ["SHORTLISTED", "INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"] },
       },
       include: {
@@ -215,17 +203,11 @@ export const getInterviews = async (req, res, next) => {
 
 export const updateInterviewRating = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const application = await prisma.application.findFirst({
       where: {
         id: req.params.applicationId,
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
       },
     });
     if (!application) {
@@ -247,17 +229,11 @@ export const updateInterviewRating = async (req, res, next) => {
 
 export const shareInterviewFeedback = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const application = await prisma.application.findFirst({
       where: {
         id: req.params.applicationId,
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
       },
     });
     if (!application) {
@@ -271,7 +247,7 @@ export const shareInterviewFeedback = async (req, res, next) => {
 
 export const getDocuments = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const docs = Array.isArray(employer.verificationDocs)
       ? employer.verificationDocs
       : employer.verificationDocs
@@ -285,7 +261,7 @@ export const getDocuments = async (req, res, next) => {
 
 export const uploadDocument = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const name = req.body?.name || req.file?.originalname || "Document";
     const existing = Array.isArray(employer.verificationDocs)
       ? employer.verificationDocs
@@ -326,16 +302,10 @@ export const getPricing = async (req, res, next) => {
 
 export const getUpcomingInterviews = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const applications = await prisma.application.findMany({
       where: {
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
         status: { in: ["SHORTLISTED", "INTERVIEWED"] },
       },
       take: 5,
@@ -358,15 +328,9 @@ export const getUpcomingInterviews = async (req, res, next) => {
 
 export const getRecentCandidates = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const applications = await prisma.application.findMany({
-      where: { jobOrderId: { in: jobOrderIds } },
+      where: { jobOrder: { employerId: employer.id } },
       take: 5,
       include: {
         applicant: {
@@ -402,15 +366,9 @@ export const getRecentCandidates = async (req, res, next) => {
 
 export const getCandidateCount = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const count = await prisma.application.count({
-      where: { jobOrderId: { in: jobOrderIds } },
+      where: { jobOrder: { employerId: employer.id } },
     });
     res.json({ success: true, data: count });
   } catch (err) {
@@ -420,7 +378,7 @@ export const getCandidateCount = async (req, res, next) => {
 
 export const getJobOrderCount = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const where = { employerId: employer.id };
     if (req.query.status) where.status = req.query.status;
     const count = await prisma.jobOrder.count({ where });
@@ -432,16 +390,10 @@ export const getJobOrderCount = async (req, res, next) => {
 
 export const getInterviewCount = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const count = await prisma.application.count({
       where: {
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
         status: { in: ["SHORTLISTED", "INTERVIEWED"] },
       },
     });
@@ -453,16 +405,10 @@ export const getInterviewCount = async (req, res, next) => {
 
 export const getDeployedWorkerCount = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
     const count = await prisma.application.count({
       where: {
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
         status: "DEPLOYED",
       },
     });
@@ -474,7 +420,7 @@ export const getDeployedWorkerCount = async (req, res, next) => {
 
 export const getDashboardStats = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const [jobCount, candidateCount, interviewCount, deployedCount] = await Promise.all([
       prisma.jobOrder.count({ where: { employerId: employer.id, status: "ACTIVE" } }),
       prisma.application.count({
@@ -515,7 +461,7 @@ export const getDashboardStats = async (req, res, next) => {
 
 export const createJobOrder = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const { title, description, requirements, salary, location, positions, status } = req.body;
 
     if (!title || !description || !location) {
@@ -542,7 +488,7 @@ export const createJobOrder = async (req, res, next) => {
 
 export const getJobOrderById = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const jobOrder = await prisma.jobOrder.findFirst({
       where: {
         id: req.params.id,
@@ -605,7 +551,7 @@ export const getJobOrderById = async (req, res, next) => {
 
 export const updateJobOrder = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const existing = await prisma.jobOrder.findFirst({
       where: { id: req.params.id, employerId: employer.id },
     });
@@ -635,7 +581,7 @@ export const updateJobOrder = async (req, res, next) => {
 
 export const deleteJobOrder = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const existing = await prisma.jobOrder.findFirst({
       where: { id: req.params.id, employerId: employer.id },
     });
@@ -652,18 +598,11 @@ export const deleteJobOrder = async (req, res, next) => {
 
 export const updateApplicationStatus = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
-
+    const employer = getEmployerFromReq(req);
     const application = await prisma.application.findFirst({
       where: {
         id: req.params.applicationId,
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
       },
     });
     if (!application) {
@@ -807,17 +746,10 @@ export const updateApplicationStatus = async (req, res, next) => {
 
 export const getDeployments = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
-
+    const employer = getEmployerFromReq(req);
     const applications = await prisma.application.findMany({
       where: {
-        jobOrderId: { in: jobOrderIds },
+        jobOrder: { employerId: employer.id },
         status: { in: ["SELECTED", "PROCESSING", "DEPLOYED"] },
       },
       include: {
@@ -866,7 +798,7 @@ export const getDeployments = async (req, res, next) => {
 
 export const getInvoices = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
+    const employer = getEmployerFromReq(req);
     const where = { employerId: employer.id };
     if (req.query.status) where.status = req.query.status;
 
@@ -902,18 +834,12 @@ export const getInvoices = async (req, res, next) => {
 
 export const getReports = async (req, res, next) => {
   try {
-    const employer = await getEmployerByUser(req.user.id);
-    const jobOrderIds = (
-      await prisma.jobOrder.findMany({
-        where: { employerId: employer.id },
-        select: { id: true },
-      })
-    ).map((j) => j.id);
+    const employer = getEmployerFromReq(req);
 
-    // Get application counts by status
+    // Get application counts by status using relational filter
     const statusCounts = await prisma.application.groupBy({
       by: ["status"],
-      where: { jobOrderId: { in: jobOrderIds } },
+      where: { jobOrder: { employerId: employer.id } },
       _count: true,
     });
 
