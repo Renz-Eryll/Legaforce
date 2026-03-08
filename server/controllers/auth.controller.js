@@ -494,13 +494,8 @@ export const signOut = async (req, res, next) => {
 
 export const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: {
-        profile: true,
-        employer: true,
-      },
-    });
+    // req.user is already loaded by the authorize middleware
+    const user = req.user;
 
     if (!user) {
       const error = new Error("User not found");

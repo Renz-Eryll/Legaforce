@@ -35,6 +35,17 @@ const startServer = async () => {
 
     process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
     process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+    // Catch fatal errors and close DB connections cleanly
+    process.on("uncaughtException", async (err) => {
+      console.error("Uncaught Exception:", err);
+      await disconnectDatabase();
+      process.exit(1);
+    });
+
+    process.on("unhandledRejection", (reason) => {
+      console.error("Unhandled Rejection:", reason);
+    });
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

@@ -3,7 +3,7 @@ const errorMiddleware = (err, req, res, next) => {
     let error = { ...err };
     error.message = err.message;
 
-    console.error("❌ Error:", err);
+    console.error("❌ Error:", process.env.NODE_ENV === "development" ? err : err.message);
 
     // Prisma errors
     if (err.code === "P2002") {

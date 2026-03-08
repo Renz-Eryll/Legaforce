@@ -1,9 +1,12 @@
-import "dotenv/config";
 import { defineConfig } from "prisma/config";
-
-// Load development environment
 import dotenv from "dotenv";
-dotenv.config({ path: ".env.development.local" });
+
+// Only load local env file in non-production (it won't exist on Render)
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: ".env.development.local" });
+} else {
+  dotenv.config(); // loads from process.env (already set by Render)
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

@@ -1,17 +1,20 @@
 import prisma from "../config/database.js";
 import { generateCVSummary, computeAIMatchScore } from "../services/openai.service.js";
 
-const getProfileByUser = async (userId) => {
-  const profile = await prisma.profile.findUnique({
-    where: { userId },
-  });
-  if (!profile) throw new Error("Applicant profile not found");
+// Use profile already loaded by auth middleware — zero extra DB queries
+const getProfileFromReq = (req) => {
+  const profile = req.user.profile;
+  if (!profile) {
+    const err = new Error("Applicant profile not found");
+    err.statusCode = 404;
+    throw err;
+  }
   return profile;
 };
 
 export const getProfile = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { email: true, isEmailVerified: true, isActive: true },
@@ -34,7 +37,7 @@ export const getProfile = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const {
       firstName,
       lastName,
@@ -98,7 +101,7 @@ export const updateProfile = async (req, res, next) => {
 
 export const getApplications = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const applications = await prisma.application.findMany({
       where: { applicantId: profile.id },
       include: {
@@ -143,7 +146,7 @@ export const getApplications = async (req, res, next) => {
 
 export const getApplicationById = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const application = await prisma.application.findFirst({
       where: { id: req.params.id, applicantId: profile.id },
       include: {
@@ -166,7 +169,7 @@ export const getApplicationById = async (req, res, next) => {
 
 export const getComplaints = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const status = req.query.status;
     const where = { applicantId: profile.id };
     if (status) where.status = status;
@@ -191,7 +194,7 @@ const categoryMap = {
 
 export const createComplaint = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const { category, subject, description } = req.body;
     const raw = (category || "other").toLowerCase().replace(/\s+/g, "_");
     const categoryEnum = categoryMap[raw] || "OTHER";
@@ -221,7 +224,7 @@ export const createComplaint = async (req, res, next) => {
 
 export const getCV = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const cv = profile.aiGeneratedCV || null;
     res.json({ success: true, data: cv });
   } catch (err) {
@@ -231,22 +234,21 @@ export const getCV = async (req, res, next) => {
 
 export const saveCV = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const payload = req.body;
-    await prisma.profile.update({
-      where: { id: profile.id },
-      data: { aiGeneratedCV: payload },
-    });
 
-    // Award points for saving CV the first time
+    // Award points for saving CV the first time — combined into single update
     const existing = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
       ? profile.aiGeneratedCV : {};
-    if (!existing.personalInfo && payload.personalInfo) {
-      await prisma.profile.update({
-        where: { id: profile.id },
-        data: { rewardPoints: { increment: 100 } },
-      });
-    }
+    const isFirstCV = !existing.personalInfo && payload.personalInfo;
+
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: {
+        aiGeneratedCV: payload,
+        ...(isFirstCV ? { rewardPoints: { increment: 100 } } : {}),
+      },
+    });
 
     res.json({ success: true, data: payload });
   } catch (err) {
@@ -256,7 +258,7 @@ export const saveCV = async (req, res, next) => {
 
 export const generateAICV = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const existing =
       profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
         ? profile.aiGeneratedCV
@@ -314,7 +316,7 @@ export const generateAICV = async (req, res, next) => {
 
 export const getRewardPoints = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     res.json({ success: true, data: profile.rewardPoints ?? 0 });
   } catch (err) {
     next(err);
@@ -323,7 +325,7 @@ export const getRewardPoints = async (req, res, next) => {
 
 export const getJobs = async (req, res, next) => {
   try {
-    const where = { status: "ACTIVE" };
+    const where = { status: "ACTIVE" }; // getJobs is public-ish, no profile needed
     if (req.query.search) {
       where.OR = [
         { title: { contains: req.query.search, mode: "insensitive" } },
@@ -388,7 +390,7 @@ export const getJobById = async (req, res, next) => {
 
 export const applyToJob = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const jobId = req.params.id;
     const job = await prisma.jobOrder.findFirst({
       where: { id: jobId, status: "ACTIVE" },
@@ -449,7 +451,7 @@ export const applyToJob = async (req, res, next) => {
 
 export const getProfileCompletion = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     let score = 0;
     if (profile.firstName && profile.lastName) score += 20;
     if (profile.phone) score += 15;
@@ -471,7 +473,7 @@ export const getProfileCompletion = async (req, res, next) => {
 
 export const getNotifications = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
 
     // Build notifications from recent application status changes
     const recentApps = await prisma.application.findMany({
@@ -554,7 +556,7 @@ export const getNotifications = async (req, res, next) => {
 
 export const getRecommendedJobs = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
 
     // Get applicant's existing application job IDs to exclude
     const existingApps = await prisma.application.findMany({
@@ -591,7 +593,7 @@ export const getSavedJobs = async (req, res, next) => {
   try {
     // Saved jobs would need a SavedJob model; for now we use the user's
     // aiGeneratedCV.savedJobs array as a lightweight JSON store
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
       ? profile.aiGeneratedCV : {};
     const savedJobIds = Array.isArray(cv.savedJobs) ? cv.savedJobs : [];
@@ -624,7 +626,7 @@ export const getSavedJobs = async (req, res, next) => {
 
 export const saveJob = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const { jobId } = req.body;
     if (!jobId) {
       return res.status(400).json({ success: false, message: "jobId required" });
@@ -651,7 +653,7 @@ export const saveJob = async (req, res, next) => {
 
 export const unsaveJob = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const { jobId } = req.body;
 
     const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
@@ -673,7 +675,7 @@ export const unsaveJob = async (req, res, next) => {
 
 export const getMatchScore = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
 
     // Compute average match score across all applications
     const applications = await prisma.application.findMany({
@@ -699,7 +701,7 @@ export const getProfileViews = async (req, res, next) => {
   try {
     // Profile views would need tracking — for now, derive from application count
     // as a proxy for employer engagement
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const appCount = await prisma.application.count({
       where: {
         applicantId: profile.id,
@@ -715,7 +717,7 @@ export const getProfileViews = async (req, res, next) => {
 
 export const getApplicationStats = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const counts = await prisma.application.groupBy({
       by: ["status"],
       where: { applicantId: profile.id },
@@ -737,7 +739,7 @@ export const getApplicationStats = async (req, res, next) => {
 
 export const getRewardHistory = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
 
     // Build reward history from profile actions
     const history = [];
@@ -765,9 +767,15 @@ export const getRewardHistory = async (req, res, next) => {
     }
 
     // Count applications for reward history
-    const appCount = await prisma.application.count({
-      where: { applicantId: profile.id },
-    });
+    // Parallel count queries instead of sequential
+    const [appCount, shortlistedCount, complaintCount] = await Promise.all([
+      prisma.application.count({ where: { applicantId: profile.id } }),
+      prisma.application.count({
+        where: { applicantId: profile.id, status: { in: ["SHORTLISTED", "INTERVIEWED", "SELECTED", "DEPLOYED"] } },
+      }),
+      prisma.complaint.count({ where: { applicantId: profile.id } }),
+    ]);
+
     if (appCount > 0) {
       history.push({
         action: `Applied to ${appCount} job(s)`,
@@ -777,10 +785,6 @@ export const getRewardHistory = async (req, res, next) => {
       });
     }
 
-    // Check shortlisted apps
-    const shortlistedCount = await prisma.application.count({
-      where: { applicantId: profile.id, status: { in: ["SHORTLISTED", "INTERVIEWED", "SELECTED", "DEPLOYED"] } },
-    });
     if (shortlistedCount > 0) {
       history.push({
         action: `Shortlisted for ${shortlistedCount} position(s)`,
@@ -789,11 +793,6 @@ export const getRewardHistory = async (req, res, next) => {
         type: "earned",
       });
     }
-
-    // Check complaints filed
-    const complaintCount = await prisma.complaint.count({
-      where: { applicantId: profile.id },
-    });
     if (complaintCount > 0) {
       history.push({
         action: `Filed ${complaintCount} report(s)`,
@@ -862,7 +861,7 @@ export const getRewardCatalog = async (req, res, next) => {
 
 export const redeemReward = async (req, res, next) => {
   try {
-    const profile = await getProfileByUser(req.user.id);
+    const profile = getProfileFromReq(req);
     const { rewardId } = req.body;
 
     // Find the reward cost from catalog

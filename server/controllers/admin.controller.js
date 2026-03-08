@@ -573,11 +573,22 @@ export const getDeploymentDetail = async (req, res, next) => {
 export const updateDeployment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    // Whitelist allowed fields — never pass raw req.body to Prisma
+    const { medicalStatus, medicalExpiryDate, visaStatus, visaExpiryDate,
+            oecStatus, oecNumber, flightDate, arrivalDate } = req.body;
+    const data = {};
+    if (medicalStatus !== undefined) data.medicalStatus = medicalStatus;
+    if (medicalExpiryDate !== undefined) data.medicalExpiryDate = medicalExpiryDate ? new Date(medicalExpiryDate) : null;
+    if (visaStatus !== undefined) data.visaStatus = visaStatus;
+    if (visaExpiryDate !== undefined) data.visaExpiryDate = visaExpiryDate ? new Date(visaExpiryDate) : null;
+    if (oecStatus !== undefined) data.oecStatus = oecStatus;
+    if (oecNumber !== undefined) data.oecNumber = oecNumber;
+    if (flightDate !== undefined) data.flightDate = flightDate ? new Date(flightDate) : null;
+    if (arrivalDate !== undefined) data.arrivalDate = arrivalDate ? new Date(arrivalDate) : null;
 
     const deployment = await prisma.deployment.update({
       where: { id },
-      data: updates,
+      data,
     });
 
     res.json({ success: true, data: deployment });
