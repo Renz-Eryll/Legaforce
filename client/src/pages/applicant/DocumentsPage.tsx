@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Upload,
@@ -14,12 +14,14 @@ import {
   AlertCircle,
   Plus,
   File,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { applicantService } from "@/services/applicantService";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -62,13 +64,28 @@ const statusConfig = {
 };
 
 function DocumentsPage() {
-  const [documents, setDocuments] = useState<DocumentItem[]>([
-    // Example documents that would be loaded from API
-  ]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleFileUpload = (files: FileList | null, category?: string) => {
+  // Fetch documents from API on mount
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        setIsLoading(true);
+        const data = await applicantService.getDocuments();
+        setDocuments(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDocs();
+  }, []);
+
+  const handleFileUpload = async (files: FileList | null, category?: string) => {
     if (!files || files.length === 0) return;
 
     const newDocs: DocumentItem[] = [];
@@ -90,15 +107,19 @@ function DocumentsPage() {
         continue;
       }
 
-      newDocs.push({
-        id: `doc-${Date.now()}-${i}`,
+      const docData = {
         name: file.name,
-        type: file.type.includes("image") ? "image" : "document",
         category: category || "other",
         size: `${sizeMB} MB`,
-        uploadedAt: new Date().toISOString(),
-        status: "pending",
-      });
+        type: file.type.includes("image") ? "image" : "document",
+      };
+
+      try {
+        const saved = await applicantService.uploadDocument(docData);
+        newDocs.push(saved);
+      } catch (error) {
+        toast.error(`Failed to upload ${file.name}`);
+      }
     }
 
     if (newDocs.length > 0) {
@@ -107,9 +128,14 @@ function DocumentsPage() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    setDocuments((d) => d.filter((doc) => doc.id !== id));
-    toast.success("Document removed");
+  const handleDelete = async (id: string) => {
+    try {
+      await applicantService.deleteDocument(id);
+      setDocuments((d) => d.filter((doc) => doc.id !== id));
+      toast.success("Document removed");
+    } catch (error) {
+      toast.error("Failed to remove document");
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -137,6 +163,17 @@ function DocumentsPage() {
     pending: documents.filter((d) => d.status === "pending").length,
     expired: documents.filter((d) => d.status === "expired").length,
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading documents...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

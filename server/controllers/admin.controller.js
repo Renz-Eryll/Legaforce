@@ -5,6 +5,7 @@
  * job orders, applications, deployments, invoices, and complaints.
  */
 import prisma from "../config/database.js";
+import { sendStatusChangeEmail } from "../services/email.service.js";
 
 // ── Dashboard Stats ────────────────────────────
 
@@ -540,7 +541,7 @@ export const updateApplicationStatus = async (req, res, next) => {
       where: { id },
       data,
       include: {
-        applicant: { select: { firstName: true, lastName: true } },
+        applicant: { select: { firstName: true, lastName: true, userId: true } },
         jobOrder: { select: { title: true } },
       },
     });
@@ -553,6 +554,25 @@ export const updateApplicationStatus = async (req, res, next) => {
       if (!existing) {
         await prisma.deployment.create({ data: { applicationId: id } });
       }
+    }
+
+    // Send email notification to applicant
+    try {
+      const applicantUser = await prisma.user.findUnique({
+        where: { id: updated.applicant.userId },
+        select: { email: true },
+      });
+      if (applicantUser?.email) {
+        const applicantName = `${updated.applicant.firstName || ""} ${updated.applicant.lastName || ""}`.trim();
+        await sendStatusChangeEmail(
+          applicantUser.email,
+          applicantName,
+          updated.jobOrder.title,
+          status
+        );
+      }
+    } catch (emailErr) {
+      console.error("Failed to send status email from admin:", emailErr.message);
     }
 
     res.json({ success: true, data: updated });
@@ -816,15 +836,40 @@ export const updateInvoiceStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    // Validate status is in allowed transitions
+    const VALID_STATUSES = ["DRAFT", "SENT", "PAID", "OVERDUE", "DISPUTED"];
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be: " + VALID_STATUSES.join(", "),
+      });
+    }
+
+    // Get current invoice
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: "Invoice not found" });
+    }
+
+    // Update invoice status
     const data = { status };
-    if (status === "PAID") data.paidAt = new Date();
+    if (status === "PAID" && !invoice.paidAt) {
+      data.paidAt = new Date();
+    }
 
     const updated = await prisma.invoice.update({
       where: { id },
       data,
     });
 
-    res.json({ success: true, data: updated });
+    res.json({
+      success: true,
+      data: updated,
+      message: `Invoice status updated to ${status}`,
+    });
   } catch (err) {
     next(err);
   }

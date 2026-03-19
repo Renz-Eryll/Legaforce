@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { applicantService } from "@/services/applicantService";
+import { toast } from "sonner";
 import {
   Briefcase,
   Search,
@@ -117,6 +118,29 @@ function ApplicationsListPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleExport = () => {
+    if (filteredApplications.length === 0) return;
+    const headers = ["Position", "Employer", "Location", "Salary", "Match Score", "Status", "Applied Date"];
+    const rows = filteredApplications.map((app) => [
+      app.position,
+      app.employer,
+      app.location,
+      typeof app.salary === "number" ? `$${app.salary}/mo` : app.salary,
+      `${app.matchScore}%`,
+      app.status,
+      app.appliedDate,
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `applications_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Applications exported successfully!");
+  };
+
   const getStatusBadge = (status: string) => {
     const configs = {
       applied: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -165,7 +189,7 @@ function ApplicationsListPage() {
             Track all your job applications
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExport} disabled={loading || filteredApplications.length === 0}>
           <Download className="w-4 h-4 mr-2" />
           Export
         </Button>

@@ -280,7 +280,7 @@ export const applicantService = {
 
   async applyToJob(jobId: string) {
     try {
-      const res = await api.post(`/applicant/jobs/${jobId}/apply`);
+      const res = await api.post(`/applicant/jobs/${jobId}/apply`, {});
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to apply:", error);
@@ -296,6 +296,38 @@ export const applicantService = {
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to update auto-apply:", error);
+      throw error;
+    }
+  },
+
+  // ── Documents ──────────────────────────────────
+
+  async getDocuments() {
+    try {
+      const res = await api.get("/applicant/documents");
+      return getData(res) ?? [];
+    } catch (error) {
+      console.error("Failed to fetch documents:", error);
+      return [];
+    }
+  },
+
+  async uploadDocument(doc: { name: string; category: string; size: string; type: string }) {
+    try {
+      const res = await api.post("/applicant/documents", doc);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to upload document:", error);
+      throw error;
+    }
+  },
+
+  async deleteDocument(docId: string) {
+    try {
+      const res = await api.delete(`/applicant/documents/${docId}`);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to delete document:", error);
       throw error;
     }
   },

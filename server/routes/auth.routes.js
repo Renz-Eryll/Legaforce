@@ -7,6 +7,7 @@ import {
   resendOtp,
   getCurrentUser,
   refreshToken,
+  changePassword,
 } from "../controllers/auth.controller.js";
 import { authorize } from "../middlewares/auth.middleware.js";
 
@@ -19,5 +20,6 @@ authRouter.post("/resend-otp", resendOtp);
 authRouter.post("/sign-out", authorize, signOut);
 authRouter.get("/me", authorize, getCurrentUser);
 authRouter.post("/refresh", authorize, refreshToken);
+authRouter.post("/change-password", authorize, changePassword);
 
 export default authRouter;

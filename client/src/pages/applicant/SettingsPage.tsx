@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import api from "@/services/api";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -138,7 +139,10 @@ function SettingsPage() {
 
     setIsSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 800)); // Simulate API call
+      await api.post("/auth/change-password", {
+        currentPassword: settings.currentPassword,
+        newPassword: settings.newPassword,
+      });
       toast.success("Password updated successfully!");
       setSettings((s) => ({
         ...s,
@@ -146,8 +150,8 @@ function SettingsPage() {
         newPassword: "",
         confirmPassword: "",
       }));
-    } catch (error) {
-      toast.error("Failed to update password");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update password");
     } finally {
       setIsSaving(false);
     }

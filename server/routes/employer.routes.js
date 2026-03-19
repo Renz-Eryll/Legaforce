@@ -29,6 +29,9 @@ import {
   getReports,
 } from "../controllers/employer.controller.js";
 
+import { validateRequest } from "../middlewares/validation.middleware.js";
+import { jobOrderSchema } from "../services/validation.service.js";
+
 const router = Router();
 
 router.use(authorize);
@@ -40,7 +43,7 @@ router.patch("/profile", updateProfile);
 
 // Job Orders CRUD
 router.get("/job-orders", getJobOrders);
-router.post("/job-orders", createJobOrder);
+router.post("/job-orders", validateRequest(jobOrderSchema), createJobOrder);
 router.get("/job-orders/:id", getJobOrderById);
 router.put("/job-orders/:id", updateJobOrder);
 router.delete("/job-orders/:id", deleteJobOrder);

@@ -31,6 +31,12 @@ import {
   getVerificationQueue,
 } from "../controllers/admin.controller.js";
 
+import { validateRequest } from "../middlewares/validation.middleware.js";
+import {
+  complaintUpdateSchema,
+  deploymentUpdateSchema,
+} from "../services/validation.service.js";
+
 const router = Router();
 
 router.use(authorize);
@@ -70,11 +76,11 @@ router.get("/deployments", getDeployments);
 router.get("/deployments/:id", getDeploymentDetail);
 router.get("/deployment-count", getDeploymentCount);
 router.get("/deployment-stats", getDeploymentStats);
-router.patch("/deployments/:id", updateDeployment);
+router.patch("/deployments/:id", validateRequest(deploymentUpdateSchema), updateDeployment);
 
 // Complaints
 router.get("/complaints", getComplaints);
-router.patch("/complaints/:id", updateComplaint);
+router.patch("/complaints/:id", validateRequest(complaintUpdateSchema), updateComplaint);
 
 // Invoices
 router.get("/invoices", getInvoices);
