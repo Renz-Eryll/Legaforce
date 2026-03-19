@@ -47,13 +47,18 @@ import {
   ApplicantDetailPage,
   ApplicantsListPage,
   ApplicationsPage,
+  ApplicationDetailPage as AdminApplicationDetailPage,
   ComplaintsListPage,
+  ComplaintDetailPage,
   CompliancePage,
   DeploymentsListPage,
+  DeploymentDetailPage,
   EmployerDetailPage,
   EmployersListPage,
   InvoicesPage,
+  InvoiceDetailPage,
   JobOrdersListPage,
+  JobOrderDetailPage as AdminJobOrderDetailPage,
   ReportsPage,
   VerificationPage,
   SettingsPage as AdminSettingsPage,
@@ -191,12 +196,17 @@ const App = () => {
               <Route path="employers" element={<EmployersListPage />} />
               <Route path="employers/:id" element={<EmployerDetailPage />} />
               <Route path="job-orders" element={<JobOrdersListPage />} />
+              <Route path="job-orders/:id" element={<AdminJobOrderDetailPage />} />
               <Route path="applications" element={<ApplicationsPage />} />
+              <Route path="applications/:id" element={<AdminApplicationDetailPage />} />
               <Route path="deployments" element={<DeploymentsListPage />} />
+              <Route path="deployments/:id" element={<DeploymentDetailPage />} />
               <Route path="compliance" element={<CompliancePage />} />
               <Route path="invoices" element={<InvoicesPage />} />
+              <Route path="invoices/:id" element={<InvoiceDetailPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="complaints" element={<ComplaintsListPage />} />
+              <Route path="complaints/:id" element={<ComplaintDetailPage />} />
               <Route path="verification" element={<VerificationPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />

@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Clock,
   Loader2,
+  ArrowUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +97,19 @@ function ApplicationsPage() {
       REJECTED: "bg-red-500/10 text-red-500 border-red-500/20",
     };
     return configs[status] || configs.APPLIED;
+  };
+
+  const handleInlineStatusChange = async (appId: string, newStatus: string) => {
+    try {
+      await adminService.updateApplicationStatus(appId, newStatus);
+      setApplications((prev) =>
+        prev.map((a) => (a.id === appId ? { ...a, status: newStatus } : a)),
+      );
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (error) {
+      toast.error("Failed to update status");
+      console.error(error);
+    }
   };
 
   const statusStats = {
@@ -245,11 +259,40 @@ function ApplicationsPage() {
                         {new Date(app.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Link to={`/admin/applications/${app.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-1">
+                          <Link to={`/admin/applications/${app.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          {app.status !== "DEPLOYED" && app.status !== "REJECTED" && (
+                            <Select
+                              onValueChange={(val) =>
+                                handleInlineStatusChange(app.id, val)
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-8 p-0 border-0 [&>svg]:hidden">
+                                <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  "APPLIED",
+                                  "SHORTLISTED",
+                                  "INTERVIEWED",
+                                  "SELECTED",
+                                  "DEPLOYED",
+                                  "REJECTED",
+                                ]
+                                  .filter((s) => s !== app.status)
+                                  .map((s) => (
+                                    <SelectItem key={s} value={s}>
+                                      {s}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -31,8 +31,6 @@ export const adminService = {
     }
   },
 
-
-
   async getDeploymentStats() {
     try {
       const { data } = await api.get("/admin/deployment-stats");
@@ -160,6 +158,28 @@ export const adminService = {
     }
   },
 
+  async getJobOrderDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/job-orders/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch job order detail:", error);
+      throw error;
+    }
+  },
+
+  async updateJobOrderStatus(id: string, status: string) {
+    try {
+      const { data } = await api.patch(`/admin/job-orders/${id}/status`, {
+        status,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to update job order status:", error);
+      throw error;
+    }
+  },
+
   async getInvoices(status?: string) {
     try {
       let url = "/admin/invoices";
@@ -168,6 +188,16 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
+      throw error;
+    }
+  },
+
+  async getInvoiceDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/invoices/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch invoice detail:", error);
       throw error;
     }
   },
@@ -184,6 +214,18 @@ export const adminService = {
     }
   },
 
+  async generateInvoice(deploymentId: string) {
+    try {
+      const { data } = await api.post("/admin/invoices/generate", {
+        deploymentId,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to generate invoice:", error);
+      throw error;
+    }
+  },
+
   async getComplaints(status?: string) {
     try {
       let url = "/admin/complaints";
@@ -192,6 +234,16 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to fetch complaints:", error);
+      throw error;
+    }
+  },
+
+  async getComplaintDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/complaints/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch complaint detail:", error);
       throw error;
     }
   },

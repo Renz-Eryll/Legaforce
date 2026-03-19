@@ -150,6 +150,8 @@ export const getCandidateById = async (req, res, next) => {
       success: true,
       data: {
         id: a.id,
+        applicationId: application.id,
+        status: application.status,
         name: [a.firstName, a.lastName].filter(Boolean).join(" ") || "Applicant",
         position: application.jobOrder?.title,
         email: null,

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 import {
   Activity,
   Download,
@@ -37,17 +39,18 @@ function ReportsPage() {
   const [reportType, setReportType] = useState("monthly");
   const [dateRange, setDateRange] = useState("jan-2026");
 
-  const reports = [
+  const [isLoading, setIsLoading] = useState(true);
+  const [reports, setReports] = useState([
     {
       id: 1,
       title: "Recruitment Summary",
       icon: Users,
       color: "bg-blue-500/10 text-blue-500",
       metrics: [
-        { label: "New Applicants", value: "1,234", change: "+12%" },
-        { label: "Job Orders Posted", value: "45", change: "+8%" },
-        { label: "Applications Received", value: "5,678", change: "+23%" },
-        { label: "Hires Completed", value: "345", change: "+15%" },
+        { label: "Total Applicants", value: "0", change: "—" },
+        { label: "Job Orders Active", value: "0", change: "—" },
+        { label: "Applications Processed", value: "0", change: "—" },
+        { label: "Recent Applications", value: "0", change: "—" },
       ],
     },
     {
@@ -56,10 +59,10 @@ function ReportsPage() {
       icon: Globe,
       color: "bg-emerald-500/10 text-emerald-500",
       metrics: [
-        { label: "Deployed Workers", value: "1,245", change: "+18%" },
-        { label: "Countries Served", value: "8", change: "—" },
-        { label: "Avg Processing Time", value: "18 days", change: "-3 days" },
-        { label: "Success Rate", value: "98%", change: "+0.5%" },
+        { label: "Deployed Workers", value: "0", change: "—" },
+        { label: "Complaints Received", value: "0", change: "—" },
+        { label: "Pending Approvals", value: "0", change: "—" },
+        { label: "Success Rate", value: "98%", change: "—" },
       ],
     },
     {
@@ -68,10 +71,10 @@ function ReportsPage() {
       icon: TrendingUp,
       color: "bg-amber-500/10 text-amber-500",
       metrics: [
-        { label: "Total Revenue", value: "₱2.5M", change: "+22%" },
-        { label: "Invoices Paid", value: "₱2.3M", change: "+20%" },
-        { label: "Outstanding", value: "₱125K", change: "-5%" },
-        { label: "Commission Earned", value: "₱450K", change: "+28%" },
+        { label: "Total Revenue Paid", value: "₱0", change: "—" },
+        { label: "Pending Revenue", value: "₱0", change: "—" },
+        { label: "Invoices Overdue", value: "0", change: "—" },
+        { label: "Avg Placement Fee", value: "₱45K", change: "—" },
       ],
     },
     {
@@ -80,13 +83,93 @@ function ReportsPage() {
       icon: Building2,
       color: "bg-purple-500/10 text-purple-500",
       metrics: [
-        { label: "Active Employers", value: "456", change: "+12" },
-        { label: "Verified Partners", value: "445", change: "+10" },
-        { label: "Pending Verification", value: "11", change: "+2" },
-        { label: "Avg Partner Score", value: "87.5", change: "+1.2" },
+        { label: "Total Employers", value: "0", change: "—" },
+        { label: "Verified Partners", value: "0", change: "—" },
+        { label: "Pending Verification", value: "0", change: "—" },
+        { label: "Total Open Positions", value: "0", change: "—" },
       ],
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const loadLiveData = async () => {
+      try {
+        setIsLoading(true);
+        const [statsRes, invoicesRes] = await Promise.all([
+          adminService.getDashboardStats().catch(() => ({ data: {} })),
+          adminService.getInvoices().catch(() => ({ data: [] }))
+        ]);
+
+        const s = statsRes.data || {};
+        const invoices = invoicesRes.data || [];
+
+        const totalRevenue = invoices.filter((i: any) => i.status === "PAID").reduce((sum: number, i: any) => sum + i.amount, 0);
+        const pendingRevenue = invoices.filter((i: any) => i.status === "PENDING" || i.status === "SENT").reduce((sum: number, i: any) => sum + i.amount, 0);
+        const overdueInvoices = invoices.filter((i: any) => i.status === "OVERDUE").length;
+        
+        const totalOpenPositions = s.pipeline ? Object.values(s.pipeline).reduce((a: any, b: any) => a + b, 0) : 0;
+
+        setReports([
+          {
+            id: 1,
+            title: "Recruitment Summary",
+            icon: Users,
+            color: "bg-blue-500/10 text-blue-500",
+            metrics: [
+              { label: "Total Applicants", value: (s.totalApplicants || 0).toString(), change: "—" },
+              { label: "Job Orders Active", value: (s.totalJobOrders || 0).toString(), change: "—" },
+              { label: "Applications Processed", value: (s.totalApplications || 0).toString(), change: "—" },
+              { label: "Recent Applications", value: (s.recentApplications || 0).toString(), change: "—" },
+            ],
+          },
+          {
+            id: 2,
+            title: "Deployment Analytics",
+            icon: Globe,
+            color: "bg-emerald-500/10 text-emerald-500",
+            metrics: [
+              { label: "Deployed Workers", value: (s.totalDeployments || 0).toString(), change: "—" },
+              { label: "Complaints Received", value: (s.totalComplaints || 0).toString(), change: "—" },
+              { label: "Pending Approvals", value: (s.pipeline?.PENDING || 0).toString(), change: "—" },
+              { label: "Success Rate", value: "98%", change: "—" },
+            ],
+          },
+          {
+            id: 3,
+            title: "Financial Report",
+            icon: TrendingUp,
+            color: "bg-amber-500/10 text-amber-500",
+            metrics: [
+              { label: "Total Revenue Paid", value: `₱${totalRevenue.toLocaleString()}`, change: "—" },
+              { label: "Pending Revenue", value: `₱${pendingRevenue.toLocaleString()}`, change: "—" },
+              { label: "Invoices Overdue", value: overdueInvoices.toString(), change: "—" },
+              { label: "Avg Placement Fee", value: "₱45K", change: "—" },
+            ],
+          },
+          {
+            id: 4,
+            title: "Employer Management",
+            icon: Building2,
+            color: "bg-purple-500/10 text-purple-500",
+            metrics: [
+              { label: "Total Employers", value: (s.totalEmployers || 0).toString(), change: "—" },
+              { label: "Verified Partners", value: ((s.totalEmployers || 0) - (s.pendingVerifications || 0)).toString(), change: "—" },
+              { label: "Pending Verification", value: (s.pendingVerifications || 0).toString(), change: "—" },
+              { label: "Applications in Pipeline", value: String(totalOpenPositions), change: "—" },
+            ],
+          },
+        ]);
+
+      } catch (err) {
+        console.error("Failed to fetch reports dat:", err);
+        toast.error("Failed to load live report data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadLiveData();
+  }, [dateRange, reportType]);
 
   return (
     <motion.div

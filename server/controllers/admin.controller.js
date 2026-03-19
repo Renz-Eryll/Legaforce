@@ -949,3 +949,244 @@ export const getVerificationQueue = async (req, res, next) => {
     next(err);
   }
 };
+
+// ── User Detail ────────────────────────────────
+
+export const getUserDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+        profile: {
+          include: {
+            _count: { select: { applications: true, complaints: true } },
+          },
+        },
+        employer: {
+          include: {
+            _count: { select: { jobOrders: true, invoices: true } },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Invoice Generation ─────────────────────────
+
+export const generateInvoice = async (req, res, next) => {
+  try {
+    const { deploymentId } = req.body;
+
+    // Get the deployment with related data
+    const deployment = await prisma.deployment.findUnique({
+      where: { id: deploymentId },
+      include: {
+        application: {
+          include: {
+            applicant: { select: { firstName: true, lastName: true } },
+            jobOrder: {
+              include: {
+                employer: { select: { id: true, companyName: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!deployment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Deployment not found" });
+    }
+
+    // Check if invoice already exists for this deployment
+    const existing = await prisma.invoice.findFirst({
+      where: {
+        lineItems: {
+          path: ["deploymentId"],
+          equals: deploymentId,
+        },
+      },
+    });
+
+    if (existing) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invoice already exists for this deployment", data: existing });
+    }
+
+    const employer = deployment.application.jobOrder.employer;
+    const applicant = deployment.application.applicant;
+    const jobTitle = deployment.application.jobOrder.title;
+    const salary = deployment.application.jobOrder.salary || 0;
+
+    // Generate invoice number
+    const invoiceCount = await prisma.invoice.count();
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(invoiceCount + 1).padStart(5, "0")}`;
+
+    // Calculate amount (example: placement fee = 1 month salary equivalent)
+    const placementFee = salary > 0 ? salary : 50000;
+    const processingFee = 5000;
+    const totalAmount = placementFee + processingFee;
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        employerId: employer.id,
+        invoiceNumber,
+        amount: totalAmount,
+        currency: "PHP",
+        status: "PENDING",
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        lineItems: {
+          deploymentId,
+          items: [
+            {
+              description: `Placement Fee — ${applicant.firstName} ${applicant.lastName} (${jobTitle})`,
+              amount: placementFee,
+            },
+            {
+              description: "Processing & Documentation Fee",
+              amount: processingFee,
+            },
+          ],
+        },
+      },
+      include: {
+        employer: { select: { companyName: true } },
+      },
+    });
+
+    res.status(201).json({ success: true, data: invoice });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Invoice Detail ─────────────────────────────
+
+export const getInvoiceDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        employer: {
+          select: {
+            companyName: true,
+            contactPerson: true,
+            phone: true,
+            country: true,
+          },
+        },
+      },
+    });
+
+    if (!invoice) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Invoice not found" });
+    }
+
+    res.json({ success: true, data: invoice });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Complaint Detail ───────────────────────────
+
+export const getComplaintDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const complaint = await prisma.complaint.findUnique({
+      where: { id },
+      include: {
+        applicant: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            nationality: true,
+            userId: true,
+            user: { select: { email: true } },
+          },
+        },
+      },
+    });
+
+    if (!complaint) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Complaint not found" });
+    }
+
+    res.json({ success: true, data: complaint });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Job Order Detail ───────────────────────────
+
+export const getJobOrderDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const jobOrder = await prisma.jobOrder.findUnique({
+      where: { id },
+      include: {
+        employer: {
+          select: {
+            companyName: true,
+            contactPerson: true,
+            phone: true,
+            country: true,
+          },
+        },
+        applications: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            applicant: {
+              select: { firstName: true, lastName: true, nationality: true },
+            },
+          },
+        },
+        _count: { select: { applications: true } },
+      },
+    });
+
+    if (!jobOrder) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Job order not found" });
+    }
+
+    res.json({ success: true, data: jobOrder });
+  } catch (err) {
+    next(err);
+  }
+};

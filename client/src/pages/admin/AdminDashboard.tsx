@@ -18,6 +18,7 @@ import {
   Activity,
   Shield,
   UserCheck,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -243,9 +244,16 @@ export default function AdminDashboard() {
                         "bg-red-500/10 text-red-500",
                       activity.type === "verification" &&
                         "bg-amber-500/10 text-amber-500",
+                      (!activity.type || !["applicant", "employer", "deployment", "complaint", "verification"].includes(activity.type)) &&
+                        "bg-gray-500/10 text-gray-500"
                     )}
                   >
-                    <activity.icon className="h-4 w-4" />
+                    {activity.type === "applicant" && <Users className="h-4 w-4" />}
+                    {activity.type === "employer" && <Building2 className="h-4 w-4" />}
+                    {activity.type === "deployment" && <Globe className="h-4 w-4" />}
+                    {activity.type === "complaint" && <AlertTriangle className="h-4 w-4" />}
+                    {activity.type === "verification" && <Shield className="h-4 w-4" />}
+                    {(!activity.type || !["applicant", "employer", "deployment", "complaint", "verification"].includes(activity.type)) && <FileText className="h-4 w-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{activity.message}</p>
