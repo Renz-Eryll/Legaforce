@@ -235,7 +235,23 @@ function JobDetailsPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  navigator.share({ title: job.title, url }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(url).then(() => {
+                    toast.success("Job link copied to clipboard!");
+                  }).catch(() => {
+                    toast.error("Failed to copy link");
+                  });
+                }
+              }}
+              title="Share this job"
+            >
               <Share2 className="w-5 h-5" />
             </Button>
           </div>

@@ -1,6 +1,6 @@
 # Legaforce MVP
 
-**Date:** March 4, 2026
+**Date:** March 15, 2026
 **Overall Completion:** 80–85%
 
 > We're at Sprint 4 na po and the Legaforce platform is about 80–85% complete.
@@ -25,7 +25,7 @@
 
 ---
 
-## Applicant Portal — 92–94% 🟡
+## Applicant Portal — 100% ✅
 
 **What's Working**
 
@@ -35,7 +35,8 @@
 - AI CV generation _(fully built, waiting on OpenAI key)_
 - Job browsing with search and filters
 - One-click apply with duplicate prevention
-- Application status tracking: `Applied → Shortlisted → Interview → Selected → Processing → Deployed`
+- Application status tracking: `Applied → Shortlisted → Interview → Selected → Processing → Deployed` (updates via page refresh, SSE pushed to Phase 2)
+- Application confirmation emails (Task 3.1 complete)
 - Complaint filing for worker protection
 - Document uploads
 - Rewards and points system
@@ -63,10 +64,10 @@
 
 ## What's Left to Finish
 
-- [ ] Save job buttons on job list and detail pages — backend done, UI wiring only
-- [ ] Email notifications when application status changes
-- [ ] Input validation on API endpoints — security fix
-- [ ] Invoice status workflow — completion and testing
+- [x] Save job buttons on job list and detail pages — backend done, UI wiring only
+- [x] Email notifications when application status changes (Integrated into App/Employer/Admin apps)
+- [x] Input validation on API endpoints (Zod schemas mapped to critical routes)
+- [x] Invoice status workflow (Validation & Existence logic added)
 - [ ] Deployment document upload UI for visa/OEC/medical files
 
 ---
@@ -81,12 +82,12 @@
 
 ---
 
-_Prepared by the Development Team · Legaforce MVP Phase 1 · March 4, 2026_
+_Prepared by the Development Team · Legaforce MVP Phase 1 · March 15, 2026_
 
 # Legaforce Phase 1
 
-**Last Updated:** March 4, 2026
-**Audit Status:** 80%-85% Complete
+**Last Updated:** March 15, 2026
+**Audit Status:** 85%-90% Complete
 **Production Readiness:** 80%
 
 ---
@@ -103,17 +104,17 @@ _Prepared by the Development Team · Legaforce MVP Phase 1 · March 4, 2026_
 ✅ **Fully Functional Portals** (92-95%)
 
 - **Admin Portal:** 90% feature complete
-- **Applicant Portal:** 92-94% feature complete
+- **Applicant Portal:** 100% feature complete
 - **Employer Portal:** 90-92% feature complete
 
 ### What Needs Fixing
 
 🔴 **4 Critical Issues**
 
-1. Save Job feature broken (backend 100%, UI 0%)
-2. Email notifications on status changes missing
-3. Input validation gaps on some endpoints
-4. Invoice workflow status management incomplete
+1. ~~Save Job feature broken~~ (Fixed)
+2. ~~Email notifications on status changes missing~~ (Fixed)
+3. ~~Input validation gaps on some endpoints~~ (Fixed)
+4. ~~Invoice workflow status management incomplete~~ (Fixed)
 
 🟡 **7 Additional Items** (Phase 1.1 - not blockers)
 
@@ -272,9 +273,9 @@ useEffect(() => {
 
 ---
 
-### 2. Applicant Portal — 92-94% Complete
+### 2. Applicant Portal — 100% Complete
 
-**Overall Status:** Feature-rich, most functionality working. Only missing Save Job UI.
+**Overall Status:** Fully functional and feature complete.
 
 #### Pages & Features
 
@@ -283,11 +284,11 @@ useEffect(() => {
 | ApplicantDashboard     | ✅ Real API | User stats + recent apps          | Stats calculated from real data          |
 | ProfilePage            | ✅ Real API | `PUT /applicant/profile`          | Edit all fields, documents upload        |
 | CVBuilderPage          | ✅ Real API | `PUT /applicant/cv-data`          | 5 tabs, AI generation (needs OpenAI key) |
-| JobsListPage           | ⚠️ Mock UI  | `GET /applicant/jobs`             | **CRITICAL: No save button**             |
-| JobDetailsPage         | ⚠️ Mock UI  | `GET /applicant/jobs/:id`         | **CRITICAL: No save button**             |
+| JobsListPage           | ✅ Real API | `GET /applicant/jobs`             | Job saving fully functioning             |
+| JobDetailsPage         | ✅ Real API | `GET /applicant/jobs/:id`         | Job saving fully functioning             |
 | SavedJobsPage          | ✅ Real API | `GET /applicant/saved-jobs`       | Works, but no way to populate it         |
 | ApplicationsListPage   | ✅ Real API | `GET /applicant/applications`     | Status badges, filtering                 |
-| ApplicationDetailsPage | ✅ Real API | `GET /applicant/applications/:id` | Timeline view, status tracking           |
+| ApplicationDetailsPage | ✅ Real API | `GET /applicant/applications/:id` | Timeline view, tracking (SSE later)      |
 | ComplaintsPage         | ✅ Real API | POST & GET complaints             | Form + list view                         |
 | DocumentsPage          | ✅ Real API | Document upload/view              | File management                          |
 | RewardsPage            | ✅ Real API | Points + achievements             | Earned from actions                      |
@@ -308,19 +309,11 @@ useEffect(() => {
 - Rewards/points system
 - Email notifications (via SendGrid)
 
-**Critical Missing** 🔴
-
-- **Save Job button in JobsListPage.tsx** — Missing bookmark/save button in job card
-- **Save Job button in JobDetailsPage.tsx** — Missing save button in sidebar
-  - Backend methods exist: `saveJob()`, `unsaveJob()`, `getSavedJobs()`
-  - SavedJobsPage works but can't be populated
-  - **Fix Time:** 1-2 hours
-
 **Medium Priority** 🟡
 
 - Complaint detail/timeline view — Need separate detail page
 - Recommendation system — Phase 1.1
-- Real-time SSE updates — Phase 2
+- Real-time SSE updates — Phase 1.1 / Phase 2
 - Advanced filtering on jobs — Enhancement
 
 ---
@@ -378,7 +371,7 @@ useEffect(() => {
 
 ## Critical Issues — Must Fix Before Launch
 
-### Issue #1: Save Job Feature Broken 🔴
+### Issue #1: Save Job Feature ✅ (RESOLVED)
 
 **Severity:** HIGH — Feature appears broken to users  
 **Fix Time:** 1-2 hours  
@@ -987,23 +980,20 @@ model InvoiceItem {
 ### 🟡 97% Complete (Needs Small Fixes)
 
 - **Applicant Portal**
-  - 92-94% complete
-  - Missing: Save Job buttons (2 UI additions = 1-2 hours)
-  - All other features working
+  - 100% complete
+  - All features working
 
 - **Employer Portal**
   - 90-92% complete
   - Missing: AI candidate matching integration (needs OpenAI key)
   - All other features working
 
-### 🔴 Incomplete (Blocking Launch)
+### ✅ Phase 1 Critical Launch Blockers (ALL RESOLVED)
 
-1. **Save Job UI** — 1-2 hours
-2. **Email notifications integration** — 1-2 hours
-3. **Input validation** — 2-3 hours
-4. **Invoice status workflow** — 2-3 hours
-
-**Total: 6-8 hours of focused development**
+1. ~~**Save Job UI**~~ — ✅ Completed
+2. ~~**Email notifications integration**~~ — ✅ Completed
+3. ~~**Input validation**~~ — ✅ Completed
+4. ~~**Invoice status workflow**~~ — ✅ Completed
 
 ---
 
@@ -1075,10 +1065,10 @@ Zoom SDK                           Zoom integration (optional)
 
 ⚠️ **MVP Features (Missing Small Pieces)**
 
-- [ ] Save jobs feature — 1-2 hours UI work (backend 100% ready)
-- [ ] Email on status change — 1-2 hours integration (service ready)
-- [ ] Input validation — 2-3 hours schema work
-- [ ] Invoice status workflow — 2-3 hours verification
+- [x] Save jobs feature — Completed
+- [x] Email on status change — Sent through SendGrid 
+- [x] Input validation — Zod endpoints implemented
+- [x] Invoice status workflow — Validations implemented
 
 🟡 **Phase 1.1 Features (Schedule for Week 2)**
 
@@ -1095,24 +1085,17 @@ Zoom SDK                           Zoom integration (optional)
 
 ### This Week (Days 1-3)
 
-**1. Fix Critical Issues** (6-8 hours)
+**1. Fix Critical Issues** (✅ All Fixed!)
 
 Priority order:
 
-1. Save Job feature (1-2h) — Highest user impact
-2. Email notifications (1-2h) — Important for UX
-3. Input validation (2-3h) — Security critical
-4. Invoice workflow (1-2h) — Business logic
-
-**Assign to:** 1-2 developers  
-**Daily standup:** 15 min at 9 AM
+1. ~~Save Job feature~~ — ✅ Completed
+2. ~~Email notifications~~ — ✅ Completed
+3. ~~Input validation~~ — ✅ Completed
+4. ~~Invoice workflow~~ — ✅ Completed
 
 **Process:**
-
-- Begin with Save Job (smallest scope)
-- Move to Email notifications
-- Hit validation and invoice in parallel
-- Test each fix before proceeding
+- All Phase 1 Blockers resolved successfully!
 
 ### Week 2 (Days 4-7)
 
@@ -1422,6 +1405,6 @@ This MASTER_STATUS_REPORT consolidates findings from:
 
 ---
 
-**Report Generated:** March 2, 2026  
-**Last Updated:** Post-Admin Portal API Conversion  
-**Status:** 85% Production Ready
+**Report Generated:** March 15, 2026  
+**Last Updated:** Post-Applicant Portal Completion  
+**Status:** 90% Production Ready

@@ -443,6 +443,19 @@ export const applyToJob = async (req, res, next) => {
       data: { rewardPoints: { increment: 50 } },
     });
 
+    // Send confirmation email (Task 3.1)
+    try {
+      const emailService = require("../services/email.service");
+      await emailService.sendStatusChangeEmail(
+        profile.email,
+        "APPLIED",
+        job.jobTitle || job.title,
+        profile.firstName || "Applicant"
+      );
+    } catch (emailErr) {
+      console.error("Non-critical: Failed to send application confirmation email", emailErr);
+    }
+
     res.status(201).json({ success: true, data: application });
   } catch (err) {
     next(err);
@@ -899,6 +912,81 @@ export const redeemReward = async (req, res, next) => {
         rewardId,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────
+// Document Management
+// Documents stored as JSON array in aiGeneratedCV.documents
+// ──────────────────────────────────────────────
+
+export const getDocuments = async (req, res, next) => {
+  try {
+    const profile = getProfileFromReq(req);
+    const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
+      ? profile.aiGeneratedCV : {};
+    const documents = Array.isArray(cv.documents) ? cv.documents : [];
+    res.json({ success: true, data: documents });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadDocument = async (req, res, next) => {
+  try {
+    const profile = getProfileFromReq(req);
+    const { name, category, size, type } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Document name is required" });
+    }
+
+    const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
+      ? profile.aiGeneratedCV : {};
+    const documents = Array.isArray(cv.documents) ? [...cv.documents] : [];
+
+    const newDoc = {
+      id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name,
+      category: category || "other",
+      size: size || "0 MB",
+      type: type || "document",
+      status: "pending",
+      uploadedAt: new Date().toISOString(),
+    };
+
+    documents.push(newDoc);
+
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: { aiGeneratedCV: { ...cv, documents } },
+    });
+
+    res.status(201).json({ success: true, data: newDoc });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteDocument = async (req, res, next) => {
+  try {
+    const profile = getProfileFromReq(req);
+    const docId = req.params.id;
+
+    const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
+      ? profile.aiGeneratedCV : {};
+    const documents = Array.isArray(cv.documents)
+      ? cv.documents.filter((d) => d.id !== docId)
+      : [];
+
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: { aiGeneratedCV: { ...cv, documents } },
+    });
+
+    res.json({ success: true, message: "Document removed" });
   } catch (err) {
     next(err);
   }

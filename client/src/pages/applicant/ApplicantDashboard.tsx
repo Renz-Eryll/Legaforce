@@ -364,7 +364,7 @@ export default function ApplicantDashboard() {
               <h2 className="text-lg font-display font-semibold">
                 Notifications
               </h2>
-              <Button variant="ghost" size="sm" className="text-accent text-xs">
+              <Button variant="ghost" size="sm" className="text-accent text-xs" onClick={() => { setNotifications([]); toast.success("All notifications marked as read"); }}>
                 Mark all read
               </Button>
             </div>

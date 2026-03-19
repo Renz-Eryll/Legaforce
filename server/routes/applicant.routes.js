@@ -26,7 +26,16 @@ import {
   getRewardHistory,
   getRewardCatalog,
   redeemReward,
+  getDocuments,
+  uploadDocument,
+  deleteDocument,
 } from "../controllers/applicant.controller.js";
+
+import { validateRequest } from "../middlewares/validation.middleware.js";
+import {
+  jobApplicationSchema,
+  profileUpdateSchema,
+} from "../services/validation.service.js";
 
 const router = Router();
 
@@ -35,7 +44,7 @@ router.use(authorizeRoles("APPLICANT"));
 
 // Profile
 router.get("/profile", getProfile);
-router.put("/profile", updateProfile);
+router.put("/profile", validateRequest(profileUpdateSchema), updateProfile);
 router.get("/profile-completion", getProfileCompletion);
 router.get("/profile-views", getProfileViews);
 router.get("/match-score", getMatchScore);
@@ -57,7 +66,7 @@ router.post("/cv/generate", generateAICV);
 // Jobs (browse, save, apply)
 router.get("/jobs", getJobs);
 router.get("/jobs/:id", getJobById);
-router.post("/jobs/:id/apply", applyToJob);
+router.post("/jobs/:id/apply", validateRequest(jobApplicationSchema), applyToJob);
 
 // Saved Jobs
 router.get("/saved-jobs", getSavedJobs);
@@ -73,5 +82,10 @@ router.post("/rewards/redeem", redeemReward);
 // Dashboard data
 router.get("/notifications", getNotifications);
 router.get("/recommended-jobs", getRecommendedJobs);
+
+// Documents
+router.get("/documents", getDocuments);
+router.post("/documents", uploadDocument);
+router.delete("/documents/:id", deleteDocument);
 
 export default router;
