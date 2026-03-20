@@ -34,6 +34,11 @@ import {
   generateInvoice,
   getReports,
   getVerificationQueue,
+  getPlatformSettings,
+  updatePlatformSettings,
+  getDeploymentDocuments,
+  uploadDeploymentDocument,
+  deleteDeploymentDocument,
 } from "../controllers/admin.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -101,5 +106,14 @@ router.get("/reports", getReports);
 
 // Verification
 router.get("/verification-queue", getVerificationQueue);
+
+// Platform Settings
+router.get("/settings", getPlatformSettings);
+router.put("/settings", updatePlatformSettings);
+
+// Deployment Documents
+router.get("/deployments/:id/documents", getDeploymentDocuments);
+router.post("/deployments/:id/documents", uploadDeploymentDocument);
+router.delete("/deployment-documents/:docId", deleteDeploymentDocument);
 
 export default router;

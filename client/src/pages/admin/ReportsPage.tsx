@@ -11,6 +11,7 @@ import {
   Building2,
   Briefcase,
   Globe,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -171,6 +172,17 @@ function ReportsPage() {
     loadLiveData();
   }, [dateRange, reportType]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading reports...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial="initial"
@@ -296,39 +308,51 @@ function ReportsPage() {
         })}
       </motion.div>
 
-      {/* Additional Insights */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
-        <h3 className="text-lg font-semibold mb-4">Key Insights</h3>
-        <div className="space-y-3">
-          <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-            <p className="text-sm">
-              <span className="font-semibold">📈 Trending Up:</span> Applicant
-              registrations increased by 12% this month, indicating strong
-              platform adoption.
-            </p>
-          </div>
-          <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-            <p className="text-sm">
-              <span className="font-semibold"> Success Rate:</span> Current
-              deployment success rate stands at 98%, with an average processing
-              time of 18 days.
-            </p>
-          </div>
-          <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
-            <p className="text-sm">
-              <span className="font-semibold">💰 Revenue Growth:</span> Total
-              revenue reached ₱2.5M this month, up 22% from last month.
-            </p>
-          </div>
-          <div className="p-4 rounded-lg bg-purple-500/5 border border-purple-500/20">
-            <p className="text-sm">
-              <span className="font-semibold">🤝 Partner Growth:</span> 12 new
-              employers onboarded this month with an average trust score of
-              87.5.
-            </p>
-          </div>
-        </div>
-      </motion.div>
+      {/* Dynamic Insights — derived from live data */}
+      {!isLoading && reports.length > 0 && (() => {
+        const recruitment = reports.find(r => r.id === 1);
+        const deployment = reports.find(r => r.id === 2);
+        const financial = reports.find(r => r.id === 3);
+        const employers = reports.find(r => r.id === 4);
+        const totalApplicants = recruitment?.metrics[0]?.value || "0";
+        const totalDeployed = deployment?.metrics[0]?.value || "0";
+        const totalRevenue = financial?.metrics[0]?.value || "₱0";
+        const totalEmployers = employers?.metrics[0]?.value || "0";
+        const pendingVerification = employers?.metrics[2]?.value || "0";
+
+        return (
+          <motion.div variants={fadeInUp} className="card-premium p-6">
+            <h3 className="text-lg font-semibold mb-4">Key Insights</h3>
+            <div className="space-y-3">
+              <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                <p className="text-sm">
+                  <span className="font-semibold">📈 Recruitment:</span> Currently tracking{" "}
+                  <strong>{totalApplicants}</strong> applicants across all active job orders.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                <p className="text-sm">
+                  <span className="font-semibold">🌍 Deployments:</span>{" "}
+                  <strong>{totalDeployed}</strong> workers deployed to date.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                <p className="text-sm">
+                  <span className="font-semibold">💰 Revenue:</span> Total paid revenue stands
+                  at <strong>{totalRevenue}</strong>.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-purple-500/5 border border-purple-500/20">
+                <p className="text-sm">
+                  <span className="font-semibold">🤝 Employers:</span>{" "}
+                  <strong>{totalEmployers}</strong> partner employers onboarded,{" "}
+                  <strong>{pendingVerification}</strong> pending verification.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        );
+      })()}
     </motion.div>
   );
 }

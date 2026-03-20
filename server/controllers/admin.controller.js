@@ -1190,3 +1190,125 @@ export const getJobOrderDetail = async (req, res, next) => {
     next(err);
   }
 };
+
+// ── Platform Settings ──────────────────────────
+
+const DEFAULT_SETTINGS = {
+  platformName: "Legaforce Recruitment",
+  supportEmail: "support@legaforce.com",
+  defaultCurrency: "PHP",
+  notifyOnNewApplication: "true",
+  notifyOnComplaint: "true",
+  notifyOnDeployment: "true",
+  maintenanceMode: "false",
+  autoApproveVerifiedEmployers: "false",
+  maxApplicationsPerJob: "100",
+};
+
+export const getPlatformSettings = async (req, res, next) => {
+  try {
+    const settings = await prisma.platformSetting.findMany();
+
+    // Merge DB values over defaults
+    const result = { ...DEFAULT_SETTINGS };
+    for (const s of settings) {
+      result[s.key] = s.value;
+    }
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatePlatformSettings = async (req, res, next) => {
+  try {
+    const updates = req.body;
+
+    // Upsert each key
+    const ops = Object.entries(updates).map(([key, value]) =>
+      prisma.platformSetting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) },
+      })
+    );
+
+    await prisma.$transaction(ops);
+
+    // Return current settings
+    const settings = await prisma.platformSetting.findMany();
+    const result = { ...DEFAULT_SETTINGS };
+    for (const s of settings) {
+      result[s.key] = s.value;
+    }
+
+    res.json({ success: true, data: result, message: "Settings saved" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Deployment Documents ───────────────────────
+
+export const getDeploymentDocuments = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const documents = await prisma.deploymentDocument.findMany({
+      where: { deploymentId: id },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ success: true, data: documents });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadDeploymentDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { category, fileName, fileUrl, fileKey, fileSize, mimeType } = req.body;
+
+    // Validate deployment exists
+    const deployment = await prisma.deployment.findUnique({ where: { id } });
+    if (!deployment) {
+      return res.status(404).json({ success: false, message: "Deployment not found" });
+    }
+
+    const doc = await prisma.deploymentDocument.create({
+      data: {
+        deploymentId: id,
+        category: category || "OTHER",
+        fileName: fileName || "unknown",
+        fileUrl: fileUrl || "",
+        fileKey: fileKey || null,
+        fileSize: fileSize ? parseInt(fileSize) : null,
+        mimeType: mimeType || null,
+        uploadedBy: req.user?.id || null,
+      },
+    });
+
+    res.status(201).json({ success: true, data: doc });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteDeploymentDocument = async (req, res, next) => {
+  try {
+    const { docId } = req.params;
+
+    const doc = await prisma.deploymentDocument.findUnique({ where: { id: docId } });
+    if (!doc) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    await prisma.deploymentDocument.delete({ where: { id: docId } });
+
+    res.json({ success: true, message: "Document deleted" });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -20,6 +20,10 @@ import {
   Save,
   ArrowRight,
   Receipt,
+  Upload,
+  File,
+  Trash2,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +59,15 @@ const COMPLIANCE_STATUSES = [
   "EXPIRED",
 ];
 
+const DOCUMENT_CATEGORIES = [
+  { value: "MEDICAL", label: "Medical", icon: "🏥" },
+  { value: "VISA", label: "Visa", icon: "🛂" },
+  { value: "OEC", label: "OEC", icon: "📋" },
+  { value: "FLIGHT", label: "Flight", icon: "✈️" },
+  { value: "CONTRACT", label: "Contract", icon: "📝" },
+  { value: "OTHER", label: "Other", icon: "📁" },
+];
+
 const getComplianceBadge = (status: string) => {
   const configs: Record<string, string> = {
     PENDING: "bg-amber-500/10 text-amber-500 border-amber-500/20",
@@ -69,6 +82,7 @@ const getComplianceBadge = (status: string) => {
 function DeploymentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [deployment, setDeployment] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,6 +97,12 @@ function DeploymentDetailPage() {
   const [oecNumber, setOecNumber] = useState("");
   const [flightDate, setFlightDate] = useState("");
   const [arrivalDate, setArrivalDate] = useState("");
+
+  // Document upload state
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState("MEDICAL");
 
   useEffect(() => {
     const fetchDeployment = async () => {
@@ -109,6 +129,23 @@ function DeploymentDetailPage() {
     };
 
     fetchDeployment();
+  }, [id]);
+
+  // Load documents
+  useEffect(() => {
+    const fetchDocs = async () => {
+      if (!id) return;
+      try {
+        setIsLoadingDocs(true);
+        const response = await adminService.getDeploymentDocuments(id);
+        setDocuments(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoadingDocs(false);
+      }
+    };
+    fetchDocs();
   }, [id]);
 
   const handleSave = async () => {
@@ -151,6 +188,59 @@ function DeploymentDetailPage() {
     } finally {
       setIsGeneratingInvoice(false);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+
+    try {
+      setIsUploading(true);
+
+      // For now, create a local object URL as the file URL
+      // In production this would use the upload service (S3 / local)
+      const fileUrl = URL.createObjectURL(file);
+
+      await adminService.uploadDeploymentDocument(id, {
+        category: uploadCategory,
+        fileName: file.name,
+        fileUrl: fileUrl,
+        fileSize: file.size,
+        mimeType: file.type,
+      });
+
+      toast.success(`${file.name} uploaded successfully`);
+
+      // Refresh document list
+      const response = await adminService.getDeploymentDocuments(id);
+      setDocuments(response.data || []);
+    } catch (error) {
+      toast.error("Failed to upload document");
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string, fileName: string) => {
+    if (!confirm(`Delete "${fileName}"?`)) return;
+    try {
+      await adminService.deleteDeploymentDocument(docId);
+      setDocuments(documents.filter((d: any) => d.id !== docId));
+      toast.success("Document deleted");
+    } catch (error) {
+      toast.error("Failed to delete document");
+      console.error(error);
+    }
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
   if (isLoading) {
@@ -457,6 +547,117 @@ function DeploymentDetailPage() {
         </div>
       </motion.div>
 
+      {/* Deployment Documents */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <FileText className="w-5 h-5 text-accent" />
+            Deployment Documents
+          </h3>
+          <Badge variant="secondary">{documents.length} file(s)</Badge>
+        </div>
+
+        {/* Upload Area */}
+        <div className="p-5 rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1 w-full sm:w-auto">
+              <p className="text-sm font-medium mb-2">Upload New Document</p>
+              <div className="flex gap-3">
+                <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.icon} {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex-1 sm:flex-none"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  {isUploading ? "Uploading..." : "Choose File"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Accepted: PDF, DOC, DOCX, JPG, PNG (max 10MB)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Document List */}
+        {isLoadingDocs ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : documents.length === 0 ? (
+          <div className="text-center py-8">
+            <File className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">
+              No documents uploaded yet. Use the form above to add compliance files.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {documents.map((doc: any) => {
+              const cat = DOCUMENT_CATEGORIES.find(c => c.value === doc.category);
+              return (
+                <div
+                  key={doc.id}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-accent/30 transition-colors"
+                >
+                  <div className="p-2.5 rounded-lg bg-accent/10 shrink-0">
+                    <FileText className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {doc.fileName}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {cat?.icon} {cat?.label || doc.category}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatFileSize(doc.fileSize)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(doc.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-500/10 shrink-0"
+                    onClick={() => handleDeleteDoc(doc.id, doc.fileName)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
       {/* Created / Updated */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
         <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
@@ -483,3 +684,4 @@ function DeploymentDetailPage() {
 }
 
 export default DeploymentDetailPage;
+

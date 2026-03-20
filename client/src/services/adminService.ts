@@ -343,4 +343,65 @@ export const adminService = {
       throw error;
     }
   },
+
+  // ── Platform Settings ─────────────────────────
+
+  async getPlatformSettings() {
+    try {
+      const { data } = await api.get("/admin/settings");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch platform settings:", error);
+      throw error;
+    }
+  },
+
+  async updatePlatformSettings(settings: Record<string, string | boolean | number>) {
+    try {
+      const { data } = await api.put("/admin/settings", settings);
+      return data;
+    } catch (error) {
+      console.error("Failed to update platform settings:", error);
+      throw error;
+    }
+  },
+
+  // ── Deployment Documents ──────────────────────
+
+  async getDeploymentDocuments(deploymentId: string) {
+    try {
+      const { data } = await api.get(`/admin/deployments/${deploymentId}/documents`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch deployment documents:", error);
+      throw error;
+    }
+  },
+
+  async uploadDeploymentDocument(deploymentId: string, doc: {
+    category: string;
+    fileName: string;
+    fileUrl: string;
+    fileKey?: string;
+    fileSize?: number;
+    mimeType?: string;
+  }) {
+    try {
+      const { data } = await api.post(`/admin/deployments/${deploymentId}/documents`, doc);
+      return data;
+    } catch (error) {
+      console.error("Failed to upload deployment document:", error);
+      throw error;
+    }
+  },
+
+  async deleteDeploymentDocument(docId: string) {
+    try {
+      const { data } = await api.delete(`/admin/deployment-documents/${docId}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to delete deployment document:", error);
+      throw error;
+    }
+  },
 };

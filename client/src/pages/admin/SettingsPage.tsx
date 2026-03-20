@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -9,11 +9,14 @@ import {
   Save,
   AlertCircle,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -41,12 +44,70 @@ function SettingsPage() {
     maxApplicationsPerJob: 100,
   });
 
-  const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setIsLoading(true);
+        const response = await adminService.getPlatformSettings();
+        if (response?.data) {
+          const d = response.data;
+          setSettings({
+            platformName: d.platformName || "Legaforce Recruitment",
+            supportEmail: d.supportEmail || "support@legaforce.com",
+            defaultCurrency: d.defaultCurrency || "PHP",
+            notifyOnNewApplication: d.notifyOnNewApplication === "true",
+            notifyOnComplaint: d.notifyOnComplaint === "true",
+            notifyOnDeployment: d.notifyOnDeployment === "true",
+            maintenanceMode: d.maintenanceMode === "true",
+            autoApproveVerifiedEmployers: d.autoApproveVerifiedEmployers === "true",
+            maxApplicationsPerJob: parseInt(d.maxApplicationsPerJob) || 100,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await adminService.updatePlatformSettings({
+        platformName: settings.platformName,
+        supportEmail: settings.supportEmail,
+        defaultCurrency: settings.defaultCurrency,
+        notifyOnNewApplication: String(settings.notifyOnNewApplication),
+        notifyOnComplaint: String(settings.notifyOnComplaint),
+        notifyOnDeployment: String(settings.notifyOnDeployment),
+        maintenanceMode: String(settings.maintenanceMode),
+        autoApproveVerifiedEmployers: String(settings.autoApproveVerifiedEmployers),
+        maxApplicationsPerJob: String(settings.maxApplicationsPerJob),
+      });
+      toast.success("Settings saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save settings");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -64,19 +125,6 @@ function SettingsPage() {
           Configure platform behavior and notifications
         </p>
       </motion.div>
-
-      {/* Success Message */}
-      {saved && (
-        <motion.div
-          variants={fadeInUp}
-          className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3"
-        >
-          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
-          <p className="text-sm text-emerald-700">
-            Settings saved successfully!
-          </p>
-        </motion.div>
-      )}
 
       {/* General Settings */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
@@ -142,7 +190,7 @@ function SettingsPage() {
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  maxApplicationsPerJob: parseInt(e.target.value),
+                  maxApplicationsPerJob: parseInt(e.target.value) || 0,
                 })
               }
               placeholder="100"
@@ -279,30 +327,19 @@ function SettingsPage() {
           <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
             <p className="text-sm font-medium mb-2">API Endpoints Status</p>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Authentication API</span>
-                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                  Active
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Application API</span>
-                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                  Active
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Deployment API</span>
-                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                  Active
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Analytics API</span>
-                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                  Active
-                </Badge>
-              </div>
+              {[
+                "Authentication API",
+                "Application API",
+                "Deployment API",
+                "Analytics API",
+              ].map((api) => (
+                <div key={api} className="flex items-center justify-between">
+                  <span className="text-sm">{api}</span>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                    Active
+                  </Badge>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -335,12 +372,19 @@ function SettingsPage() {
 
       {/* Save Button */}
       <motion.div variants={fadeInUp} className="flex justify-end gap-3">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Reset
+        </Button>
         <Button
           className="gradient-bg-accent text-accent-foreground"
           onClick={handleSave}
+          disabled={isSaving}
         >
-          <Save className="w-4 h-4 mr-2" />
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
           Save Settings
         </Button>
       </motion.div>
