@@ -163,6 +163,7 @@ model Deployment {
   updatedAt         DateTime         @updatedAt
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documents   DeploymentDocument[]
 
   @@index([applicationId])
 }
@@ -258,4 +259,44 @@ model Invoice {
 
   @@index([employerId])
   @@index([status])
+}
+
+// ==================== Platform Settings ====================
+
+model PlatformSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ==================== Deployment Documents ====================
+
+enum DocumentCategory {
+  MEDICAL
+  VISA
+  OEC
+  FLIGHT
+  CONTRACT
+  OTHER
+}
+
+model DeploymentDocument {
+  id           String           @id @default(cuid())
+  deploymentId String
+  category     DocumentCategory
+  fileName     String
+  fileUrl      String
+  fileKey      String?
+  fileSize     Int?
+  mimeType     String?
+  uploadedBy   String?
+  createdAt    DateTime         @default(now())
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId])
+  @@index([category])
 }

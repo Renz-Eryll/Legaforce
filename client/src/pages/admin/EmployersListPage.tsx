@@ -12,6 +12,9 @@ import {
   Plus,
   MapPin,
   Loader2,
+  ShieldCheck,
+  UserX,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,33 +76,71 @@ function EmployersListPage() {
   const filteredEmployers = employers.filter((employer) => {
     const matchesSearch =
       employer.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employer.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      employer.user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || employer.verificationStatus === statusFilter;
+      statusFilter === "all" ||
+      (statusFilter === "verified" && employer.isVerified) ||
+      (statusFilter === "unverified" && !employer.isVerified) ||
+      (statusFilter === "active" && employer.user?.isActive) ||
+      (statusFilter === "inactive" && !employer.user?.isActive);
     return matchesSearch && matchesStatus;
   });
 
   const employerStats = {
     total: employers.length,
-    verified: employers.filter((e) => e.verificationStatus === "verified")
-      .length,
-    pending: employers.filter((e) => e.verificationStatus === "pending").length,
-    activeJobs: employers.reduce((sum, e) => sum + (e.jobOrderCount || 0), 0),
+    verified: employers.filter((e) => e.isVerified).length,
+    pending: employers.filter((e) => !e.isVerified).length,
+    activeJobs: employers.reduce(
+      (sum, e) => sum + (e._count?.jobOrders || 0),
+      0,
+    ),
   };
 
-  const getStatusBadge = (status: string) => {
-    const configs: Record<string, { className: string }> = {
-      verified: {
-        className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-      },
-      pending: {
-        className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      },
-      unverified: {
-        className: "bg-red-500/10 text-red-500 border-red-500/20",
-      },
-    };
-    return configs[status] || configs.pending;
+  const getStatusBadge = (isVerified: boolean) => {
+    return isVerified
+      ? {
+          className:
+            "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+          label: "Verified",
+        }
+      : {
+          className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+          label: "Pending",
+        };
+  };
+
+  const handleVerify = async (employerId: string) => {
+    try {
+      await adminService.verifyEmployer(employerId, true);
+      setEmployers((prev) =>
+        prev.map((e) =>
+          e.id === employerId ? { ...e, isVerified: true } : e,
+        ),
+      );
+      toast.success("Employer verified successfully");
+    } catch (error) {
+      toast.error("Failed to verify employer");
+      console.error(error);
+    }
+  };
+
+  const handleToggleActive = async (userId: string) => {
+    try {
+      const result = await adminService.toggleUserActive(userId);
+      setEmployers((prev) =>
+        prev.map((e) =>
+          e.userId === userId
+            ? { ...e, user: { ...e.user, isActive: result.data.isActive } }
+            : e,
+        ),
+      );
+      toast.success(
+        result.data.isActive ? "User activated" : "User deactivated",
+      );
+    } catch (error) {
+      toast.error("Failed to toggle user status");
+      console.error(error);
+    }
   };
 
   return (
@@ -186,8 +227,9 @@ function EmployersListPage() {
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="verified">Verified</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="unverified">Unverified</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -234,27 +276,53 @@ function EmployersListPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {employer.email}
+                      {employer.user?.email || "-"}
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
                         className={
-                          getStatusBadge(employer.verificationStatus).className
+                          getStatusBadge(employer.isVerified).className
                         }
                       >
-                        {employer.verificationStatus}
+                        {getStatusBadge(employer.isVerified).label}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(employer.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Link to={`/admin/employers/${employer.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <ChevronRight className="w-4 h-4" />
+                      <div className="flex items-center gap-1">
+                        <Link to={`/admin/employers/${employer.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        {!employer.isVerified && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-600 hover:text-emerald-700"
+                            onClick={() => handleVerify(employer.id)}
+                            title="Verify Employer"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={employer.user?.isActive ? "text-red-500 hover:text-red-600" : "text-emerald-500 hover:text-emerald-600"}
+                          onClick={() => handleToggleActive(employer.userId)}
+                          title={employer.user?.isActive ? "Deactivate" : "Activate"}
+                        >
+                          {employer.user?.isActive ? (
+                            <UserX className="w-4 h-4" />
+                          ) : (
+                            <UserCheck className="w-4 h-4" />
+                          )}
                         </Button>
-                      </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

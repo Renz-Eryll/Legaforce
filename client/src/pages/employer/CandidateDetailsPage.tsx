@@ -15,10 +15,18 @@ import {
   Download,
   Loader2,
   Users,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { employerService } from "@/services/employerService";
 import { toast } from "sonner";
 
@@ -134,16 +142,52 @@ function CandidateDetailsPage() {
           </div>
         </div>
 
-        {/* Match Score */}
-        {candidate.matchScore > 0 && (
-          <div className="p-4 bg-secondary rounded-lg">
+        {/* Match Score & Status */}
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <div className="flex-1 p-4 bg-secondary rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-sm font-medium">Job Match Score</p>
-              <Badge>{candidate.matchScore}%</Badge>
+              <p className="text-sm font-medium">Current Status</p>
+              <Select
+                value={candidate.status?.toUpperCase() || "APPLIED"}
+                onValueChange={async (val) => {
+                  if (!candidate.applicationId) return;
+                  try {
+                    await employerService.updateApplicationStatus(candidate.applicationId, { status: val });
+                    setCandidate({ ...candidate, status: val });
+                    toast.success(`Candidate status changed to ${val.toLowerCase()}`);
+                  } catch (e) {
+                    toast.error("Failed to update status");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-36 h-8 text-xs bg-background">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="APPLIED">Applied</SelectItem>
+                  <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
+                  <SelectItem value="INTERVIEWED">Interviewed</SelectItem>
+                  <SelectItem value="SELECTED">Selected</SelectItem>
+                  <SelectItem value="PROCESSING">Processing</SelectItem>
+                  <SelectItem value="DEPLOYED">Deployed</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Progress value={candidate.matchScore} className="h-2" />
+            <Badge className="text-sm px-3 py-1 shadow-sm capitalize">
+              {candidate.status?.toLowerCase() || "Applied"}
+            </Badge>
           </div>
-        )}
+          {candidate.matchScore > 0 && (
+            <div className="flex-1 p-4 bg-secondary rounded-lg">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm font-medium">Job Match Score</p>
+                <Badge>{candidate.matchScore}%</Badge>
+              </div>
+              <Progress value={candidate.matchScore} className="h-2" />
+            </div>
+          )}
+        </div>
       </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -214,17 +258,56 @@ function CandidateDetailsPage() {
             className="card-premium p-6 sticky top-20"
           >
             <div className="space-y-4">
-              <Button className="w-full gradient-bg-accent text-accent-foreground">
+              <Button className="w-full gradient-bg-accent text-accent-foreground" onClick={() => toast.info("Messaging feature coming soon!")}>
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Send Message
               </Button>
-              <Button className="w-full" variant="outline">
-                Schedule Video Interview
+              <Button 
+                className="w-full" 
+                variant="outline"
+                disabled={candidate.status === "SHORTLISTED" || candidate.status === "INTERVIEWED" || candidate.status === "SELECTED" || candidate.status === "DEPLOYED"}
+                onClick={async () => {
+                  if (!candidate.applicationId) return;
+                  try {
+                    await employerService.updateApplicationStatus(candidate.applicationId, { status: "SHORTLISTED" });
+                    setCandidate({ ...candidate, status: "SHORTLISTED" });
+                    toast.success("Candidate shortlisted. Video interview link generated!");
+                  } catch (e: any) {
+                    toast.error("Failed to update status");
+                  }
+                }}
+              >
+                {candidate.status === "SHORTLISTED" || candidate.status === "INTERVIEWED" ? (
+                  <><CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Shortlisted</>
+                ) : (
+                  "Shortlist & Video Interview"
+                )}
               </Button>
-              <Button className="w-full" variant="outline">
-                Make Offer
+              <Button 
+                className="w-full" 
+                variant="outline"
+                disabled={candidate.status === "SELECTED" || candidate.status === "DEPLOYED"}
+                onClick={async () => {
+                  if (!candidate.applicationId) return;
+                  try {
+                    await employerService.updateApplicationStatus(candidate.applicationId, { status: "SELECTED" });
+                    setCandidate({ ...candidate, status: "SELECTED" });
+                    toast.success("Candidate selected. An offer has been generated.");
+                  } catch (e: any) {
+                    toast.error("Failed to update status");
+                  }
+                }}
+              >
+                {candidate.status === "SELECTED" || candidate.status === "DEPLOYED" ? (
+                  <><CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Selected</>
+                ) : (
+                  "Make Offer / Select"
+                )}
               </Button>
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="outline" onClick={() => {
+                toast.success("Preparing PDF... Use your browser's Print dialog to save.");
+                setTimeout(() => window.print(), 500);
+              }}>
                 <Download className="w-4 h-4 mr-2" />
                 Download CV
               </Button>

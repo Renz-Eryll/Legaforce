@@ -73,8 +73,25 @@ function ComplaintsListPage() {
     const matchesSearch =
       applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       complaint.category?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    const matchesStatus =
+      statusFilter === "all" || complaint.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
+
+  const handleQuickStatusChange = async (complaintId: string, newStatus: string) => {
+    try {
+      await adminService.updateComplaint(complaintId, { status: newStatus });
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c.id === complaintId ? { ...c, status: newStatus } : c,
+        ),
+      );
+      toast.success(`Complaint ${newStatus.toLowerCase().replace("_", " ")}`);
+    } catch (error) {
+      toast.error("Failed to update complaint");
+      console.error(error);
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
@@ -244,13 +261,40 @@ function ComplaintsListPage() {
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(complaint.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>
-                      <Link to={`/admin/complaints/${complaint.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Link to={`/admin/complaints/${complaint.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <ChevronRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          {complaint.status !== "RESOLVED" &&
+                            complaint.status !== "CLOSED" && (
+                              <Select
+                                onValueChange={(val) =>
+                                  handleQuickStatusChange(complaint.id, val)
+                                }
+                              >
+                                <SelectTrigger className="h-8 w-[110px] text-xs">
+                                  <SelectValue placeholder="Action..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {complaint.status === "SUBMITTED" && (
+                                    <SelectItem value="UNDER_REVIEW">
+                                      Start Review
+                                    </SelectItem>
+                                  )}
+                                  <SelectItem value="ESCALATED">
+                                    Escalate
+                                  </SelectItem>
+                                  <SelectItem value="RESOLVED">
+                                    Resolve
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                        </div>
+                      </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

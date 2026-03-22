@@ -11,6 +11,7 @@ import {
   Calendar,
   FileText,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +79,23 @@ function InvoicesPage() {
         .includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      await adminService.updateInvoiceStatus(invoiceId, "PAID");
+      setInvoices((prev) =>
+        prev.map((inv) =>
+          inv.id === invoiceId
+            ? { ...inv, status: "PAID", paidAt: new Date().toISOString() }
+            : inv,
+        ),
+      );
+      toast.success("Invoice marked as paid");
+    } catch (error) {
+      toast.error("Failed to update invoice");
+      console.error(error);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const configs: Record<string, string> = {
@@ -248,11 +266,23 @@ function InvoicesPage() {
                           : "—"}
                       </TableCell>
                       <TableCell>
-                        <Link to={`/admin/invoices/${invoice.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-1">
+                          <Link to={`/admin/invoices/${invoice.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <ChevronRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          {invoice.status !== "PAID" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-emerald-600 hover:text-emerald-700"
+                              onClick={() => handleMarkAsPaid(invoice.id)}
+                            >
+                              <CreditCard className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

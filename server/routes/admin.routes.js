@@ -12,8 +12,10 @@ import {
   getEmployerDetail,
   verifyEmployer,
   toggleUserActive,
+  getUserDetail,
   getJobOrders,
   getJobOrderCount,
+  getJobOrderDetail,
   updateJobOrderStatus,
   getApplications,
   getApplicationDetail,
@@ -24,11 +26,19 @@ import {
   getDeploymentStats,
   updateDeployment,
   getComplaints,
+  getComplaintDetail,
   updateComplaint,
   getInvoices,
+  getInvoiceDetail,
   updateInvoiceStatus,
+  generateInvoice,
   getReports,
   getVerificationQueue,
+  getPlatformSettings,
+  updatePlatformSettings,
+  getDeploymentDocuments,
+  uploadDeploymentDocument,
+  deleteDeploymentDocument,
 } from "../controllers/admin.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -59,11 +69,13 @@ router.get("/employers/:id", getEmployerDetail);
 router.patch("/employers/:id/verify", verifyEmployer);
 
 // Users
+router.get("/users/:id", getUserDetail);
 router.patch("/users/:id/toggle-active", toggleUserActive);
 
 // Job Orders
 router.get("/job-orders", getJobOrders);
 router.get("/job-order-count", getJobOrderCount);
+router.get("/job-orders/:id", getJobOrderDetail);
 router.patch("/job-orders/:id/status", updateJobOrderStatus);
 
 // Applications
@@ -80,11 +92,14 @@ router.patch("/deployments/:id", validateRequest(deploymentUpdateSchema), update
 
 // Complaints
 router.get("/complaints", getComplaints);
+router.get("/complaints/:id", getComplaintDetail);
 router.patch("/complaints/:id", validateRequest(complaintUpdateSchema), updateComplaint);
 
 // Invoices
 router.get("/invoices", getInvoices);
+router.get("/invoices/:id", getInvoiceDetail);
 router.patch("/invoices/:id/status", updateInvoiceStatus);
+router.post("/invoices/generate", generateInvoice);
 
 // Reports
 router.get("/reports", getReports);
@@ -92,5 +107,13 @@ router.get("/reports", getReports);
 // Verification
 router.get("/verification-queue", getVerificationQueue);
 
-export default router;
+// Platform Settings
+router.get("/settings", getPlatformSettings);
+router.put("/settings", updatePlatformSettings);
 
+// Deployment Documents
+router.get("/deployments/:id/documents", getDeploymentDocuments);
+router.post("/deployments/:id/documents", uploadDeploymentDocument);
+router.delete("/deployment-documents/:docId", deleteDeploymentDocument);
+
+export default router;

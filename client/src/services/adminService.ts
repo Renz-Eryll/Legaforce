@@ -31,8 +31,6 @@ export const adminService = {
     }
   },
 
-
-
   async getDeploymentStats() {
     try {
       const { data } = await api.get("/admin/deployment-stats");
@@ -160,6 +158,28 @@ export const adminService = {
     }
   },
 
+  async getJobOrderDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/job-orders/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch job order detail:", error);
+      throw error;
+    }
+  },
+
+  async updateJobOrderStatus(id: string, status: string) {
+    try {
+      const { data } = await api.patch(`/admin/job-orders/${id}/status`, {
+        status,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to update job order status:", error);
+      throw error;
+    }
+  },
+
   async getInvoices(status?: string) {
     try {
       let url = "/admin/invoices";
@@ -168,6 +188,16 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
+      throw error;
+    }
+  },
+
+  async getInvoiceDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/invoices/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch invoice detail:", error);
       throw error;
     }
   },
@@ -184,6 +214,18 @@ export const adminService = {
     }
   },
 
+  async generateInvoice(deploymentId: string) {
+    try {
+      const { data } = await api.post("/admin/invoices/generate", {
+        deploymentId,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to generate invoice:", error);
+      throw error;
+    }
+  },
+
   async getComplaints(status?: string) {
     try {
       let url = "/admin/complaints";
@@ -192,6 +234,16 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to fetch complaints:", error);
+      throw error;
+    }
+  },
+
+  async getComplaintDetail(id: string) {
+    try {
+      const { data } = await api.get(`/admin/complaints/${id}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch complaint detail:", error);
       throw error;
     }
   },
@@ -288,6 +340,67 @@ export const adminService = {
       return data;
     } catch (error) {
       console.error("Failed to fetch user detail:", error);
+      throw error;
+    }
+  },
+
+  // ── Platform Settings ─────────────────────────
+
+  async getPlatformSettings() {
+    try {
+      const { data } = await api.get("/admin/settings");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch platform settings:", error);
+      throw error;
+    }
+  },
+
+  async updatePlatformSettings(settings: Record<string, string | boolean | number>) {
+    try {
+      const { data } = await api.put("/admin/settings", settings);
+      return data;
+    } catch (error) {
+      console.error("Failed to update platform settings:", error);
+      throw error;
+    }
+  },
+
+  // ── Deployment Documents ──────────────────────
+
+  async getDeploymentDocuments(deploymentId: string) {
+    try {
+      const { data } = await api.get(`/admin/deployments/${deploymentId}/documents`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch deployment documents:", error);
+      throw error;
+    }
+  },
+
+  async uploadDeploymentDocument(deploymentId: string, doc: {
+    category: string;
+    fileName: string;
+    fileUrl: string;
+    fileKey?: string;
+    fileSize?: number;
+    mimeType?: string;
+  }) {
+    try {
+      const { data } = await api.post(`/admin/deployments/${deploymentId}/documents`, doc);
+      return data;
+    } catch (error) {
+      console.error("Failed to upload deployment document:", error);
+      throw error;
+    }
+  },
+
+  async deleteDeploymentDocument(docId: string) {
+    try {
+      const { data } = await api.delete(`/admin/deployment-documents/${docId}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to delete deployment document:", error);
       throw error;
     }
   },

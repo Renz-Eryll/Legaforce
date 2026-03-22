@@ -254,12 +254,12 @@ export function DashboardLayout({
             if (stats && stats.data) {
               const d = stats.data;
               setBadges({
-                applicants: d.applicantCount || 0,
-                employers: d.employerCount || 0,
-                jobOrders: d.jobOrderCount || 0,
-                applications: d.applicationCount || 0,
-                complaints: d.complaintCount || 0,
-                deployments: d.deploymentCount || 0,
+                applicants: d.totalApplicants || 0,
+                employers: d.totalEmployers || 0,
+                jobOrders: d.totalJobOrders || 0,
+                applications: d.totalApplications || 0,
+                complaints: d.totalComplaints || 0,
+                deployments: d.totalDeployments || 0,
               });
             }
           } catch (e) {
