@@ -87,9 +87,384 @@ const mockCVData = {
 };
 
 function CVBuilderPage() {
+<<<<<<< Updated upstream
   const [activeTab, setActiveTab] = useState("preview");
   const [cvData, setCVData] = useState(mockCVData);
   const [isEditing, setIsEditing] = useState(false);
+=======
+  const [currentStep, setCurrentStep] = useState(0);
+  const [cvData, setCVData] = useState<CVData>(initialCVData);
+  const [aiGenerated, setAiGenerated] = useState<{
+    cvSummary?: string;
+    skillTags?: string[];
+    keyStrengths?: string[];
+    profileReady?: boolean;
+  } | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingCV, setIsLoadingCV] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const stepId = STEPS[currentStep].id;
+  const isLastStep = currentStep === STEPS.length - 1;
+  const isFirstStep = currentStep === 0;
+
+  // Load existing CV data and profile on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoadingCV(true);
+        const [cvRes, profileRes] = await Promise.allSettled([
+          applicantService.getCV(),
+          applicantService.getProfile(),
+        ]);
+
+        let loadedCV = initialCVData;
+        
+        // First populate from profile
+        if (profileRes.status === "fulfilled" && profileRes.value) {
+          const p = profileRes.value;
+          loadedCV = {
+            ...loadedCV,
+            personalInfo: {
+              fullName: `${p.firstName || ""} ${p.lastName || ""}`.trim(),
+              email: p.email || "",
+              phone: p.phone || "",
+              location: p.nationality || "",
+              bio: "",
+            },
+          };
+        }
+
+        // Then overlay CV data if it exists
+        if (cvRes.status === "fulfilled" && cvRes.value && typeof cvRes.value === "object") {
+          const cv = cvRes.value;
+          loadedCV = {
+            personalInfo: {
+              fullName: cv.personalInfo?.fullName || loadedCV.personalInfo.fullName,
+              email: cv.personalInfo?.email || loadedCV.personalInfo.email,
+              phone: cv.personalInfo?.phone || loadedCV.personalInfo.phone,
+              location: cv.personalInfo?.location || loadedCV.personalInfo.location,
+              bio: cv.personalInfo?.bio || cv.summary || "",
+            },
+            summary: cv.summary || cv.cvSummary || "",
+            experience: Array.isArray(cv.experience) ? cv.experience.map((e: any, i: number) => ({
+              id: e.id || `exp-${i}`,
+              position: e.position || e.title || "",
+              employer: e.employer || e.company || "",
+              startDate: e.startDate || "",
+              endDate: e.endDate || "",
+              description: e.description || "",
+            })) : [],
+            education: Array.isArray(cv.education) ? cv.education.map((e: any, i: number) => ({
+              id: e.id || `edu-${i}`,
+              school: e.school || e.institution || "",
+              degree: e.degree || "",
+              year: e.year || "",
+            })) : [],
+            skills: Array.isArray(cv.skills) ? cv.skills : (Array.isArray(cv.skillTags) ? cv.skillTags : []),
+            certifications: Array.isArray(cv.certifications) ? cv.certifications.map((c: any, i: number) => ({
+              id: c.id || `cert-${i}`,
+              name: c.name || "",
+              issuer: c.issuer || "",
+              year: c.year || "",
+            })) : [],
+          };
+
+          // If AI has been generated before, show it
+          if (cv.cvSummary || cv.profileReady) {
+            setAiGenerated({
+              cvSummary: cv.cvSummary || cv.summary || "",
+              skillTags: cv.skillTags || cv.skills || [],
+              profileReady: cv.profileReady || false,
+            });
+          }
+        }
+
+        setCVData(loadedCV);
+      } catch (error) {
+        console.error("Failed to load CV data:", error);
+      } finally {
+        setIsLoadingCV(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleNext = () => {
+    if (!isLastStep) setCurrentStep((s) => s + 1);
+  };
+  const handlePrev = () => {
+    if (!isFirstStep) setCurrentStep((s) => s - 1);
+  };
+
+  const markChanged = () => setHasUnsavedChanges(true);
+
+  const updatePersonal = (field: keyof CVData["personalInfo"], value: string) => {
+    setCVData((d) => ({
+      ...d,
+      personalInfo: { ...d.personalInfo, [field]: value },
+    }));
+    markChanged();
+  };
+
+  const addExperience = () => {
+    setCVData((d) => ({
+      ...d,
+      experience: [
+        ...d.experience,
+        {
+          id: `exp-${Date.now()}`,
+          position: "",
+          employer: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        },
+      ],
+    }));
+    markChanged();
+  };
+
+  const updateExperience = (index: number, field: string, value: string) => {
+    setCVData((d) => {
+      const next = [...d.experience];
+      (next[index] as Record<string, string>)[field] = value;
+      return { ...d, experience: next };
+    });
+    markChanged();
+  };
+
+  const removeExperience = (index: number) => {
+    setCVData((d) => ({
+      ...d,
+      experience: d.experience.filter((_, i) => i !== index),
+    }));
+    markChanged();
+  };
+
+  const addEducation = () => {
+    setCVData((d) => ({
+      ...d,
+      education: [
+        ...d.education,
+        { id: `edu-${Date.now()}`, school: "", degree: "", year: "" },
+      ],
+    }));
+    markChanged();
+  };
+
+  const updateEducation = (index: number, field: string, value: string) => {
+    setCVData((d) => {
+      const next = [...d.education];
+      (next[index] as Record<string, string>)[field] = value;
+      return { ...d, education: next };
+    });
+    markChanged();
+  };
+
+  const removeEducation = (index: number) => {
+    setCVData((d) => ({
+      ...d,
+      education: d.education.filter((_, i) => i !== index),
+    }));
+    markChanged();
+  };
+
+  const addSkill = (skill: string) => {
+    const trimmed = skill.trim();
+    if (trimmed && !cvData.skills.includes(trimmed)) {
+      setCVData((d) => ({ ...d, skills: [...d.skills, trimmed] }));
+      markChanged();
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setCVData((d) => ({
+      ...d,
+      skills: d.skills.filter((s) => s !== skill),
+    }));
+    markChanged();
+  };
+
+  const addCertification = () => {
+    setCVData((d) => ({
+      ...d,
+      certifications: [
+        ...d.certifications,
+        { id: `cert-${Date.now()}`, name: "", issuer: "", year: "" },
+      ],
+    }));
+    markChanged();
+  };
+
+  const updateCertification = (index: number, field: string, value: string) => {
+    setCVData((d) => {
+      const next = [...d.certifications];
+      (next[index] as Record<string, string>)[field] = value;
+      return { ...d, certifications: next };
+    });
+    markChanged();
+  };
+
+  const removeCertification = (index: number) => {
+    setCVData((d) => ({
+      ...d,
+      certifications: d.certifications.filter((_, i) => i !== index),
+    }));
+    markChanged();
+  };
+
+  // Save CV data to the backend
+  const saveCV = async () => {
+    setIsSaving(true);
+    try {
+      await applicantService.saveCV({
+        personalInfo: cvData.personalInfo,
+        summary: cvData.personalInfo.bio || cvData.summary,
+        experience: cvData.experience,
+        education: cvData.education,
+        skills: cvData.skills,
+        certifications: cvData.certifications,
+      });
+      setHasUnsavedChanges(false);
+      toast.success("CV saved successfully!");
+    } catch (error) {
+      console.error("Failed to save CV:", error);
+      toast.error("Failed to save CV. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Generate AI CV from current form input (server merges with saved CV and persists)
+  const generateWithAI = async () => {
+    setIsGenerating(true);
+    try {
+      const snapshot = {
+        personalInfo: cvData.personalInfo,
+        summary: cvData.personalInfo.bio || cvData.summary,
+        experience: cvData.experience,
+        education: cvData.education,
+        skills: cvData.skills,
+        certifications: cvData.certifications,
+      };
+      const result = await applicantService.generateAICV(snapshot);
+      if (result && typeof result === "object") {
+        const pi = (result as { personalInfo?: CVData["personalInfo"] }).personalInfo;
+        if (pi) {
+          setCVData((d) => ({
+            ...d,
+            personalInfo: {
+              fullName: pi.fullName ?? d.personalInfo.fullName,
+              email: pi.email ?? d.personalInfo.email,
+              phone: pi.phone ?? d.personalInfo.phone,
+              location: pi.location ?? d.personalInfo.location,
+              bio: pi.bio ?? d.personalInfo.bio,
+            },
+          }));
+        }
+      }
+      setAiGenerated({
+        cvSummary: result?.cvSummary || result?.summary || "CV generated successfully",
+        skillTags: result?.skillTags || result?.skills || cvData.skills,
+        keyStrengths: result?.keyStrengths || [],
+        profileReady: result?.profileReady || true,
+      });
+      setHasUnsavedChanges(false);
+      toast.success("AI CV generated successfully! Your profile is now employer-ready.");
+    } catch (error) {
+      console.error("Failed to generate AI CV:", error);
+      toast.error("Failed to generate AI CV. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Download CV as PDF via print dialog
+  const downloadAsPDF = () => {
+    const name = cvData.personalInfo.fullName || "CV";
+    const summary = aiGenerated?.cvSummary || cvData.personalInfo.bio || cvData.summary || "";
+
+    const expHtml = cvData.experience.length > 0
+      ? `<h2>Work Experience</h2>` + cvData.experience.map((e) =>
+          `<div class="entry"><div class="entry-header"><strong>${e.position || "—"}</strong><span>${e.startDate || ""} – ${e.endDate || ""}</span></div><div class="sub">${e.employer || ""}</div>${e.description ? `<p>${e.description}</p>` : ""}</div>`
+        ).join("")
+      : "";
+
+    const eduHtml = cvData.education.length > 0
+      ? `<h2>Education</h2>` + cvData.education.map((e) =>
+          `<div class="entry"><strong>${e.degree || "—"}</strong> — ${e.school || ""} (${e.year || ""})</div>`
+        ).join("")
+      : "";
+
+    const skillsHtml = cvData.skills.length > 0
+      ? `<h2>Skills</h2><p>${cvData.skills.join(" • ")}</p>`
+      : "";
+
+    const certsHtml = cvData.certifications.length > 0
+      ? `<h2>Certifications</h2><p>${cvData.certifications.map((c) => `${c.name}${c.issuer ? ` (${c.issuer})` : ""}${c.year ? `, ${c.year}` : ""}`).join(" • ")}</p>`
+      : "";
+
+    const strengthsHtml = aiGenerated?.keyStrengths?.length
+      ? `<h2>Key Strengths</h2><ul>${(aiGenerated.keyStrengths as string[]).map((s: string) => `<li>${s}</li>`).join("")}</ul>`
+      : "";
+
+    const html = `<!DOCTYPE html><html><head><title>${name} — CV</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', Arial, sans-serif; color: #1f2937; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; color: #111827; }
+  .contact { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+  .contact span { margin-right: 16px; }
+  h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 4px; margin: 24px 0 12px; }
+  .entry { margin-bottom: 12px; }
+  .entry-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .entry-header span { font-size: 12px; color: #6b7280; }
+  .sub { font-size: 13px; color: #6b7280; }
+  p { font-size: 13px; margin-top: 4px; }
+  ul { font-size: 13px; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+  @media print { body { padding: 0; } @page { margin: 1cm; } }
+</style></head><body>
+  <h1>${name}</h1>
+  <div class="contact">
+    ${cvData.personalInfo.email ? `<span>${cvData.personalInfo.email}</span>` : ""}
+    ${cvData.personalInfo.phone ? `<span>${cvData.personalInfo.phone}</span>` : ""}
+    ${cvData.personalInfo.location ? `<span>${cvData.personalInfo.location}</span>` : ""}
+  </div>
+  ${summary ? `<h2>Professional Summary</h2><p>${summary}</p>` : ""}
+  ${strengthsHtml}
+  ${expHtml}
+  ${eduHtml}
+  ${skillsHtml}
+  ${certsHtml}
+</body></html>`;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
+      toast.success("Print dialog opened — select 'Save as PDF' to download.");
+    } else {
+      toast.error("Please allow pop-ups to download your CV as PDF.");
+    }
+  };
+
+  if (isLoadingCV) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <p className="text-muted-foreground">Loading your CV data...</p>
+        </div>
+      </div>
+    );
+  }
+>>>>>>> Stashed changes
 
   return (
     <motion.div
