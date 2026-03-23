@@ -1,20 +1,21 @@
 /**
- * OpenAI Service — Legaforce
+ * AI Service (Gemini) — Legaforce
  *
- * Provides GPT-4o-powered:
+ * Provides Gemini-powered:
  *   1. CV summary generation from profile data
  *   2. AI match scoring (candidate vs job requirements)
  *
- * Falls back to local logic when OPENAI_API_KEY is not set (dev mode).
+ * Falls back to local logic when no AI key is set.
  */
-import { OPENAI_API_KEY, NODE_ENV } from "../config/env.js";
+import { GEMINI_API_KEY, OPENAI_API_KEY } from "../config/env.js";
 
-const isEnabled = !!OPENAI_API_KEY;
+const AI_API_KEY = GEMINI_API_KEY || OPENAI_API_KEY || "";
+const isEnabled = !!AI_API_KEY;
 
 if (isEnabled) {
-  console.log(" OpenAI API initialized");
+  console.log(" Gemini API initialized");
 } else {
-  console.log("⚠️  OpenAI API key not configured — using local fallback");
+  console.log("⚠️  Gemini API key not configured — using local fallback");
 }
 
 // ── Shared fetch helper ────────────────────────
@@ -23,33 +24,42 @@ async function chatCompletion(systemPrompt, userPrompt, maxTokens = 1024) {
   if (!isEnabled) return null;
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user",   content: userPrompt },
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        contents: [
+          {
+            parts: [{ text: userPrompt }],
+          },
         ],
-        temperature: 0.7,
-        max_tokens: maxTokens,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: maxTokens,
+        },
       }),
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      console.error("OpenAI API error:", response.status, error);
+      console.error("Gemini API error:", response.status, error);
       return null;
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || null;
+    const textParts = data.candidates?.[0]?.content?.parts || [];
+    const text = textParts
+      .map((part) => part?.text || "")
+      .join("")
+      .trim();
+    return text || null;
   } catch (err) {
-    console.error("OpenAI request failed:", err.message);
+    console.error("Gemini request failed:", err.message);
     return null;
   }
 }
@@ -98,10 +108,10 @@ Return a JSON object with this structure (no markdown, just raw JSON):
       return {
         summary: parsed.summary || "",
         keyStrengths: parsed.keyStrengths || [],
-        generatedBy: "openai-gpt-4o",
+        generatedBy: "gemini-1.5-flash",
       };
     } catch (err) {
-      console.error("Failed to parse OpenAI CV response:", err.message);
+      console.error("Failed to parse Gemini CV response:", err.message);
       // Fall through to local fallback
     }
   }
@@ -155,10 +165,10 @@ Return a JSON object (no markdown): { "score": <0-100>, "reason": "brief explana
       return {
         score: Math.max(0, Math.min(100, parseInt(parsed.score, 10) || 0)),
         reason: parsed.reason || "",
-        scoredBy: "openai-gpt-4o",
+        scoredBy: "gemini-1.5-flash",
       };
     } catch (err) {
-      console.error("Failed to parse OpenAI match response:", err.message);
+      console.error("Failed to parse Gemini match response:", err.message);
     }
   }
 

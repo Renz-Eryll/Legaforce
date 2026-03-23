@@ -269,7 +269,7 @@ export const generateAICV = async (req, res, next) => {
     const education = existing.education || [];
     const certifications = existing.certifications || [];
 
-    // Call OpenAI GPT-4o for a professional CV summary (falls back to local logic)
+    // Call Gemini for a professional CV summary (falls back to local logic)
     const aiResult = await generateCVSummary(profile, {
       experience,
       skills,
@@ -409,7 +409,7 @@ export const applyToJob = async (req, res, next) => {
         .json({ success: false, message: "Already applied" });
     }
 
-    // Compute AI match score using OpenAI (falls back to local keyword matching)
+    // Compute AI match score using Gemini (falls back to local keyword matching)
     let matchScore = null;
     try {
       const profileCV = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
