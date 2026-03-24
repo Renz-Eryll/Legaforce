@@ -44,6 +44,7 @@ model Profile {
   cvFileUrl    String?
   trustScore   Int       @default(50)
   rewardPoints Int       @default(0)
+  profileViews Int       @default(0)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

@@ -144,6 +144,13 @@ export const getCandidateById = async (req, res, next) => {
     if (!application) {
       return res.status(404).json({ success: false, message: "Candidate not found" });
     }
+
+    // Increment profile views when employer checks their profile
+    await prisma.profile.update({
+      where: { id: application.applicantId },
+      data: { profileViews: { increment: 1 } },
+    }).catch(err => console.error("Failed to increment view count:", err));
+
     const a = application.applicant;
     const cv = (a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object") ? a.aiGeneratedCV : {};
     res.json({
@@ -903,6 +910,78 @@ export const getReports = async (req, res, next) => {
         totalJobOrders: jobStatusCounts.reduce((sum, c) => sum + c._count, 0),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Dashboard Analytics (charts) ───────────────
+
+export const getDashboardAnalytics = async (req, res, next) => {
+  try {
+    const employer = getEmployerFromReq(req);
+
+    // Last 6 calendar months
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      months.push({
+        label: d.toLocaleString("default", { month: "short" }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end:   new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+      });
+    }
+
+    // Job orders posted vs hires per month (scoped to this employer)
+    const trendResults = await Promise.all(
+      months.map(({ start, end }) =>
+        Promise.all([
+          prisma.jobOrder.count({
+            where: { employerId: employer.id, createdAt: { gte: start, lte: end } },
+          }),
+          prisma.application.count({
+            where: {
+              jobOrder: { employerId: employer.id },
+              status: "DEPLOYED",
+              updatedAt: { gte: start, lte: end },
+            },
+          }),
+        ])
+      )
+    );
+
+    const trend = months.map(({ label }, i) => ({
+      month:  label,
+      posted: trendResults[i][0],
+      hired:  trendResults[i][1],
+    }));
+
+    // Candidate pipeline — all applications for this employer, grouped by status
+    const pipelineRows = await prisma.application.groupBy({
+      by: ["status"],
+      where: { jobOrder: { employerId: employer.id } },
+      _count: { id: true },
+    });
+
+    const statusOrder = ["APPLIED", "SHORTLISTED", "INTERVIEWED", "SELECTED", "DEPLOYED"];
+    const colorMap = {
+      APPLIED:     "#64748b",
+      SHORTLISTED: "#06b6d4",
+      INTERVIEWED: "#8b5cf6",
+      SELECTED:    "#f59e0b",
+      DEPLOYED:    "#10b981",
+    };
+    const pipeline = pipelineRows
+      .sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status))
+      .map((r) => ({
+        stage: r.status.charAt(0) + r.status.slice(1).toLowerCase(),
+        count: r._count.id,
+        fill:  colorMap[r.status] || "#64748b",
+      }));
+
+    res.json({ success: true, data: { trend, pipeline } });
   } catch (err) {
     next(err);
   }

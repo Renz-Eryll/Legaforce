@@ -114,6 +114,16 @@ export const employerService = {
     }
   },
 
+  async getDashboardAnalytics() {
+    try {
+      const res = await api.get("/employer/dashboard-analytics");
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to fetch employer dashboard analytics:", error);
+      throw error;
+    }
+  },
+
   async getUpcomingInterviews() {
     try {
       const res = await api.get("/employer/upcoming-interviews");

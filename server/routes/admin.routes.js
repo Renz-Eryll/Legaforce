@@ -39,6 +39,7 @@ import {
   getDeploymentDocuments,
   uploadDeploymentDocument,
   deleteDeploymentDocument,
+  getDashboardAnalytics,
 } from "../controllers/admin.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -54,6 +55,7 @@ router.use(authorizeRoles("ADMIN"));
 
 // Dashboard
 router.get("/dashboard-stats", getDashboardStats);
+router.get("/dashboard-analytics", getDashboardAnalytics);
 router.get("/recent-activity", getRecentActivity);
 router.get("/pending-approvals", getPendingApprovals);
 
