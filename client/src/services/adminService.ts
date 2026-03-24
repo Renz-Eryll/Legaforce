@@ -11,6 +11,16 @@ export const adminService = {
     }
   },
 
+  async getDashboardAnalytics() {
+    try {
+      const { data } = await api.get("/admin/dashboard-analytics");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch admin dashboard analytics:", error);
+      throw error;
+    }
+  },
+
   async getRecentActivity(limit: number = 5) {
     try {
       const { data } = await api.get(`/admin/recent-activity?limit=${limit}`);

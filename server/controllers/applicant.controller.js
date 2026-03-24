@@ -712,17 +712,9 @@ export const getMatchScore = async (req, res, next) => {
 
 export const getProfileViews = async (req, res, next) => {
   try {
-    // Profile views would need tracking — for now, derive from application count
-    // as a proxy for employer engagement
     const profile = getProfileFromReq(req);
-    const appCount = await prisma.application.count({
-      where: {
-        applicantId: profile.id,
-        status: { in: ["SHORTLISTED", "INTERVIEWED", "SELECTED", "DEPLOYED"] },
-      },
-    });
-    // Each shortlist/interview implies at least one profile view
-    res.json({ success: true, data: appCount });
+    // Real data directly from the DB field incremented by employers
+    res.json({ success: true, data: profile.profileViews || 0 });
   } catch (err) {
     next(err);
   }
@@ -1024,6 +1016,72 @@ export const deleteDocument = async (req, res, next) => {
     });
 
     res.json({ success: true, message: "Document removed" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Dashboard Analytics (charts) ───────────────
+
+export const getDashboardAnalytics = async (req, res, next) => {
+  try {
+    const profile = getProfileFromReq(req);
+
+    // Application breakdown by status (for pie chart)
+    const statusRows = await prisma.application.groupBy({
+      by: ["status"],
+      where: { applicantId: profile.id },
+      _count: { id: true },
+    });
+
+    const statusColorMap = {
+      APPLIED:     "#64748b",
+      SHORTLISTED: "#06b6d4",
+      INTERVIEWED: "#8b5cf6",
+      SELECTED:    "#f59e0b",
+      PROCESSING:  "#3b82f6",
+      DEPLOYED:    "#10b981",
+      REJECTED:    "#ef4444",
+    };
+
+    const statusBreakdown = statusRows.map((r) => ({
+      name:  r.status.charAt(0) + r.status.slice(1).toLowerCase(),
+      value: r._count.id,
+      fill:  statusColorMap[r.status] || "#64748b",
+    }));
+
+    // Last 7 days — daily application count (real activity)
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const end = new Date(d);
+      end.setHours(23, 59, 59, 999);
+      days.push({
+        label: d.toLocaleString("default", { weekday: "short" }),
+        start: new Date(d),
+        end,
+      });
+    }
+
+    const dailyCounts = await Promise.all(
+      days.map(({ start, end }) =>
+        prisma.application.count({
+          where: {
+            applicantId: profile.id,
+            createdAt: { gte: start, lte: end },
+          },
+        })
+      )
+    );
+
+    const weeklyActivity = days.map(({ label }, i) => ({
+      day:          label,
+      applications: dailyCounts[i],
+    }));
+
+    res.json({ success: true, data: { statusBreakdown, weeklyActivity } });
   } catch (err) {
     next(err);
   }

@@ -29,6 +29,7 @@ import {
   getDocuments,
   uploadDocument,
   deleteDocument,
+  getDashboardAnalytics,
 } from "../controllers/applicant.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -83,6 +84,7 @@ router.post("/rewards/redeem", redeemReward);
 // Dashboard data
 router.get("/notifications", getNotifications);
 router.get("/recommended-jobs", getRecommendedJobs);
+router.get("/dashboard-analytics", getDashboardAnalytics);
 
 // Documents (with actual file upload via multer)
 router.get("/documents", getDocuments);

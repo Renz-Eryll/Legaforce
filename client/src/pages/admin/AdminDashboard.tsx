@@ -2,452 +2,235 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
-  Users,
-  Building2,
-  Briefcase,
-  TrendingUp,
-  ArrowRight,
-  ChevronRight,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Globe,
-  DollarSign,
-  FileCheck,
-  ArrowUpRight,
-  Activity,
-  Shield,
-  UserCheck,
-  FileText,
+  Users, Building2, Briefcase, Globe, Activity, Shield,
+  AlertTriangle, ArrowRight, Clock, FileText, ChevronRight, CheckCircle
 } from "lucide-react";
+import {
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
 
-// Animation variants
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
+const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
+const staggerContainer = { animate: { transition: { staggerChildren: 0.08 } } };
+
+const STATUS_COLORS: Record<string, string> = {
+  APPLIED:     "#64748b",
+  SHORTLISTED: "#06b6d4",
+  INTERVIEWED: "#8b5cf6",
+  SELECTED:    "#f59e0b",
+  PROCESSING:  "#3b82f6",
+  DEPLOYED:    "#10b981",
+  REJECTED:    "#ef4444",
 };
 
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const priorityConfig: Record<string, { className: string }> = {
-  high: { className: "bg-red-500/10 text-red-500 border-red-500/20" },
-  medium: { className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-  low: { className: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-};
-
-const statusConfig: Record<string, { className: string }> = {
-  open: { className: "bg-red-500/10 text-red-500 border-red-500/20" },
-  "in-progress": {
-    className: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  },
-  resolved: {
-    className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-  },
-  pending: { className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-card border border-border rounded-xl p-3 shadow-xl text-xs">
+      {label && <p className="font-semibold mb-2">{label}</p>}
+      {payload.map((p: any) => (
+        <div key={p.name} className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ background: p.color || p.fill }} />
+          <span className="text-muted-foreground">{p.name}:</span>
+          <span className="font-medium text-foreground">{p.value}</span>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default function AdminDashboard() {
-  const [quickStats, setQuickStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
+  const [analytics, setAnalytics] = useState<any>({ trend: [], pipeline: [] });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
-  const [complaints, setComplaints] = useState<any[]>([]);
-  const [deploymentStats, setDeploymentStats] = useState<any>(null);
+  const [pendingCount, setPendingCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    (async () => {
       try {
         setIsLoading(true);
-
-        // Use getDashboardStats which returns all counts in ONE query
-        // instead of 8 separate API calls
-        const [
-          statsRes,
-          recentActivityRes,
-          complaintsRes,
-        ] = await Promise.all([
+        const [statsRes, analyticsRes, activityRes] = await Promise.all([
           adminService.getDashboardStats().catch(() => ({ data: {} })),
-          adminService.getRecentActivity(5).catch(() => ({ data: [] })),
-          adminService.getComplaints("SUBMITTED").catch(() => ({ data: [] })),
+          adminService.getDashboardAnalytics().catch(() => ({ trend: [], pipeline: [] })),
+          adminService.getRecentActivity(8).catch(() => ({ data: [] })),
         ]);
-
         const s = statsRes.data || {};
-
-        // Build quick stats from the consolidated response
-        const stats = [
-          {
-            label: "Total Applicants",
-            value: (s.totalApplicants || 0).toString(),
-            icon: Users,
-            trend: `${s.recentApplications || 0} apps this month`,
-            color: "text-blue-500",
-            bg: "bg-blue-500/10",
-          },
-          {
-            label: "Partner Employers",
-            value: (s.totalEmployers || 0).toString(),
-            icon: Building2,
-            trend: `${s.pendingVerifications || 0} pending verification`,
-            color: "text-purple-500",
-            bg: "bg-purple-500/10",
-          },
-          {
-            label: "Active Job Orders",
-            value: (s.activeJobOrders || 0).toString(),
-            icon: Briefcase,
-            trend: `${s.totalJobOrders || 0} total`,
-            color: "text-emerald-500",
-            bg: "bg-emerald-500/10",
-          },
-          {
-            label: "Deployments (YTD)",
-            value: (s.totalDeployments || 0).toString(),
-            icon: Globe,
-            trend: `${s.totalComplaints || 0} complaints`,
-            color: "text-accent",
-            bg: "bg-accent/10",
-          },
-        ];
-
-        setQuickStats(stats);
-        setRecentActivity(recentActivityRes.data || []);
-        setPendingApprovals(
-          s.pendingVerifications
-            ? [{ type: "Employer Verification", count: s.pendingVerifications, status: "pending" }]
-            : [],
-        );
-        setComplaints(complaintsRes.data || []);
-        setDeploymentStats({
-          thisMonth: s.totalDeployments || 0,
-          lastMonth: 0,
-          growth: 0,
-          byCountry: [],
-        });
-      } catch (error: any) {
-        console.error("Failed to fetch dashboard data:", error);
-        toast.error("Failed to load dashboard data");
+        setStats(s);
+        setAnalytics(analyticsRes || { trend: [], pipeline: [] });
+        setRecentActivity(activityRes.data || []);
+        setPendingCount(s.pendingVerifications ?? 0);
+      } catch (e) {
+        toast.error("Failed to load dashboard");
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchDashboardData();
+    })();
   }, []);
 
+  const kpiCards = [
+    { label: "Total Applicants",  value: stats.totalApplicants  ?? 0, icon: Users,     color: "text-blue-500",    bg: "bg-blue-500/10" },
+    { label: "Registered Employers", value: stats.totalEmployers   ?? 0, icon: Building2,  color: "text-violet-500",  bg: "bg-violet-500/10" },
+    { label: "Active Job Orders", value: stats.activeJobOrders ?? 0, icon: Briefcase,  color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Total Deployments", value: stats.totalDeployments ?? 0, icon: Globe,     color: "text-emerald-500",   bg: "bg-emerald-500/10" },
+  ];
+
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-      className="space-y-6"
-    >
-      {/* Welcome Section */}
-      <motion.div
-        variants={fadeInUp}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
+    <motion.div initial="initial" animate="animate" variants={staggerContainer} className="space-y-6">
+
+      {/* Header */}
+      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">
-            Admin Dashboard 🛡️
-          </h1>
-          <p className="text-muted-foreground">
-            Platform overview and management tools
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Platform Overview</p>
         </div>
         <div className="flex gap-2">
+          {pendingCount > 0 && (
+            <Link to="/admin/verification">
+              <Button size="sm" className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/20">
+                <Shield className="w-4 h-4 mr-2" />
+                {pendingCount} Verifications Pending
+              </Button>
+            </Link>
+          )}
           <Link to="/admin/reports">
-            <Button variant="outline">
-              <Activity className="w-4 h-4 mr-2" />
-              View Reports
-            </Button>
-          </Link>
-          <Link to="/admin/complaints">
-            <Button className="gradient-bg-accent text-accent-foreground font-semibold">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              Complaints
-              <Badge className="ml-2 bg-white/20">5</Badge>
+            <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg">
+              <Activity className="w-4 h-4 mr-2" />Generate Reports
             </Button>
           </Link>
         </div>
       </motion.div>
 
-      {/* Quick Stats */}
-      <motion.div
-        variants={fadeInUp}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {quickStats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="card-premium p-5"
-          >
+      {/* KPI Cards */}
+      <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpiCards.map((card, i) => (
+          <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.07 }} className="card-premium p-5">
             <div className="flex items-start justify-between mb-4">
-              <div className={cn("p-2.5 rounded-xl", stat.bg)}>
-                <stat.icon className={cn("h-5 w-5", stat.color)} />
+              <div className={cn("p-2.5 rounded-xl", card.bg)}>
+                <card.icon className={cn("h-5 w-5", card.color)} />
               </div>
-              <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <p className="text-2xl sm:text-3xl font-display font-bold mb-1">
-              {stat.value}
+            <p className="text-3xl font-display font-bold mb-1">
+              {isLoading ? "—" : card.value.toLocaleString()}
             </p>
-            <p className="text-sm font-medium text-foreground mb-1">
-              {stat.label}
-            </p>
-            <p className="text-xs text-muted-foreground">{stat.trend}</p>
+            <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Main Content Grid */}
+      {/* Simple Charts Row */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Activity & Deployment */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-6">
-          {/* Recent Activity */}
-          <div className="card-premium p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-display font-semibold">
-                Recent Activity
-              </h2>
-              <Button variant="ghost" size="sm" className="text-accent">
-                View all
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      "flex items-center justify-center w-9 h-9 rounded-xl shrink-0",
-                      activity.type === "applicant" &&
-                        "bg-blue-500/10 text-blue-500",
-                      activity.type === "employer" &&
-                        "bg-purple-500/10 text-purple-500",
-                      activity.type === "deployment" &&
-                        "bg-emerald-500/10 text-emerald-500",
-                      activity.type === "complaint" &&
-                        "bg-red-500/10 text-red-500",
-                      activity.type === "verification" &&
-                        "bg-amber-500/10 text-amber-500",
-                      (!activity.type || !["applicant", "employer", "deployment", "complaint", "verification"].includes(activity.type)) &&
-                        "bg-gray-500/10 text-gray-500"
-                    )}
-                  >
-                    {activity.type === "applicant" && <Users className="h-4 w-4" />}
-                    {activity.type === "employer" && <Building2 className="h-4 w-4" />}
-                    {activity.type === "deployment" && <Globe className="h-4 w-4" />}
-                    {activity.type === "complaint" && <AlertTriangle className="h-4 w-4" />}
-                    {activity.type === "verification" && <Shield className="h-4 w-4" />}
-                    {(!activity.type || !["applicant", "employer", "deployment", "complaint", "verification"].includes(activity.type)) && <FileText className="h-4 w-4" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Clock className="h-3 w-3" />
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Simple Bar Chart: Monthly Activity */}
+        <motion.div variants={fadeInUp} className="lg:col-span-2 card-premium p-6">
+          <div className="mb-6">
+            <h2 className="text-lg font-display font-semibold">Monthly Platform Activity</h2>
+            <p className="text-xs text-muted-foreground">Applications and Deployments over the last 6 months</p>
           </div>
+          {analytics.trend?.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={analytics.trend} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))" }} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                <Bar dataKey="applications" name="Applications" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="deployments" name="Deployments" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">No data available</div>
+          )}
+        </motion.div>
 
-          {/* Deployment Overview */}
-          <div className="card-premium p-5">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-display font-semibold">
-                Deployment Overview
-              </h2>
-              <Badge className="bg-success/10 text-success border-success/20">
-                +{deploymentStats?.growth?.toFixed(1) || "0"}% vs last month
-              </Badge>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div>
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-4xl font-display font-bold">
-                    {deploymentStats?.thisMonth || 0}
-                  </span>
-                  <span className="text-muted-foreground">
-                    deployments this month
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  vs {deploymentStats?.lastMonth || 0} last month
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {(deploymentStats?.byCountry || []).map((country: any) => (
-                  <div key={country.country}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{country.country}</span>
-                      <span className="text-muted-foreground">
-                        {country.count}
-                      </span>
-                    </div>
-                    <Progress value={country.percentage} className="h-2" />
+        {/* Simple Pie Chart: Application Status */}
+        <motion.div variants={fadeInUp} className="card-premium p-6 flex flex-col">
+          <div className="mb-2">
+            <h2 className="text-lg font-display font-semibold mb-1">Application Pipeline</h2>
+            <p className="text-xs text-muted-foreground">Total records by status</p>
+          </div>
+          {analytics.pipeline?.length > 0 ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={analytics.pipeline} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={2}>
+                    {analytics.pipeline.map((d: any, i: number) => <Cell key={i} fill={STATUS_COLORS[d.name] || "#64748b"} />)}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-3 mt-4">
+                {analytics.pipeline.map((d: any) => (
+                  <div key={d.name} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: STATUS_COLORS[d.name] || "#64748b" }} />
+                    <span className="text-muted-foreground truncate">{d.name.charAt(0) + d.name.slice(1).toLowerCase()}</span>
+                    <span className="font-semibold ml-auto">{d.value}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </motion.div>
-
-        {/* Right Column */}
-        <motion.div variants={fadeInUp} className="space-y-6">
-          {/* Pending Approvals */}
-          <div className="card-premium p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold flex items-center gap-2">
-                <Shield className="h-4 w-4 text-accent" />
-                Pending Approvals
-              </h3>
-              <Badge variant="secondary">
-                {pendingApprovals.reduce(
-                  (acc, item) => acc + (item.count || 0),
-                  0,
-                )}
-              </Badge>
-            </div>
-            <div className="space-y-3">
-              {pendingApprovals.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{item.type}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.company || item.applicant}
-                    </p>
-                  </div>
-                  <Badge
-                    className={
-                      statusConfig[item.status]?.className || "bg-amber-500/10"
-                    }
-                  >
-                    {item.count} pending
-                  </Badge>
-                </div>
-              ))}
-            </div>
-            <Link to="/admin/verification" className="block mt-4">
-              <Button variant="outline" size="sm" className="w-full">
-                Review All
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          {/* Open Complaints */}
-          <div className="card-premium p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                Open Complaints
-              </h3>
-              <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
-                {complaints.filter((c: any) => c.status === "open").length} open
-              </Badge>
-            </div>
-            <div className="space-y-3">
-              {complaints.map((complaint: any) => (
-                <div key={complaint.id} className="p-3 rounded-xl bg-muted/50">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-sm">#{complaint.id}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {complaint.subject}
-                      </p>
-                    </div>
-                    <Badge
-                      className={
-                        priorityConfig[complaint.priority]?.className ||
-                        "bg-blue-500/10"
-                      }
-                    >
-                      {complaint.priority}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {complaint.date}
-                    </span>
-                    <Badge
-                      className={
-                        statusConfig[complaint.status]?.className ||
-                        "bg-amber-500/10"
-                      }
-                    >
-                      {complaint.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link to="/admin/complaints" className="block mt-4">
-              <Button variant="outline" size="sm" className="w-full">
-                View All Complaints
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="card-premium p-5">
-            <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
-            <div className="space-y-2">
-              <Link to="/admin/applicants">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Applicants
-                </Button>
-              </Link>
-              <Link to="/admin/employers">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Manage Employers
-                </Button>
-              </Link>
-              <Link to="/admin/reports">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Generate Reports
-                </Button>
-              </Link>
-            </div>
-          </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">No pipeline data</div>
+          )}
         </motion.div>
       </div>
+
+      {/* Row 3: Recent Activity Logging */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-display font-semibold">Recent System Logs</h2>
+            <p className="text-xs text-muted-foreground">Latest actions across all portals</p>
+          </div>
+          <Badge variant="outline" className="text-xs"><Clock className="w-3 h-3 mr-1" /> Live Updates</Badge>
+        </div>
+        
+        <div className="bg-muted/30 border border-border rounded-xl divide-y divide-border">
+          {recentActivity.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">No recent activity detected.</div>
+          ) : (
+            recentActivity.map((log: any, i: number) => (
+              <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                    log.type === "application" ? "bg-blue-500/10 text-blue-500" :
+                    log.type === "complaint"   ? "bg-red-500/10 text-red-500" :
+                    log.type === "job_order"   ? "bg-amber-500/10 text-amber-500" : 
+                    "bg-gray-500/10 text-gray-500"
+                  )}>
+                    {log.type === "application" ? <Users className="w-4 h-4" /> :
+                     log.type === "complaint" ? <AlertTriangle className="w-4 h-4" /> :
+                     log.type === "job_order" ? <Briefcase className="w-4 h-4" /> :
+                     <FileText className="w-4 h-4" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{log.description}</p>
+                    <p className="text-xs text-muted-foreground capitalize mt-0.5">{log.type.replace('_', ' ')} Logger</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">
+                    {log.date ? new Date(log.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : "Recently"}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        <div className="flex justify-center mt-4">
+          <Link to="/admin/applications">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">View Application Records <ChevronRight className="w-4 h-4 ml-1" /></Button>
+          </Link>
+        </div>
+      </motion.div>
+      
     </motion.div>
   );
 }

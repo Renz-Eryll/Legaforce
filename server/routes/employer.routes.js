@@ -27,6 +27,7 @@ import {
   getDeployments,
   getInvoices,
   getReports,
+  getDashboardAnalytics,
 } from "../controllers/employer.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -86,5 +87,6 @@ router.get("/job-order-count", getJobOrderCount);
 router.get("/interview-count", getInterviewCount);
 router.get("/deployed-worker-count", getDeployedWorkerCount);
 router.get("/dashboard-stats", getDashboardStats);
+router.get("/dashboard-analytics", getDashboardAnalytics);
 
 export default router;

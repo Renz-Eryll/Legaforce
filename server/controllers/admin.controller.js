@@ -1347,3 +1347,79 @@ export const deleteDeploymentDocument = async (req, res, next) => {
     next(err);
   }
 };
+
+// ── Dashboard Analytics (charts) ───────────────
+
+export const getDashboardAnalytics = async (req, res, next) => {
+  try {
+    // Build the last 6 calendar months as labels
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      months.push({
+        year: d.getFullYear(),
+        month: d.getMonth() + 1,          // 1-based
+        label: d.toLocaleString("default", { month: "short" }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end:   new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+      });
+    }
+
+    // Monthly applications & deployments in one pass per month
+    const trendPromises = months.map(({ start, end }) =>
+      Promise.all([
+        prisma.application.count({ where: { createdAt: { gte: start, lte: end } } }),
+        prisma.deployment.count({  where: { createdAt: { gte: start, lte: end } } }),
+      ])
+    );
+    const trendResults = await Promise.all(trendPromises);
+    const trend = months.map(({ label }, i) => ({
+      month: label,
+      applications: trendResults[i][0],
+      deployments:  trendResults[i][1],
+    }));
+
+    // Application pipeline (full status breakdown)
+    const pipelineRows = await prisma.application.groupBy({
+      by: ["status"],
+      _count: { id: true },
+    });
+    const pipeline = pipelineRows.map((r) => ({
+      name:  r.status,
+      value: r._count.id,
+    }));
+
+    // Top destinations — use jobOrder.location as destination proxy
+    const destRows = await prisma.jobOrder.groupBy({
+      by: ["location"],
+      where: { location: { not: "" } },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+      take: 5,
+    });
+    const destinations = destRows.map((r) => ({
+      country: r.location || "Unknown",
+      count:   r._count.id,
+    }));
+
+    // Compliance rates — % of deployments with each doc APPROVED
+    const totalDeployments = await prisma.deployment.count();
+    const [medApproved, visaApproved, oecApproved] = await Promise.all([
+      prisma.deployment.count({ where: { medicalStatus: "APPROVED" } }),
+      prisma.deployment.count({ where: { visaStatus:   "APPROVED" } }),
+      prisma.deployment.count({ where: { oecStatus:    "APPROVED" } }),
+    ]);
+    const pct = (n) => (totalDeployments > 0 ? Math.round((n / totalDeployments) * 100) : 0);
+    const compliance = [
+      { name: "Medical", value: pct(medApproved),  fill: "#06b6d4" },
+      { name: "Visa",    value: pct(visaApproved), fill: "#8b5cf6" },
+      { name: "OEC",     value: pct(oecApproved),  fill: "#10b981" },
+    ];
+
+    res.json({ success: true, data: { trend, pipeline, destinations, compliance } });
+  } catch (err) {
+    next(err);
+  }
+};

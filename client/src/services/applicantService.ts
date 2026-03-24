@@ -16,6 +16,16 @@ export const applicantService = {
     }
   },
 
+  async getDashboardAnalytics() {
+    try {
+      const res = await api.get("/applicant/dashboard-analytics");
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to fetch applicant dashboard analytics:", error);
+      throw error;
+    }
+  },
+
   async updateProfile(payload: {
     firstName?: string;
     lastName?: string;
