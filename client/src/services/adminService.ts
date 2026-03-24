@@ -378,16 +378,15 @@ export const adminService = {
     }
   },
 
-  async uploadDeploymentDocument(deploymentId: string, doc: {
-    category: string;
-    fileName: string;
-    fileUrl: string;
-    fileKey?: string;
-    fileSize?: number;
-    mimeType?: string;
-  }) {
+  async uploadDeploymentDocument(deploymentId: string, file: File, category: string) {
     try {
-      const { data } = await api.post(`/admin/deployments/${deploymentId}/documents`, doc);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", category);
+      
+      const { data } = await api.post(`/admin/deployments/${deploymentId}/documents`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       return data;
     } catch (error) {
       console.error("Failed to upload deployment document:", error);

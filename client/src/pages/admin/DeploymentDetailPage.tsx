@@ -197,17 +197,7 @@ function DeploymentDetailPage() {
     try {
       setIsUploading(true);
 
-      // For now, create a local object URL as the file URL
-      // In production this would use the upload service (S3 / local)
-      const fileUrl = URL.createObjectURL(file);
-
-      await adminService.uploadDeploymentDocument(id, {
-        category: uploadCategory,
-        fileName: file.name,
-        fileUrl: fileUrl,
-        fileSize: file.size,
-        mimeType: file.type,
-      });
+      await adminService.uploadDeploymentDocument(id, file, uploadCategory);
 
       toast.success(`${file.name} uploaded successfully`);
 

@@ -97,10 +97,14 @@ function CompanyProfilePage() {
     }
   };
 
-  const handleUploadDocument = async () => {
+  const handleUploadDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
       const formDataObj = new FormData();
-      formDataObj.append("name", "Business Registration");
+      formDataObj.append("file", file);
+      formDataObj.append("name", file.name);
       await employerService.uploadDocument(formDataObj);
       toast.success("Document uploaded");
       fetchProfile();
@@ -414,10 +418,20 @@ function CompanyProfilePage() {
           <motion.div variants={fadeInUp} className="card-premium p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Documents</h2>
-              <Button variant="outline" onClick={handleUploadDocument}>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Document
-              </Button>
+              <label>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  className="hidden"
+                  onChange={handleUploadDocument}
+                />
+                <Button variant="outline" className="cursor-pointer" asChild>
+                  <span>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Document
+                  </span>
+                </Button>
+              </label>
             </div>
             <div className="space-y-3">
               {documents.length === 0 ? (

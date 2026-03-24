@@ -312,9 +312,14 @@ export const applicantService = {
     }
   },
 
-  async uploadDocument(doc: { name: string; category: string; size: string; type: string }) {
+  async uploadDocument(file: File, category: string = "other") {
     try {
-      const res = await api.post("/applicant/documents", doc);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", category);
+      const res = await api.post("/applicant/documents", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to upload document:", error);

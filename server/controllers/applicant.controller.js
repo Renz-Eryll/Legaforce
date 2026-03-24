@@ -920,7 +920,10 @@ export const redeemReward = async (req, res, next) => {
 // ──────────────────────────────────────────────
 // Document Management
 // Documents stored as JSON array in aiGeneratedCV.documents
+// Actual files stored via upload.service (S3 or local)
 // ──────────────────────────────────────────────
+
+import { uploadFile, deleteFile } from "../services/upload.service.js";
 
 export const getDocuments = async (req, res, next) => {
   try {
@@ -937,10 +940,32 @@ export const getDocuments = async (req, res, next) => {
 export const uploadDocument = async (req, res, next) => {
   try {
     const profile = getProfileFromReq(req);
-    const { name, category, size, type } = req.body;
+    const category = req.body.category || "other";
 
-    if (!name) {
-      return res.status(400).json({ success: false, message: "Document name is required" });
+    // req.file is set by multer middleware in the route
+    const file = req.file;
+
+    let fileUrl = null;
+    let fileKey = null;
+    let fileName = req.body.name || "Document";
+    let fileSize = "0 MB";
+    let fileType = "document";
+
+    if (file) {
+      // Actual file was uploaded — store it
+      const result = await uploadFile(
+        file.buffer,
+        file.originalname,
+        "documents",
+        file.mimetype,
+      );
+      fileUrl = result.url;
+      fileKey = result.key;
+      fileName = file.originalname;
+      fileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+      fileType = file.mimetype.startsWith("image/") ? "image" : "document";
+    } else if (!req.body.name) {
+      return res.status(400).json({ success: false, message: "A file or document name is required" });
     }
 
     const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
@@ -949,10 +974,12 @@ export const uploadDocument = async (req, res, next) => {
 
     const newDoc = {
       id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      name,
-      category: category || "other",
-      size: size || "0 MB",
-      type: type || "document",
+      name: fileName,
+      category,
+      size: req.body.size || fileSize,
+      type: req.body.type || fileType,
+      url: fileUrl,
+      fileKey,
       status: "pending",
       uploadedAt: new Date().toISOString(),
     };
@@ -977,9 +1004,19 @@ export const deleteDocument = async (req, res, next) => {
 
     const cv = profile.aiGeneratedCV && typeof profile.aiGeneratedCV === "object"
       ? profile.aiGeneratedCV : {};
-    const documents = Array.isArray(cv.documents)
-      ? cv.documents.filter((d) => d.id !== docId)
-      : [];
+    const existing = Array.isArray(cv.documents) ? cv.documents : [];
+
+    // Find the doc to delete its file too
+    const docToDelete = existing.find((d) => d.id === docId);
+    if (docToDelete?.fileKey) {
+      try {
+        await deleteFile(docToDelete.fileKey);
+      } catch (fileErr) {
+        console.error("Non-critical: failed to delete file from storage:", fileErr.message);
+      }
+    }
+
+    const documents = existing.filter((d) => d.id !== docId);
 
     await prisma.profile.update({
       where: { id: profile.id },

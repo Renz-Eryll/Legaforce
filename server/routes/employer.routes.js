@@ -60,9 +60,11 @@ router.post("/interviews/:applicationId/share-feedback", shareInterviewFeedback)
 // Applications
 router.patch("/applications/:applicationId/status", updateApplicationStatus);
 
+import { multerUpload } from "../services/upload.service.js";
+
 // Documents
 router.get("/documents", getDocuments);
-router.post("/documents", uploadDocument);
+router.post("/documents", multerUpload.single("file"), uploadDocument);
 
 // Deployments
 router.get("/deployments", getDeployments);

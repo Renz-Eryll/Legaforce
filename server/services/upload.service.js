@@ -5,8 +5,9 @@
  * or falls back to local filesystem storage in dev mode.
  *
  * Usage:
- *   import { uploadFile, deleteFile } from "../services/upload.service.js";
- *   const { url, key } = await uploadFile(fileBuffer, fileName, "documents");
+ *   import { uploadFile, deleteFile, multerUpload } from "../services/upload.service.js";
+ *   // In route: router.post("/documents", multerUpload.single("file"), handler);
+ *   // In controller: const { url, key } = await uploadFile(req.file.buffer, req.file.originalname, "documents", req.file.mimetype);
  */
 import {
   AWS_ACCESS_KEY_ID,
@@ -19,6 +20,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
+import multer from "multer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,6 +32,30 @@ if (isS3Enabled) {
   console.log("⚠️  AWS S3 not configured — using local file storage");
 }
 
+// ── Multer config (memory storage — keeps file in buffer) ──
+
+export const multerUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB max
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} is not allowed`));
+    }
+  },
+});
+
 // ── Generate unique file key ───────────────────
 
 function generateFileKey(folder, originalName) {
@@ -40,12 +66,11 @@ function generateFileKey(folder, originalName) {
   return `${folder}/${timestamp}-${hash}-${safeName}${ext}`;
 }
 
-// ── S3 Upload (using native fetch — no SDK dependency) ──
+// ── S3 Upload ──────────────────────────────────
 
 async function s3Upload(buffer, key, contentType) {
-  // Use AWS SDK v3 style signing with native fetch
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-  
+
   const client = new S3Client({
     region: AWS_REGION || "ap-southeast-1",
     credentials: {
@@ -85,14 +110,6 @@ async function s3Delete(key) {
 
 const LOCAL_UPLOAD_DIR = path.join(__dirname, "..", "uploads");
 
-function ensureLocalDir(folder) {
-  const dir = path.join(LOCAL_UPLOAD_DIR, folder);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return dir;
-}
-
 function localUpload(buffer, key) {
   const fullPath = path.join(LOCAL_UPLOAD_DIR, key);
   const dir = path.dirname(fullPath);
@@ -113,7 +130,7 @@ function localDelete(key) {
 // ── Public API ─────────────────────────────────
 
 /**
- * Upload a file. Returns { url, key }.
+ * Upload a file. Returns { url, key, storage }.
  * @param {Buffer} buffer - File contents
  * @param {string} originalName - Original filename (e.g. "resume.pdf")
  * @param {string} folder - Folder prefix (e.g. "documents", "cv", "photos")
@@ -135,21 +152,10 @@ export async function uploadFile(buffer, originalName, folder = "files", content
  * Delete a file by its key.
  */
 export async function deleteFile(key) {
+  if (!key) return;
   if (isS3Enabled) {
     await s3Delete(key);
   } else {
     localDelete(key);
   }
-}
-
-/**
- * Express middleware that parses multipart form data for a single file field.
- * Sets req.fileBuffer, req.fileName, req.fileType on the request.
- */
-export function parseFileUpload(fieldName = "file") {
-  return async (req, res, next) => {
-    // For now, we rely on express.raw or existing middleware
-    // The actual upload endpoint should handle the file buffer
-    next();
-  };
 }
