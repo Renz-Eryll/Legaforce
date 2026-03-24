@@ -36,6 +36,7 @@ import {
   jobApplicationSchema,
   profileUpdateSchema,
 } from "../services/validation.service.js";
+import { multerUpload } from "../services/upload.service.js";
 
 const router = Router();
 
@@ -83,9 +84,9 @@ router.post("/rewards/redeem", redeemReward);
 router.get("/notifications", getNotifications);
 router.get("/recommended-jobs", getRecommendedJobs);
 
-// Documents
+// Documents (with actual file upload via multer)
 router.get("/documents", getDocuments);
-router.post("/documents", uploadDocument);
+router.post("/documents", multerUpload.single("file"), uploadDocument);
 router.delete("/documents/:id", deleteDocument);
 
 export default router;

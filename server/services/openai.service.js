@@ -82,12 +82,12 @@ Nationality: ${profile.nationality || "Filipino"}
 Phone: ${profile.phone || "Not provided"}
 
 Work Experience:
-${experience.length > 0 ? experience.map((e) => `- ${e.position || e.title} at ${e.company} (${e.startDate || "?"} – ${e.endDate || "Present"}): ${e.description || "No description"}`).join("\n") : "No work experience listed"}
+${experience.length > 0 ? experience.map((e) => `- ${e.position || e.title} at ${e.employer || e.company || "N/A"} (${e.startDate || "?"} – ${e.endDate || "Present"}): ${e.description || "No description"}`).join("\n") : "No work experience listed"}
 
 Skills: ${skills.length > 0 ? skills.join(", ") : "None listed"}
 
 Education:
-${education.length > 0 ? education.map((e) => `- ${e.degree} from ${e.institution} (${e.year || ""})`).join("\n") : "None listed"}
+${education.length > 0 ? education.map((e) => `- ${e.degree} from ${e.school || e.institution || "N/A"} (${e.year || ""})`).join("\n") : "None listed"}
 
 Certifications:
 ${certifications.length > 0 ? certifications.map((c) => `- ${c.name} (${c.issuer || ""})`).join("\n") : "None listed"}

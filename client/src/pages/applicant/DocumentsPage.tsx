@@ -107,15 +107,8 @@ function DocumentsPage() {
         continue;
       }
 
-      const docData = {
-        name: file.name,
-        category: category || "other",
-        size: `${sizeMB} MB`,
-        type: file.type.includes("image") ? "image" : "document",
-      };
-
       try {
-        const saved = await applicantService.uploadDocument(docData);
+        const saved = await applicantService.uploadDocument(file, category || "other");
         newDocs.push(saved);
       } catch (error) {
         toast.error(`Failed to upload ${file.name}`);

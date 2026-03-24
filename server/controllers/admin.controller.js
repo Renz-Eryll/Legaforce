@@ -1251,6 +1251,8 @@ export const updatePlatformSettings = async (req, res, next) => {
 
 // ── Deployment Documents ───────────────────────
 
+import { uploadFile, deleteFile } from "../services/upload.service.js";
+
 export const getDeploymentDocuments = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -1269,7 +1271,7 @@ export const getDeploymentDocuments = async (req, res, next) => {
 export const uploadDeploymentDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { category, fileName, fileUrl, fileKey, fileSize, mimeType } = req.body;
+    const { category } = req.body;
 
     // Validate deployment exists
     const deployment = await prisma.deployment.findUnique({ where: { id } });
@@ -1277,15 +1279,40 @@ export const uploadDeploymentDocument = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Deployment not found" });
     }
 
+    // req.file is set by multer middleware
+    const file = req.file;
+    let fileUrl = req.body.fileUrl || "";
+    let fileKey = req.body.fileKey || null;
+    let fileName = req.body.fileName || "unknown";
+    let fileSize = req.body.fileSize ? parseInt(req.body.fileSize) : null;
+    let mimeType = req.body.mimeType || null;
+
+    if (file) {
+      // Actually store the file
+      const result = await uploadFile(
+        file.buffer,
+        file.originalname,
+        "deployment_docs",
+        file.mimetype
+      );
+      fileUrl = result.url;
+      fileKey = result.key;
+      fileName = file.originalname;
+      fileSize = file.size;
+      mimeType = file.mimetype;
+    } else if (!fileUrl) {
+      return res.status(400).json({ success: false, message: "File or fileUrl is required" });
+    }
+
     const doc = await prisma.deploymentDocument.create({
       data: {
         deploymentId: id,
         category: category || "OTHER",
-        fileName: fileName || "unknown",
-        fileUrl: fileUrl || "",
-        fileKey: fileKey || null,
-        fileSize: fileSize ? parseInt(fileSize) : null,
-        mimeType: mimeType || null,
+        fileName,
+        fileUrl,
+        fileKey,
+        fileSize,
+        mimeType,
         uploadedBy: req.user?.id || null,
       },
     });
@@ -1303,6 +1330,14 @@ export const deleteDeploymentDocument = async (req, res, next) => {
     const doc = await prisma.deploymentDocument.findUnique({ where: { id: docId } });
     if (!doc) {
       return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    if (doc.fileKey) {
+      try {
+        await deleteFile(doc.fileKey);
+      } catch (fileErr) {
+        console.error("Non-critical: failed to delete deployment file from storage:", fileErr.message);
+      }
     }
 
     await prisma.deploymentDocument.delete({ where: { id: docId } });

@@ -111,9 +111,11 @@ router.get("/verification-queue", getVerificationQueue);
 router.get("/settings", getPlatformSettings);
 router.put("/settings", updatePlatformSettings);
 
+import { multerUpload } from "../services/upload.service.js";
+
 // Deployment Documents
 router.get("/deployments/:id/documents", getDeploymentDocuments);
-router.post("/deployments/:id/documents", uploadDeploymentDocument);
+router.post("/deployments/:id/documents", multerUpload.single("file"), uploadDeploymentDocument);
 router.delete("/deployment-documents/:docId", deleteDeploymentDocument);
 
 export default router;

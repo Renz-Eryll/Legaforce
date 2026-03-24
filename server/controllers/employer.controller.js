@@ -261,21 +261,54 @@ export const getDocuments = async (req, res, next) => {
   }
 };
 
+import { uploadFile } from "../services/upload.service.js";
+
 export const uploadDocument = async (req, res, next) => {
   try {
     const employer = getEmployerFromReq(req);
-    const name = req.body?.name || req.file?.originalname || "Document";
+    
+    // req.file is set by multer middleware
+    const file = req.file;
+    let fileUrl = null;
+    let fileKey = null;
+    let fileName = req.body.name || "Document";
+    let fileSize = "0 MB";
+    let fileType = "document";
+
+    if (file) {
+      // Actually store the file
+      const result = await uploadFile(
+        file.buffer,
+        file.originalname,
+        "employer_docs",
+        file.mimetype
+      );
+      fileUrl = result.url;
+      fileKey = result.key;
+      fileName = file.originalname;
+      fileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+      fileType = file.mimetype.startsWith("image/") ? "image" : "document";
+    } else if (!req.body.name) {
+      return res.status(400).json({ success: false, message: "A file or document name is required" });
+    }
+
     const existing = Array.isArray(employer.verificationDocs)
       ? employer.verificationDocs
       : employer.verificationDocs
         ? [employer.verificationDocs]
         : [];
+        
     const newDoc = {
       id: `DOC-${Date.now()}`,
-      name,
+      name: fileName,
+      size: fileSize,
+      type: fileType,
+      url: fileUrl,
+      fileKey,
       status: "pending",
       uploadedAt: new Date().toISOString().split("T")[0],
     };
+    
     const updated = await prisma.employer.update({
       where: { id: employer.id },
       data: { verificationDocs: [...existing, newDoc] },
