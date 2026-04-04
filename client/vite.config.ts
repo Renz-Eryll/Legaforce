@@ -18,4 +18,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Chunk splitting for faster initial loads on Vercel
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Heavy libs in separate chunks (cached independently by CDN)
+          vendor: ["react", "react-dom", "react-router-dom"],
+          charts: ["recharts"],
+          ui: ["framer-motion", "lucide-react"],
+          state: ["zustand", "@tanstack/react-query", "axios"],
+        },
+      },
+    },
+    // Smaller chunk size warnings
+    chunkSizeWarningLimit: 500,
+    // Minify with esbuild (default, fastest)
+    target: "es2020",
+    sourcemap: false,
+  },
 }));

@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  lastChecked: number | null;
 
   login: (email: string, password: string) => Promise<any>;
   register: (userData: any) => Promise<any>;
@@ -23,13 +24,17 @@ interface AuthState {
   clearError: () => void;
 }
 
+// Only re-verify auth if it's been more than 5 minutes since last check
+const AUTH_CHECK_INTERVAL = 5 * 60 * 1000;
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       isLoading: true,
       error: null,
+      lastChecked: null,
 
       login: async (email, password) => {
         try {
@@ -44,6 +49,7 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 isLoading: false,
                 error: null,
+                lastChecked: Date.now(),
               });
             } else {
               set({ isLoading: false });
@@ -76,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 isLoading: false,
                 error: null,
+                lastChecked: Date.now(),
               });
             } else {
               set({ isLoading: false });
@@ -105,6 +112,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
           error: null,
+          lastChecked: null,
         });
       },
 
@@ -120,6 +128,13 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
+        // Skip API call if we checked recently and already have user data
+        const { lastChecked, user } = get();
+        if (user && lastChecked && Date.now() - lastChecked < AUTH_CHECK_INTERVAL) {
+          set({ isLoading: false });
+          return;
+        }
+
         try {
           const response = await authService.getCurrentUser();
           if (response.success && response.data) {
@@ -128,6 +143,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
               error: null,
+              lastChecked: Date.now(),
             });
           } else {
             throw new Error("Failed to get user");
@@ -140,6 +156,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            lastChecked: null,
           });
         }
       },
@@ -153,6 +170,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        lastChecked: state.lastChecked,
       }),
     },
   ),
