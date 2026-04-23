@@ -6,17 +6,22 @@ import { NODE_ENV } from "./env.js";
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: parseInt(process.env.DB_POOL_MAX || "5"),
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 60000,          // keep idle connections alive longer (60s)
+  connectionTimeoutMillis: 10000,    // wait longer before timing out (10s)
   // Both Neon (dev) and Render (prod) require SSL
   ssl: { rejectUnauthorized: false },
+});
+
+// Log pool errors instead of crashing
+pool.on("error", (err) => {
+  console.error("⚠️  Unexpected PostgreSQL pool error:", err.message);
 });
 
 const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({
   adapter,
-  log: NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  log: NODE_ENV === "development" ? ["error", "warn"] : ["error"],
 });
 
 export const connectToDatabase = async () => {
