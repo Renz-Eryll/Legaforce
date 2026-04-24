@@ -13,6 +13,7 @@ import {
   Users,
   Bookmark,
   BookmarkCheck,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ interface Job {
   id: string;
   title: string;
   employer: string;
+  employerTrustScore?: number;
   location: string;
   salary: number | string | null;
   positions: number;
@@ -65,9 +67,12 @@ function JobsListPage() {
   useEffect(() => {
     fetchJobs();
     // Load saved jobs to know which ones are already bookmarked
-    applicantService.getSavedJobs()
+    applicantService
+      .getSavedJobs()
       .then((data: any) => {
-        const ids = (Array.isArray(data) ? data : []).map((j: any) => j.jobOrderId || j.id);
+        const ids = (Array.isArray(data) ? data : []).map(
+          (j: any) => j.jobOrderId || j.id,
+        );
         setSavedJobIds(new Set(ids));
       })
       .catch(() => {});
@@ -152,15 +157,23 @@ function JobsListPage() {
   };
 
   // Get unique locations for filter
-  const uniqueLocations = [...new Set(jobs.map((j) => {
-    const parts = j.location?.split(",");
-    return parts?.[parts.length - 1]?.trim() || j.location;
-  }).filter(Boolean))];
+  const uniqueLocations = [
+    ...new Set(
+      jobs
+        .map((j) => {
+          const parts = j.location?.split(",");
+          return parts?.[parts.length - 1]?.trim() || j.location;
+        })
+        .filter(Boolean),
+    ),
+  ];
 
   const avgSalary = jobs.length
     ? Math.round(
-        jobs.reduce((sum, j) => sum + (typeof j.salary === "number" ? j.salary : 0), 0) /
-          jobs.filter((j) => typeof j.salary === "number").length || 1,
+        jobs.reduce(
+          (sum, j) => sum + (typeof j.salary === "number" ? j.salary : 0),
+          0,
+        ) / jobs.filter((j) => typeof j.salary === "number").length || 1,
       )
     : 0;
 
@@ -211,7 +224,11 @@ function JobsListPage() {
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Salary</p>
           <p className="text-2xl font-display font-bold">
-            {loading ? "—" : avgSalary > 0 ? `$${avgSalary.toLocaleString()}/mo` : "—"}
+            {loading
+              ? "—"
+              : avgSalary > 0
+                ? `$${avgSalary.toLocaleString()}/mo`
+                : "—"}
           </p>
         </div>
         <div className="card-premium p-4">
@@ -257,7 +274,10 @@ function JobsListPage() {
 
       {/* Loading State */}
       {loading && (
-        <motion.div variants={fadeInUp} className="flex items-center justify-center py-16">
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-center py-16"
+        >
           <Loader2 className="w-8 h-8 animate-spin text-accent" />
           <span className="ml-3 text-muted-foreground">Loading jobs...</span>
         </motion.div>
@@ -283,6 +303,14 @@ function JobsListPage() {
                       <MapPin className="w-4 h-4" />
                       {job.location}
                     </div>
+                    {job.employerTrustScore && (
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-accent" />
+                        <span className="text-xs font-semibold">
+                          Trust: {job.employerTrustScore}/100
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -291,7 +319,11 @@ function JobsListPage() {
                     size="icon"
                     onClick={() => handleToggleSave(job.id)}
                     disabled={savingJobId === job.id}
-                    className={savedJobIds.has(job.id) ? "text-amber-500 border-amber-500/30 hover:text-amber-600" : ""}
+                    className={
+                      savedJobIds.has(job.id)
+                        ? "text-amber-500 border-amber-500/30 hover:text-amber-600"
+                        : ""
+                    }
                   >
                     {savedJobIds.has(job.id) ? (
                       <BookmarkCheck className="w-4 h-4" />
@@ -316,7 +348,9 @@ function JobsListPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Positions</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Positions
+                  </p>
                   <p className="font-medium">{job.positions} open</p>
                 </div>
                 <div>
@@ -332,11 +366,13 @@ function JobsListPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {getRequirementsList(job.requirements).slice(0, 4).map((req, idx) => (
-                  <Badge key={idx} variant="outline">
-                    {req}
-                  </Badge>
-                ))}
+                {getRequirementsList(job.requirements)
+                  .slice(0, 4)
+                  .map((req, idx) => (
+                    <Badge key={idx} variant="outline">
+                      {req}
+                    </Badge>
+                  ))}
               </div>
             </div>
           ))}

@@ -45,14 +45,42 @@ const staggerContainer = {
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  applied: { label: "Applied", color: "bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400" },
-  available: { label: "Available", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" },
-  shortlisted: { label: "Shortlisted", color: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" },
-  interviewed: { label: "Interviewed", color: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400" },
-  interviewing: { label: "Interviewing", color: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" },
-  selected: { label: "Selected", color: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400" },
-  deployed: { label: "Deployed", color: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
-  rejected: { label: "Rejected", color: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400" },
+  applied: {
+    label: "Applied",
+    color: "bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400",
+  },
+  available: {
+    label: "Available",
+    color:
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
+  },
+  shortlisted: {
+    label: "Shortlisted",
+    color: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+  },
+  interviewed: {
+    label: "Interviewed",
+    color:
+      "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
+  },
+  interviewing: {
+    label: "Interviewing",
+    color: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+  },
+  selected: {
+    label: "Selected",
+    color:
+      "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
+  },
+  deployed: {
+    label: "Deployed",
+    color:
+      "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+  },
 };
 
 function CandidatesListPage() {
@@ -83,7 +111,7 @@ function CandidatesListPage() {
       candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       candidate.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (candidate.skills || []).some((s: string) =>
-        s.toLowerCase().includes(searchTerm.toLowerCase())
+        s.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     const matchesStatus =
       statusFilter === "all" || candidate.status === statusFilter;
@@ -91,7 +119,9 @@ function CandidatesListPage() {
     return matchesSearch && matchesStatus && matchesAi;
   });
 
-  const aiRecommendedCandidates = filteredCandidates.filter((c) => c.aiRecommended);
+  const aiRecommendedCandidates = filteredCandidates.filter(
+    (c) => c.aiRecommended,
+  );
 
   if (isLoading) {
     return (
@@ -117,9 +147,7 @@ function CandidatesListPage() {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-display font-bold mb-1">
-            Candidates
-          </h1>
+          <h1 className="text-3xl font-display font-bold mb-1">Candidates</h1>
           <p className="text-muted-foreground">
             View and manage applicants to your job orders
           </p>
@@ -133,15 +161,19 @@ function CandidatesListPage() {
           <p className="text-2xl font-display font-bold">{candidates.length}</p>
         </div>
         <div className="card-premium p-4">
-          <p className="text-sm text-muted-foreground mb-1">Matched</p>
+          <p className="text-sm text-muted-foreground mb-1">AI Matched</p>
           <p className="text-2xl font-display font-bold text-emerald-600">
-            {candidates.filter((c) => c.matched).length}
+            {candidates.filter((c) => c.aiRecommended).length}
           </p>
         </div>
         <div className="card-premium p-4">
           <p className="text-sm text-muted-foreground mb-1">Available</p>
           <p className="text-2xl font-display font-bold text-blue-600">
-            {candidates.filter((c) => c.status === "applied" || c.status === "available").length}
+            {
+              candidates.filter(
+                (c) => c.status === "applied" || c.status === "available",
+              ).length
+            }
           </p>
         </div>
       </motion.div>
@@ -155,7 +187,8 @@ function CandidatesListPage() {
           <Sparkles className="w-5 h-5 text-accent" />
           <span className="font-medium">
             AI recommends {aiRecommendedCandidates.length} best-fit candidate
-            {aiRecommendedCandidates.length !== 1 ? "s" : ""} for your job orders.
+            {aiRecommendedCandidates.length !== 1 ? "s" : ""} for your job
+            orders.
           </span>
           <Button
             variant={showAiOnly ? "default" : "outline"}
@@ -214,6 +247,8 @@ function CandidatesListPage() {
               <TableRow className="border-b border-border/50">
                 <TableHead>Name</TableHead>
                 <TableHead>Position</TableHead>
+                <TableHead>Match Score</TableHead>
+                <TableHead>Trust Score</TableHead>
                 <TableHead>Nationality</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Status</TableHead>
@@ -223,7 +258,8 @@ function CandidatesListPage() {
             <TableBody>
               {filteredCandidates.map((candidate) => {
                 const statusInfo =
-                  statusConfig[candidate.status as keyof typeof statusConfig] || statusConfig.applied;
+                  statusConfig[candidate.status as keyof typeof statusConfig] ||
+                  statusConfig.applied;
                 return (
                   <TableRow
                     key={candidate.id}
@@ -244,6 +280,57 @@ function CandidatesListPage() {
                       </div>
                     </TableCell>
                     <TableCell>{candidate.position || "—"}</TableCell>
+                    <TableCell>
+                      {candidate.matchScore !== null &&
+                      candidate.matchScore !== undefined ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                candidate.matchScore >= 80
+                                  ? "bg-emerald-500"
+                                  : candidate.matchScore >= 50
+                                    ? "bg-amber-500"
+                                    : "bg-red-400"
+                              }`}
+                              style={{ width: `${candidate.matchScore}%` }}
+                            />
+                          </div>
+                          <span
+                            className={`text-xs font-semibold ${
+                              candidate.matchScore >= 80
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : candidate.matchScore >= 50
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-red-500"
+                            }`}
+                          >
+                            {candidate.matchScore}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {candidate.trustScore || 50}/100
+                        </span>
+                        <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              (candidate.trustScore || 50) >= 70
+                                ? "bg-emerald-500"
+                                : (candidate.trustScore || 50) >= 50
+                                  ? "bg-amber-500"
+                                  : "bg-red-400"
+                            }`}
+                            style={{ width: `${candidate.trustScore || 50}%` }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {candidate.nationality || "—"}
                     </TableCell>

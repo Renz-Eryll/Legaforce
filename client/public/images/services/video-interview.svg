@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f1729"/>
+      <stop offset="100%" stop-color="#1a2744"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="650" cy="100" r="180" fill="#005085" opacity="0.06"/>
+  <!-- Video call window -->
+  <rect x="120" y="80" width="560" height="380" rx="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+  <!-- Top bar -->
+  <rect x="120" y="80" width="560" height="40" rx="12" fill="#0f172a"/>
+  <circle cx="150" cy="100" r="6" fill="#ef4444"/>
+  <circle cx="170" cy="100" r="6" fill="#fbbf24"/>
+  <circle cx="190" cy="100" r="6" fill="#4ade80"/>
+  <!-- Main video feed (person 1) -->
+  <rect x="140" y="130" width="350" height="250" rx="8" fill="#005085" opacity="0.2"/>
+  <circle cx="315" cy="230" r="50" fill="#005085" opacity="0.5"/>
+  <rect x="285" y="285" width="60" height="70" rx="12" fill="#005085" opacity="0.5"/>
+  <!-- Side panel (person 2) -->
+  <rect x="510" y="130" width="150" height="110" rx="6" fill="#c87533" opacity="0.2"/>
+  <circle cx="585" cy="170" r="25" fill="#c87533" opacity="0.5"/>
+  <rect x="568" y="198" width="34" height="35" rx="8" fill="#c87533" opacity="0.5"/>
+  <!-- Chat panel -->
+  <rect x="510" y="255" width="150" height="125" rx="6" fill="#0f172a" opacity="0.5"/>
+  <rect x="520" y="270" width="90" height="15" rx="4" fill="#005085" opacity="0.3"/>
+  <rect x="540" y="295" width="110" height="15" rx="4" fill="#c87533" opacity="0.3"/>
+  <rect x="520" y="320" width="80" height="15" rx="4" fill="#005085" opacity="0.3"/>
+  <!-- Bottom controls -->
+  <rect x="120" y="400" width="560" height="60" rx="12" fill="#0f172a"/>
+  <circle cx="350" cy="430" r="18" fill="#ef4444" opacity="0.8"/>
+  <circle cx="400" cy="430" r="18" fill="#334155"/>
+  <circle cx="450" cy="430" r="18" fill="#334155"/>
+  <!-- Camera icon -->
+  <rect x="340" y="424" width="20" height="12" rx="3" fill="white" opacity="0.8"/>
+  <!-- Signal indicator -->
+  <rect x="620" y="420" width="3" height="8" rx="1.5" fill="#4ade80" opacity="0.7"/>
+  <rect x="626" y="416" width="3" height="12" rx="1.5" fill="#4ade80" opacity="0.7"/>
+  <rect x="632" y="412" width="3" height="16" rx="1.5" fill="#4ade80" opacity="0.7"/>
+  <rect x="638" y="408" width="3" height="20" rx="1.5" fill="#4ade80" opacity="0.7"/>
+</svg>

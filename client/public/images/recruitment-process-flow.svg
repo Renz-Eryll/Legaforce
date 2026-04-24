@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="50%" stop-color="#0f1e3a"/>
+      <stop offset="100%" stop-color="#1a2744"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#005085"/>
+      <stop offset="50%" stop-color="#c87533"/>
+      <stop offset="100%" stop-color="#005085"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="500" fill="url(#bg)"/>
+  <!-- Background shapes -->
+  <circle cx="200" cy="250" r="200" fill="#005085" opacity="0.04"/>
+  <circle cx="600" cy="250" r="200" fill="#c87533" opacity="0.03"/>
+  <circle cx="1000" cy="250" r="200" fill="#005085" opacity="0.04"/>
+  <!-- Process flow line -->
+  <line x1="200" y1="250" x2="1000" y2="250" stroke="url(#line)" stroke-width="3" opacity="0.3" stroke-dasharray="8 4"/>
+  <!-- Step 1: Inquiry -->
+  <circle cx="200" cy="250" r="60" fill="#005085" opacity="0.2"/>
+  <circle cx="200" cy="250" r="40" fill="#005085" opacity="0.4"/>
+  <rect x="180" y="235" width="40" height="30" rx="4" fill="white" opacity="0.5"/>
+  <rect x="188" y="243" width="24" height="3" rx="1.5" fill="#005085" opacity="0.7"/>
+  <rect x="188" y="249" width="18" height="3" rx="1.5" fill="#005085" opacity="0.5"/>
+  <rect x="188" y="255" width="22" height="3" rx="1.5" fill="#005085" opacity="0.5"/>
+  <rect x="140" y="320" width="120" height="12" rx="4" fill="white" opacity="0.3"/>
+  <!-- Arrow -->
+  <polygon points="310,250 295,240 295,260" fill="#c87533" opacity="0.5"/>
+  <!-- Step 2: Matching -->
+  <circle cx="470" cy="250" r="60" fill="#c87533" opacity="0.2"/>
+  <circle cx="470" cy="250" r="40" fill="#c87533" opacity="0.4"/>
+  <circle cx="460" cy="240" r="12" fill="white" opacity="0.5"/>
+  <circle cx="480" cy="240" r="12" fill="white" opacity="0.5"/>
+  <circle cx="470" cy="260" r="8" fill="white" opacity="0.4"/>
+  <rect x="410" y="320" width="120" height="12" rx="4" fill="white" opacity="0.3"/>
+  <!-- Arrow -->
+  <polygon points="580,250 565,240 565,260" fill="#005085" opacity="0.5"/>
+  <!-- Step 3: Interview -->
+  <circle cx="740" cy="250" r="60" fill="#005085" opacity="0.2"/>
+  <circle cx="740" cy="250" r="40" fill="#005085" opacity="0.4"/>
+  <rect x="725" y="235" width="30" height="22" rx="4" fill="white" opacity="0.5"/>
+  <polygon points="755,246 770,246 770,256 755,256 755,246" fill="white" opacity="0.3"/>
+  <rect x="680" y="320" width="120" height="12" rx="4" fill="white" opacity="0.3"/>
+  <!-- Arrow -->
+  <polygon points="850,250 835,240 835,260" fill="#c87533" opacity="0.5"/>
+  <!-- Step 4: Deploy -->
+  <circle cx="1000" cy="250" r="60" fill="#c87533" opacity="0.2"/>
+  <circle cx="1000" cy="250" r="40" fill="#c87533" opacity="0.4"/>
+  <circle cx="1000" cy="240" r="20" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <line x1="1000" y1="220" x2="1000" y2="260" stroke="white" stroke-width="1.5" opacity="0.3"/>
+  <ellipse cx="1000" cy="240" rx="20" ry="8" fill="none" stroke="white" stroke-width="1" opacity="0.3"/>
+  <rect x="940" y="320" width="120" height="12" rx="4" fill="white" opacity="0.3"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f1729"/>
+      <stop offset="100%" stop-color="#1a2744"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="200" cy="150" r="200" fill="#c87533" opacity="0.05"/>
+  <circle cx="600" cy="450" r="200" fill="#005085" opacity="0.05"/>
+  <!-- Classroom layout -->
+  <rect x="150" y="100" width="500" height="300" rx="12" fill="#1e293b" opacity="0.5"/>
+  <!-- Whiteboard -->
+  <rect x="250" y="120" width="300" height="150" rx="6" fill="#2d3f58" stroke="#4a6282" stroke-width="1"/>
+  <rect x="270" y="140" width="120" height="10" rx="4" fill="#c87533" opacity="0.5"/>
+  <rect x="270" y="160" width="250" height="6" rx="3" fill="white" opacity="0.15"/>
+  <rect x="270" y="175" width="230" height="6" rx="3" fill="white" opacity="0.12"/>
+  <rect x="270" y="195" width="100" height="8" rx="4" fill="#005085" opacity="0.4"/>
+  <rect x="270" y="215" width="200" height="6" rx="3" fill="white" opacity="0.12"/>
+  <rect x="270" y="230" width="180" height="6" rx="3" fill="white" opacity="0.1"/>
+  <!-- Books stack -->
+  <rect x="180" y="320" width="50" height="12" rx="3" fill="#005085" opacity="0.5"/>
+  <rect x="175" y="308" width="55" height="12" rx="3" fill="#c87533" opacity="0.5"/>
+  <rect x="178" y="296" width="52" height="12" rx="3" fill="#4ade80" opacity="0.4"/>
+  <!-- Globe on desk -->
+  <circle cx="620" cy="340" r="30" fill="none" stroke="#005085" stroke-width="2" opacity="0.4"/>
+  <ellipse cx="620" cy="340" rx="30" ry="12" fill="none" stroke="#005085" stroke-width="1" opacity="0.3"/>
+  <line x1="620" y1="310" x2="620" y2="370" stroke="#005085" stroke-width="1" opacity="0.3"/>
+  <!-- Students (3 seats) -->
+  <rect x="230" y="420" width="80" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="270" cy="400" r="18" fill="#005085" opacity="0.4"/>
+  <rect x="370" y="420" width="80" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="410" cy="400" r="18" fill="#c87533" opacity="0.4"/>
+  <rect x="510" y="420" width="80" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <circle cx="550" cy="400" r="18" fill="#005085" opacity="0.4"/>
+  <!-- Graduation cap -->
+  <polygon points="400,80 360,100 400,120 440,100" fill="#c87533" opacity="0.5"/>
+  <rect x="396" y="65" width="8" height="18" fill="#c87533" opacity="0.5"/>
+</svg>

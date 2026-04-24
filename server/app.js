@@ -78,6 +78,43 @@ app.use("/uploads", express.static("uploads", { maxAge: "7d" }));
 // ── Rate limiting — only on API routes ──
 app.use("/api", arcjetMiddleware);
 
+import { addClient, getClientCount } from "./services/sse.service.js";
+import { authorize } from "./middlewares/auth.middleware.js";
+
+// ── SSE (Server-Sent Events) endpoint for real-time notifications ──
+app.get("/api/v1/notifications/stream", authorize, (req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no", // Disable Nginx buffering
+  });
+
+  // Send initial connection event
+  res.write(`event: connected\ndata: ${JSON.stringify({ userId: req.user.id, connectedAt: new Date().toISOString() })}\n\n`);
+
+  // Register this client for SSE events
+  addClient(req.user.id, res);
+
+  // Keep-alive ping every 30s to prevent proxy/firewall timeouts
+  const keepAlive = setInterval(() => {
+    try {
+      res.write(": ping\n\n");
+    } catch {
+      clearInterval(keepAlive);
+    }
+  }, 30000);
+
+  req.on("close", () => {
+    clearInterval(keepAlive);
+  });
+});
+
+// SSE health check (admin monitoring)
+app.get("/api/v1/notifications/connections", (req, res) => {
+  res.json({ success: true, data: { activeConnections: getClientCount() } });
+});
+
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/applicant", applicantRouter);
 app.use("/api/v1/employer", employerRouter);

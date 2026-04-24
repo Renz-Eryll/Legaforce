@@ -413,4 +413,34 @@ export const adminService = {
       throw error;
     }
   },
+  
+  async getSystemLogs(params?: { entityType?: string; entityId?: string; userId?: string; limit?: number }) {
+    try {
+      const { data } = await api.get("/admin/logs", { params });
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch system logs:", error);
+      throw error;
+    }
+  },
+
+  async getSlaAlerts() {
+    try {
+      const { data } = await api.get("/admin/sla-alerts");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch SLA alerts:", error);
+      throw error;
+    }
+  },
+
+  async getReports() {
+    try {
+      const { data } = await api.get("/admin/reports");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+      throw error;
+    }
+  },
 };

@@ -1,5 +1,10 @@
 import prisma from "../config/database.js";
-import { sendStatusChangeEmail, sendInvoiceEmail } from "../services/email.service.js";
+import {
+  sendStatusChangeEmail,
+  sendInvoiceEmail,
+} from "../services/email.service.js";
+import { notifyApplicationStatusChange } from "../services/notification.service.js";
+import { computeAIMatchScore } from "../services/openai.service.js";
 
 // Use employer already loaded by auth middleware — zero extra DB queries
 const getEmployerFromReq = (req) => {
@@ -19,6 +24,15 @@ export const getProfile = async (req, res, next) => {
       where: { id: req.user.id },
       select: { email: true },
     });
+    const ratings = await prisma.employerRating.findMany({
+      where: { employerId: employer.id },
+      include: {
+        applicant: { select: { firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
     res.json({
       success: true,
       data: {
@@ -31,6 +45,14 @@ export const getProfile = async (req, res, next) => {
           : employer.verificationDocs
             ? [employer.verificationDocs]
             : [],
+        ratings: ratings.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          review: r.review,
+          createdAt: r.createdAt,
+          workerName: `${r.applicant.firstName} ${r.applicant.lastName}`,
+        })),
+        totalRatings: await prisma.employerRating.count({ where: { employerId: employer.id } }),
       },
     });
   } catch (err) {
@@ -92,35 +114,90 @@ export const getCandidates = async (req, res, next) => {
             aiGeneratedCV: true,
           },
         },
-        jobOrder: { select: { id: true, title: true } },
+        jobOrder: { select: { id: true, title: true, requirements: true } },
       },
     });
+
     const byApplicant = new Map();
     for (const app of applications) {
       const pid = app.applicantId;
       if (!byApplicant.has(pid)) {
         const a = app.applicant;
-        const name = [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant";
-        const cv = (a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object") ? a.aiGeneratedCV : {};
+        const name =
+          [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant";
+        const cv =
+          a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object"
+            ? a.aiGeneratedCV
+            : {};
         const skills = cv.skills || cv.skillTags || [];
+
+        // Use stored aiMatchScore, or compute on-the-fly
+        let matchScore = app.aiMatchScore;
+        let matchReason = "";
+
+        if (matchScore === null || matchScore === undefined) {
+          try {
+            const jobReq = app.jobOrder?.requirements || {};
+            const reqSkills = Array.isArray(jobReq)
+              ? jobReq
+              : Array.isArray(jobReq?.skills)
+                ? jobReq.skills
+                : [];
+
+            if (skills.length > 0 && reqSkills.length > 0) {
+              const aiResult = await computeAIMatchScore(
+                skills,
+                reqSkills,
+                app.jobOrder?.title,
+              );
+              matchScore = aiResult.score;
+              matchReason = aiResult.reason || "";
+
+              // Persist the score for future reads
+              prisma.application
+                .update({
+                  where: { id: app.id },
+                  data: { aiMatchScore: matchScore },
+                })
+                .catch(() => {}); // fire-and-forget
+            }
+          } catch {
+            // AI matching is best-effort
+          }
+        }
+
         byApplicant.set(pid, {
           id: a?.id,
           name,
           position: app.jobOrder?.title,
           location: a?.nationality || "",
           nationality: a?.nationality || "",
-          experience: cv.experience?.length ? `${cv.experience.length}+ years` : "—",
-          experienceYears: (cv.experience && cv.experience.length) ? cv.experience.length : 0,
+          experience: cv.experience?.length
+            ? `${cv.experience.length}+ years`
+            : "—",
+          experienceYears:
+            cv.experience && cv.experience.length ? cv.experience.length : 0,
           skills,
           status: app.status.toLowerCase(),
+          matchScore: matchScore ?? null,
+          matchReason,
           rating: 4,
-          matched: true,
-          aiRecommended: (app.aiMatchScore || 0) >= 80,
+          matched: (matchScore || 0) > 0,
+          aiRecommended: (matchScore || 0) >= 70,
           availability: "immediate",
+          trustScore: a?.trustScore || 50,
         });
       }
     }
     const data = Array.from(byApplicant.values());
+
+    // Sort by match score descending, then by trust score descending
+    data.sort((a, b) => {
+      const matchDiff = (b.matchScore || 0) - (a.matchScore || 0);
+      if (matchDiff !== 0) return matchDiff;
+      return (b.trustScore || 50) - (a.trustScore || 50);
+    });
+
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -142,33 +219,44 @@ export const getCandidateById = async (req, res, next) => {
       },
     });
     if (!application) {
-      return res.status(404).json({ success: false, message: "Candidate not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Candidate not found" });
     }
 
     // Increment profile views when employer checks their profile
-    await prisma.profile.update({
-      where: { id: application.applicantId },
-      data: { profileViews: { increment: 1 } },
-    }).catch(err => console.error("Failed to increment view count:", err));
+    await prisma.profile
+      .update({
+        where: { id: application.applicantId },
+        data: { profileViews: { increment: 1 } },
+      })
+      .catch((err) => console.error("Failed to increment view count:", err));
 
     const a = application.applicant;
-    const cv = (a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object") ? a.aiGeneratedCV : {};
+    const cv =
+      a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object"
+        ? a.aiGeneratedCV
+        : {};
     res.json({
       success: true,
       data: {
         id: a.id,
         applicationId: application.id,
         status: application.status,
-        name: [a.firstName, a.lastName].filter(Boolean).join(" ") || "Applicant",
+        name:
+          [a.firstName, a.lastName].filter(Boolean).join(" ") || "Applicant",
         position: application.jobOrder?.title,
         email: null,
         phone: a.phone,
         location: a.nationality,
-        experience: cv.experience?.length ? `${cv.experience.length}+ years` : "—",
+        experience: cv.experience?.length
+          ? `${cv.experience.length}+ years`
+          : "—",
         skills: cv.skills || cv.skillTags || [],
         certifications: cv.certifications || [],
         matchScore: application.aiMatchScore || 0,
         rating: 4,
+        trustScore: a.trustScore || 50,
         interviewNotes: application.interviewNotes,
       },
     });
@@ -183,7 +271,15 @@ export const getInterviews = async (req, res, next) => {
     const applications = await prisma.application.findMany({
       where: {
         jobOrder: { employerId: employer.id },
-        status: { in: ["SHORTLISTED", "INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"] },
+        status: {
+          in: [
+            "SHORTLISTED",
+            "INTERVIEWED",
+            "SELECTED",
+            "PROCESSING",
+            "DEPLOYED",
+          ],
+        },
       },
       include: {
         applicant: { select: { id: true, firstName: true, lastName: true } },
@@ -193,13 +289,17 @@ export const getInterviews = async (req, res, next) => {
     const data = applications.map((app) => ({
       id: app.id,
       applicationId: app.id,
-      candidateName: [app.applicant?.firstName, app.applicant?.lastName].filter(Boolean).join(" ") || "Candidate",
+      candidateName:
+        [app.applicant?.firstName, app.applicant?.lastName]
+          .filter(Boolean)
+          .join(" ") || "Candidate",
       position: app.jobOrder?.title,
       date: app.interviewedAt || app.shortlistedAt || app.createdAt,
       time: "—",
       type: "video",
       status: app.interviewedAt ? "completed" : "scheduled",
-      videoLink: app.videoInterviewUrl || `https://meet.legaforce.com/${app.id}`,
+      videoLink:
+        app.videoInterviewUrl || `https://meet.legaforce.com/${app.id}`,
       rating: null,
       notes: app.interviewNotes,
       feedbackShared: false,
@@ -220,7 +320,9 @@ export const updateInterviewRating = async (req, res, next) => {
       },
     });
     if (!application) {
-      return res.status(404).json({ success: false, message: "Interview not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Interview not found" });
     }
     const { rating, notes } = req.body;
     await prisma.application.update({
@@ -246,7 +348,9 @@ export const shareInterviewFeedback = async (req, res, next) => {
       },
     });
     if (!application) {
-      return res.status(404).json({ success: false, message: "Interview not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Interview not found" });
     }
     res.json({ success: true, data: { shared: true } });
   } catch (err) {
@@ -273,7 +377,7 @@ import { uploadFile } from "../services/upload.service.js";
 export const uploadDocument = async (req, res, next) => {
   try {
     const employer = getEmployerFromReq(req);
-    
+
     // req.file is set by multer middleware
     const file = req.file;
     let fileUrl = null;
@@ -288,7 +392,7 @@ export const uploadDocument = async (req, res, next) => {
         file.buffer,
         file.originalname,
         "employer_docs",
-        file.mimetype
+        file.mimetype,
       );
       fileUrl = result.url;
       fileKey = result.key;
@@ -296,7 +400,10 @@ export const uploadDocument = async (req, res, next) => {
       fileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
       fileType = file.mimetype.startsWith("image/") ? "image" : "document";
     } else if (!req.body.name) {
-      return res.status(400).json({ success: false, message: "A file or document name is required" });
+      return res.status(400).json({
+        success: false,
+        message: "A file or document name is required",
+      });
     }
 
     const existing = Array.isArray(employer.verificationDocs)
@@ -304,7 +411,7 @@ export const uploadDocument = async (req, res, next) => {
       : employer.verificationDocs
         ? [employer.verificationDocs]
         : [];
-        
+
     const newDoc = {
       id: `DOC-${Date.now()}`,
       name: fileName,
@@ -315,7 +422,7 @@ export const uploadDocument = async (req, res, next) => {
       status: "pending",
       uploadedAt: new Date().toISOString().split("T")[0],
     };
-    
+
     const updated = await prisma.employer.update({
       where: { id: employer.id },
       data: { verificationDocs: [...existing, newDoc] },
@@ -330,10 +437,30 @@ export const getPricing = async (req, res, next) => {
   try {
     const data = {
       items: [
-        { item: "Placement fee (per worker)", amount: 500, unit: "USD", note: "One-time" },
-        { item: "Document verification", amount: 50, unit: "USD", note: "Per batch" },
-        { item: "Video interview slot", amount: 0, unit: "—", note: "Unlimited included" },
-        { item: "Priority sourcing (optional)", amount: 200, unit: "USD", note: "Per job order" },
+        {
+          item: "Placement fee (per worker)",
+          amount: 500,
+          unit: "USD",
+          note: "One-time",
+        },
+        {
+          item: "Document verification",
+          amount: 50,
+          unit: "USD",
+          note: "Per batch",
+        },
+        {
+          item: "Video interview slot",
+          amount: 0,
+          unit: "—",
+          note: "Unlimited included",
+        },
+        {
+          item: "Priority sourcing (optional)",
+          amount: 200,
+          unit: "USD",
+          note: "Per job order",
+        },
       ],
     };
     res.json({ success: true, data });
@@ -358,7 +485,9 @@ export const getUpcomingInterviews = async (req, res, next) => {
     });
     const data = applications.map((a) => ({
       id: a.id,
-      candidateName: [a.applicant?.firstName, a.applicant?.lastName].filter(Boolean).join(" "),
+      candidateName: [a.applicant?.firstName, a.applicant?.lastName]
+        .filter(Boolean)
+        .join(" "),
       position: a.jobOrder?.title,
       date: a.interviewedAt || a.createdAt,
     }));
@@ -390,8 +519,12 @@ export const getRecentCandidates = async (req, res, next) => {
     });
     const data = applications.map((app) => {
       const a = app.applicant;
-      const name = [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant";
-      const cv = (a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object") ? a.aiGeneratedCV : {};
+      const name =
+        [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant";
+      const cv =
+        a?.aiGeneratedCV && typeof a.aiGeneratedCV === "object"
+          ? a.aiGeneratedCV
+          : {};
       return {
         id: a?.id,
         name,
@@ -463,26 +596,29 @@ export const getDeployedWorkerCount = async (req, res, next) => {
 export const getDashboardStats = async (req, res, next) => {
   try {
     const employer = getEmployerFromReq(req);
-    const [jobCount, candidateCount, interviewCount, deployedCount] = await Promise.all([
-      prisma.jobOrder.count({ where: { employerId: employer.id, status: "ACTIVE" } }),
-      prisma.application.count({
-        where: {
-          jobOrder: { employerId: employer.id },
-        },
-      }),
-      prisma.application.count({
-        where: {
-          jobOrder: { employerId: employer.id },
-          status: { in: ["SHORTLISTED", "INTERVIEWED"] },
-        },
-      }),
-      prisma.application.count({
-        where: {
-          jobOrder: { employerId: employer.id },
-          status: "DEPLOYED",
-        },
-      }),
-    ]);
+    const [jobCount, candidateCount, interviewCount, deployedCount] =
+      await Promise.all([
+        prisma.jobOrder.count({
+          where: { employerId: employer.id, status: "ACTIVE" },
+        }),
+        prisma.application.count({
+          where: {
+            jobOrder: { employerId: employer.id },
+          },
+        }),
+        prisma.application.count({
+          where: {
+            jobOrder: { employerId: employer.id },
+            status: { in: ["SHORTLISTED", "INTERVIEWED"] },
+          },
+        }),
+        prisma.application.count({
+          where: {
+            jobOrder: { employerId: employer.id },
+            status: "DEPLOYED",
+          },
+        }),
+      ]);
     res.json({
       success: true,
       data: {
@@ -504,10 +640,21 @@ export const getDashboardStats = async (req, res, next) => {
 export const createJobOrder = async (req, res, next) => {
   try {
     const employer = getEmployerFromReq(req);
-    const { title, description, requirements, salary, location, positions, status } = req.body;
+    const {
+      title,
+      description,
+      requirements,
+      salary,
+      location,
+      positions,
+      status,
+    } = req.body;
 
     if (!title || !description || !location) {
-      return res.status(400).json({ success: false, message: "Title, description, and location are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Title, description, and location are required",
+      });
     }
 
     const jobOrder = await prisma.jobOrder.create({
@@ -555,7 +702,9 @@ export const getJobOrderById = async (req, res, next) => {
     });
 
     if (!jobOrder) {
-      return res.status(404).json({ success: false, message: "Job order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Job order not found" });
     }
 
     // Transform applications into candidates for the frontend
@@ -564,7 +713,8 @@ export const getJobOrderById = async (req, res, next) => {
       return {
         id: app.id,
         applicantId: a?.id,
-        name: [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant",
+        name:
+          [a?.firstName, a?.lastName].filter(Boolean).join(" ") || "Applicant",
         status: app.status.toLowerCase(),
         aiMatchScore: app.aiMatchScore || 0,
         appliedAt: app.createdAt,
@@ -598,10 +748,20 @@ export const updateJobOrder = async (req, res, next) => {
       where: { id: req.params.id, employerId: employer.id },
     });
     if (!existing) {
-      return res.status(404).json({ success: false, message: "Job order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Job order not found" });
     }
 
-    const { title, description, requirements, salary, location, positions, status } = req.body;
+    const {
+      title,
+      description,
+      requirements,
+      salary,
+      location,
+      positions,
+      status,
+    } = req.body;
     const data = {};
     if (title != null) data.title = title;
     if (description != null) data.description = description;
@@ -628,7 +788,9 @@ export const deleteJobOrder = async (req, res, next) => {
       where: { id: req.params.id, employerId: employer.id },
     });
     if (!existing) {
-      return res.status(404).json({ success: false, message: "Job order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Job order not found" });
     }
 
     await prisma.jobOrder.delete({ where: { id: existing.id } });
@@ -648,13 +810,25 @@ export const updateApplicationStatus = async (req, res, next) => {
       },
     });
     if (!application) {
-      return res.status(404).json({ success: false, message: "Application not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Application not found" });
     }
 
     const { status, notes } = req.body;
-    const validStatuses = ["APPLIED", "SHORTLISTED", "INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED", "REJECTED"];
+    const validStatuses = [
+      "APPLIED",
+      "SHORTLISTED",
+      "INTERVIEWED",
+      "SELECTED",
+      "PROCESSING",
+      "DEPLOYED",
+      "REJECTED",
+    ];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status" });
     }
 
     const data = { status };
@@ -666,9 +840,12 @@ export const updateApplicationStatus = async (req, res, next) => {
         data.videoInterviewUrl = `https://meet.jit.si/${roomId}`;
       }
     }
-    if (status === "INTERVIEWED" && !application.interviewedAt) data.interviewedAt = new Date();
-    if (status === "SELECTED" && !application.selectedAt) data.selectedAt = new Date();
-    if (status === "DEPLOYED" && !application.deployedAt) data.deployedAt = new Date();
+    if (status === "INTERVIEWED" && !application.interviewedAt)
+      data.interviewedAt = new Date();
+    if (status === "SELECTED" && !application.selectedAt)
+      data.selectedAt = new Date();
+    if (status === "DEPLOYED" && !application.deployedAt)
+      data.deployedAt = new Date();
     if (notes) data.interviewNotes = notes;
 
     const updated = await prisma.application.update({
@@ -694,16 +871,32 @@ export const updateApplicationStatus = async (req, res, next) => {
         select: { email: true },
       });
       if (applicantUser?.email) {
-        const applicantName = `${updated.applicant.firstName} ${updated.applicant.lastName}`.trim();
+        const applicantName =
+          `${updated.applicant.firstName} ${updated.applicant.lastName}`.trim();
         await sendStatusChangeEmail(
           applicantUser.email,
           applicantName,
           updated.jobOrder.title,
-          status
+          status,
         );
       }
     } catch (emailErr) {
       console.error("Failed to send status email:", emailErr.message);
+    }
+
+    // ── Real-time & Persistent Notification ──
+    try {
+      await notifyApplicationStatusChange(updated.applicant.id, {
+        status,
+        jobTitle: updated.jobOrder?.title || "Job",
+        companyName: employer.companyName || "Employer",
+        applicationId: application.id,
+      });
+    } catch (notifErr) {
+      console.error(
+        "Failed to create notification:",
+        notifErr.message,
+      );
     }
 
     // ── Create Deployment record when SELECTED ──
@@ -725,9 +918,13 @@ export const updateApplicationStatus = async (req, res, next) => {
     // ── Auto-generate Invoice when DEPLOYED ──
     if (status === "DEPLOYED") {
       try {
-        const invoiceCount = await prisma.invoice.count({ where: { employerId: employer.id } });
+        const invoiceCount = await prisma.invoice.count({
+          where: { employerId: employer.id },
+        });
         const invoiceNumber = `INV-${employer.id.slice(-4).toUpperCase()}-${String(invoiceCount + 1).padStart(4, "0")}`;
-        const placementFee = updated.jobOrder.salary ? updated.jobOrder.salary * 0.1 : 500;
+        const placementFee = updated.jobOrder.salary
+          ? updated.jobOrder.salary * 0.1
+          : 500;
 
         const invoice = await prisma.invoice.create({
           data: {
@@ -765,7 +962,7 @@ export const updateApplicationStatus = async (req, res, next) => {
               employer.contactPerson || employer.companyName,
               invoiceNumber,
               placementFee,
-              "USD"
+              "USD",
             );
           }
         } catch (emailErr) {
@@ -774,6 +971,33 @@ export const updateApplicationStatus = async (req, res, next) => {
       } catch (invErr) {
         console.error("Failed to auto-generate invoice:", invErr.message);
       }
+    }
+
+    // ── Trust Score Business Logic ──
+    // Applicant trust score increases as they progress through the pipeline
+    try {
+      const trustIncrements = {
+        SHORTLISTED: 2, // Small bump for being shortlisted
+        INTERVIEWED: 3, // Completed interview process
+        SELECTED: 5, // Selected for deployment
+        DEPLOYED: 10, // Successfully deployed
+        REJECTED: -1, // Minor decrease
+      };
+      const increment = trustIncrements[status];
+      if (increment) {
+        const applicantProfile = await prisma.profile.findUnique({
+          where: { id: updated.applicant.id },
+          select: { trustScore: true },
+        });
+        const currentScore = applicantProfile?.trustScore || 50;
+        const newScore = Math.max(0, Math.min(100, currentScore + increment));
+        await prisma.profile.update({
+          where: { id: updated.applicant.id },
+          data: { trustScore: newScore },
+        });
+      }
+    } catch (trustErr) {
+      console.error("Failed to update trust score:", trustErr.message);
     }
 
     res.json({ success: true, data: updated });
@@ -811,9 +1035,10 @@ export const getDeployments = async (req, res, next) => {
 
     const data = applications.map((app) => ({
       id: app.id,
-      workerName: [app.applicant?.firstName, app.applicant?.lastName]
-        .filter(Boolean)
-        .join(" ") || "Worker",
+      workerName:
+        [app.applicant?.firstName, app.applicant?.lastName]
+          .filter(Boolean)
+          .join(" ") || "Worker",
       position: app.jobOrder?.title || "—",
       destination: app.jobOrder?.location || "—",
       location: app.jobOrder?.location || "—",
@@ -859,7 +1084,10 @@ export const getInvoices = async (req, res, next) => {
       paidAt: inv.paidAt,
       lineItems: inv.lineItems,
       description: Array.isArray(inv.lineItems)
-        ? inv.lineItems.map((li) => li.description || li.item).filter(Boolean).join(", ")
+        ? inv.lineItems
+            .map((li) => li.description || li.item)
+            .filter(Boolean)
+            .join(", ")
         : "Recruitment services",
       createdAt: inv.createdAt,
     }));
@@ -886,10 +1114,13 @@ export const getReports = async (req, res, next) => {
     });
 
     const byStatus = Object.fromEntries(
-      statusCounts.map((c) => [c.status, c._count])
+      statusCounts.map((c) => [c.status, c._count]),
     );
 
-    const totalApplications = Object.values(byStatus).reduce((a, b) => a + b, 0);
+    const totalApplications = Object.values(byStatus).reduce(
+      (a, b) => a + b,
+      0,
+    );
 
     // Job order stats
     const jobStatusCounts = await prisma.jobOrder.groupBy({
@@ -898,7 +1129,7 @@ export const getReports = async (req, res, next) => {
       _count: true,
     });
     const jobsByStatus = Object.fromEntries(
-      jobStatusCounts.map((c) => [c.status, c._count])
+      jobStatusCounts.map((c) => [c.status, c._count]),
     );
 
     res.json({
@@ -930,7 +1161,7 @@ export const getDashboardAnalytics = async (req, res, next) => {
       months.push({
         label: d.toLocaleString("default", { month: "short" }),
         start: new Date(d.getFullYear(), d.getMonth(), 1),
-        end:   new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+        end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
       });
     }
 
@@ -939,7 +1170,10 @@ export const getDashboardAnalytics = async (req, res, next) => {
       months.map(({ start, end }) =>
         Promise.all([
           prisma.jobOrder.count({
-            where: { employerId: employer.id, createdAt: { gte: start, lte: end } },
+            where: {
+              employerId: employer.id,
+              createdAt: { gte: start, lte: end },
+            },
           }),
           prisma.application.count({
             where: {
@@ -948,14 +1182,14 @@ export const getDashboardAnalytics = async (req, res, next) => {
               updatedAt: { gte: start, lte: end },
             },
           }),
-        ])
-      )
+        ]),
+      ),
     );
 
     const trend = months.map(({ label }, i) => ({
-      month:  label,
+      month: label,
       posted: trendResults[i][0],
-      hired:  trendResults[i][1],
+      hired: trendResults[i][1],
     }));
 
     // Candidate pipeline — all applications for this employer, grouped by status
@@ -965,23 +1199,110 @@ export const getDashboardAnalytics = async (req, res, next) => {
       _count: { id: true },
     });
 
-    const statusOrder = ["APPLIED", "SHORTLISTED", "INTERVIEWED", "SELECTED", "DEPLOYED"];
+    const statusOrder = [
+      "APPLIED",
+      "SHORTLISTED",
+      "INTERVIEWED",
+      "SELECTED",
+      "DEPLOYED",
+    ];
     const colorMap = {
-      APPLIED:     "#64748b",
+      APPLIED: "#64748b",
       SHORTLISTED: "#06b6d4",
       INTERVIEWED: "#8b5cf6",
-      SELECTED:    "#f59e0b",
-      DEPLOYED:    "#10b981",
+      SELECTED: "#f59e0b",
+      DEPLOYED: "#10b981",
     };
     const pipeline = pipelineRows
-      .sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status))
+      .sort(
+        (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
+      )
       .map((r) => ({
         stage: r.status.charAt(0) + r.status.slice(1).toLowerCase(),
         count: r._count.id,
-        fill:  colorMap[r.status] || "#64748b",
+        fill: colorMap[r.status] || "#64748b",
       }));
 
     res.json({ success: true, data: { trend, pipeline } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Employer rates Applicant ──────────────────
+export const rateApplicant = async (req, res, next) => {
+  try {
+    const employer = getEmployerFromReq(req);
+    const { applicantId, rating, review } = req.body;
+
+    if (
+      !applicantId ||
+      typeof rating !== "number" ||
+      rating < 1 ||
+      rating > 5
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid applicantId and rating (1-5) are required",
+      });
+    }
+
+    // Verify the employer has a late-stage application with this applicant
+    const application = await prisma.application.findFirst({
+      where: {
+        applicantId,
+        jobOrder: { employerId: employer.id },
+        status: { in: ["INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"] },
+      },
+    });
+
+    if (!application) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only rate applicants you've interviewed or hired",
+      });
+    }
+
+    // Upsert the rating
+    const existing = await prisma.applicantRating.findFirst({
+      where: { applicantId, employerId: employer.id },
+    });
+
+    let savedRating;
+    if (existing) {
+      savedRating = await prisma.applicantRating.update({
+        where: { id: existing.id },
+        data: { rating, review },
+      });
+    } else {
+      savedRating = await prisma.applicantRating.create({
+        data: { applicantId, employerId: employer.id, rating, review },
+      });
+    }
+
+    // Recalculate applicant's trust score based on employer ratings
+    const allRatings = await prisma.applicantRating.findMany({
+      where: { applicantId },
+    });
+    const avgRating =
+      allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+    // Map 1-5 avg to 20-100 scale, blended with existing milestone-based score
+    const ratingScore = Math.round(avgRating * 20);
+    const currentProfile = await prisma.profile.findUnique({
+      where: { id: applicantId },
+      select: { trustScore: true },
+    });
+    // Blend: 60% milestone-based + 40% rating-based
+    const milestoneScore = currentProfile?.trustScore || 50;
+    const blendedScore = Math.round(milestoneScore * 0.6 + ratingScore * 0.4);
+    const finalScore = Math.max(0, Math.min(100, blendedScore));
+
+    await prisma.profile.update({
+      where: { id: applicantId },
+      data: { trustScore: finalScore },
+    });
+
+    res.json({ success: true, data: savedRating });
   } catch (err) {
     next(err);
   }

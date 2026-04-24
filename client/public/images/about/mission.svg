@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#005085"/>
+      <stop offset="100%" stop-color="#003255"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="400" cy="300" r="250" fill="#c87533" opacity="0.06"/>
+  <circle cx="200" cy="100" r="150" fill="white" opacity="0.03"/>
+  <circle cx="650" cy="500" r="200" fill="white" opacity="0.03"/>
+  <!-- Target/Mission icon -->
+  <circle cx="400" cy="260" r="100" fill="none" stroke="white" stroke-width="2" opacity="0.15"/>
+  <circle cx="400" cy="260" r="70" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  <circle cx="400" cy="260" r="40" fill="none" stroke="#c87533" stroke-width="3" opacity="0.4"/>
+  <circle cx="400" cy="260" r="12" fill="#c87533" opacity="0.7"/>
+  <!-- Radiating lines -->
+  <line x1="400" y1="155" x2="400" y2="130" stroke="white" stroke-width="2" opacity="0.15"/>
+  <line x1="400" y1="365" x2="400" y2="390" stroke="white" stroke-width="2" opacity="0.15"/>
+  <line x1="295" y1="260" x2="270" y2="260" stroke="white" stroke-width="2" opacity="0.15"/>
+  <line x1="505" y1="260" x2="530" y2="260" stroke="white" stroke-width="2" opacity="0.15"/>
+  <!-- People around the target -->
+  <circle cx="250" cy="180" r="20" fill="white" opacity="0.2"/>
+  <rect x="240" y="205" width="20" height="25" rx="4" fill="white" opacity="0.15"/>
+  <circle cx="550" cy="180" r="20" fill="white" opacity="0.2"/>
+  <rect x="540" y="205" width="20" height="25" rx="4" fill="white" opacity="0.15"/>
+  <circle cx="250" cy="380" r="20" fill="#c87533" opacity="0.3"/>
+  <rect x="240" y="405" width="20" height="25" rx="4" fill="#c87533" opacity="0.2"/>
+  <circle cx="550" cy="380" r="20" fill="#c87533" opacity="0.3"/>
+  <rect x="540" y="405" width="20" height="25" rx="4" fill="#c87533" opacity="0.2"/>
+  <!-- Connecting paths -->
+  <path d="M270 195 Q 330 220 360 250" stroke="white" stroke-width="1" opacity="0.1" fill="none"/>
+  <path d="M530 195 Q 470 220 440 250" stroke="white" stroke-width="1" opacity="0.1" fill="none"/>
+  <path d="M270 375 Q 330 340 360 270" stroke="#c87533" stroke-width="1" opacity="0.1" fill="none"/>
+  <path d="M530 375 Q 470 340 440 270" stroke="#c87533" stroke-width="1" opacity="0.1" fill="none"/>
+  <!-- Abstract growth bars -->
+  <rect x="300" y="480" width="40" height="60" rx="4" fill="white" opacity="0.1"/>
+  <rect x="350" y="460" width="40" height="80" rx="4" fill="white" opacity="0.12"/>
+  <rect x="400" y="440" width="40" height="100" rx="4" fill="#c87533" opacity="0.2"/>
+  <rect x="450" y="420" width="40" height="120" rx="4" fill="#c87533" opacity="0.25"/>
+</svg>

@@ -86,6 +86,20 @@ function JobDetailsPage() {
       .catch(() => {});
   }, [id]);
 
+  // Check if already applied to this job
+  useEffect(() => {
+    if (!id) return;
+    applicantService.getApplications()
+      .then((data: any) => {
+        const apps = Array.isArray(data) ? data : [];
+        const alreadyApplied = apps.some(
+          (app: any) => app.jobOrder?.id === id || app.jobOrderId === id
+        );
+        if (alreadyApplied) setApplied(true);
+      })
+      .catch(() => {});
+  }, [id]);
+
   const handleApply = async () => {
     if (!id || applied || applying) return;
     try {

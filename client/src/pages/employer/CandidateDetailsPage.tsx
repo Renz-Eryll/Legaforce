@@ -16,6 +16,7 @@ import {
   Loader2,
   Users,
   CheckCircle,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,11 @@ function CandidateDetailsPage() {
   const [candidate, setCandidate] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [ratingEdit, setRatingEdit] = useState<{
+    rating: number;
+    review: string;
+  } | null>(null);
+  const [isSavingRating, setIsSavingRating] = useState(false);
 
   useEffect(() => {
     const fetchCandidate = async () => {
@@ -83,8 +89,12 @@ function CandidateDetailsPage() {
       <div className="text-center py-16">
         <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
         <h2 className="text-xl font-semibold mb-2">Candidate Not Found</h2>
-        <p className="text-muted-foreground mb-4">This candidate profile could not be loaded.</p>
-        <Button onClick={() => navigate("/employer/candidates")}>Back to Candidates</Button>
+        <p className="text-muted-foreground mb-4">
+          This candidate profile could not be loaded.
+        </p>
+        <Button onClick={() => navigate("/employer/candidates")}>
+          Back to Candidates
+        </Button>
       </div>
     );
   }
@@ -122,6 +132,12 @@ function CandidateDetailsPage() {
                 <MapPin className="w-4 h-4" />
                 {candidate.location || "Unknown location"}
               </div>
+              {candidate.trustScore && (
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-accent" />
+                  Trust Score: {candidate.trustScore}/100
+                </div>
+              )}
               {candidate.rating > 0 && (
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -152,9 +168,14 @@ function CandidateDetailsPage() {
                 onValueChange={async (val) => {
                   if (!candidate.applicationId) return;
                   try {
-                    await employerService.updateApplicationStatus(candidate.applicationId, { status: val });
+                    await employerService.updateApplicationStatus(
+                      candidate.applicationId,
+                      { status: val },
+                    );
                     setCandidate({ ...candidate, status: val });
-                    toast.success(`Candidate status changed to ${val.toLowerCase()}`);
+                    toast.success(
+                      `Candidate status changed to ${val.toLowerCase()}`,
+                    );
                   } catch (e) {
                     toast.error("Failed to update status");
                   }
@@ -216,7 +237,9 @@ function CandidateDetailsPage() {
                 </div>
               )}
               {!candidate.phone && !candidate.email && (
-                <p className="text-sm text-muted-foreground">Contact information not available</p>
+                <p className="text-sm text-muted-foreground">
+                  Contact information not available
+                </p>
               )}
             </div>
           </motion.div>
@@ -224,7 +247,9 @@ function CandidateDetailsPage() {
           {/* Experience */}
           <motion.div variants={fadeInUp} className="card-premium p-6">
             <h2 className="text-xl font-semibold mb-4">Experience</h2>
-            <p className="text-muted-foreground">{candidate.experience || "No experience details available"}</p>
+            <p className="text-muted-foreground">
+              {candidate.experience || "No experience details available"}
+            </p>
           </motion.div>
 
           {/* Skills */}
@@ -245,7 +270,9 @@ function CandidateDetailsPage() {
           {candidate.interviewNotes && (
             <motion.div variants={fadeInUp} className="card-premium p-6">
               <h2 className="text-xl font-semibold mb-4">Interview Notes</h2>
-              <p className="text-muted-foreground whitespace-pre-line">{candidate.interviewNotes}</p>
+              <p className="text-muted-foreground whitespace-pre-line">
+                {candidate.interviewNotes}
+              </p>
             </motion.div>
           )}
         </div>
@@ -258,61 +285,241 @@ function CandidateDetailsPage() {
             className="card-premium p-6 sticky top-20"
           >
             <div className="space-y-4">
-              <Button className="w-full gradient-bg-accent text-accent-foreground" onClick={() => toast.info("Messaging feature coming soon!")}>
+              <Button
+                className="w-full gradient-bg-accent text-accent-foreground"
+                onClick={() => toast.info("Messaging feature coming soon!")}
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Send Message
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
-                disabled={candidate.status === "SHORTLISTED" || candidate.status === "INTERVIEWED" || candidate.status === "SELECTED" || candidate.status === "DEPLOYED"}
+                disabled={
+                  candidate.status === "SHORTLISTED" ||
+                  candidate.status === "INTERVIEWED" ||
+                  candidate.status === "SELECTED" ||
+                  candidate.status === "DEPLOYED"
+                }
                 onClick={async () => {
                   if (!candidate.applicationId) return;
                   try {
-                    await employerService.updateApplicationStatus(candidate.applicationId, { status: "SHORTLISTED" });
+                    await employerService.updateApplicationStatus(
+                      candidate.applicationId,
+                      { status: "SHORTLISTED" },
+                    );
                     setCandidate({ ...candidate, status: "SHORTLISTED" });
-                    toast.success("Candidate shortlisted. Video interview link generated!");
+                    toast.success(
+                      "Candidate shortlisted. Video interview link generated!",
+                    );
                   } catch (e: any) {
                     toast.error("Failed to update status");
                   }
                 }}
               >
-                {candidate.status === "SHORTLISTED" || candidate.status === "INTERVIEWED" ? (
-                  <><CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Shortlisted</>
+                {candidate.status === "SHORTLISTED" ||
+                candidate.status === "INTERVIEWED" ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />{" "}
+                    Shortlisted
+                  </>
                 ) : (
                   "Shortlist & Video Interview"
                 )}
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
-                disabled={candidate.status === "SELECTED" || candidate.status === "DEPLOYED"}
+                disabled={
+                  candidate.status === "SELECTED" ||
+                  candidate.status === "DEPLOYED"
+                }
                 onClick={async () => {
                   if (!candidate.applicationId) return;
                   try {
-                    await employerService.updateApplicationStatus(candidate.applicationId, { status: "SELECTED" });
+                    await employerService.updateApplicationStatus(
+                      candidate.applicationId,
+                      { status: "SELECTED" },
+                    );
                     setCandidate({ ...candidate, status: "SELECTED" });
-                    toast.success("Candidate selected. An offer has been generated.");
+                    toast.success(
+                      "Candidate selected. An offer has been generated.",
+                    );
                   } catch (e: any) {
                     toast.error("Failed to update status");
                   }
                 }}
               >
-                {candidate.status === "SELECTED" || candidate.status === "DEPLOYED" ? (
-                  <><CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Selected</>
+                {candidate.status === "SELECTED" ||
+                candidate.status === "DEPLOYED" ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />{" "}
+                    Selected
+                  </>
                 ) : (
                   "Make Offer / Select"
                 )}
               </Button>
-              <Button className="w-full" variant="outline" onClick={() => {
-                toast.success("Preparing PDF... Use your browser's Print dialog to save.");
-                setTimeout(() => window.print(), 500);
-              }}>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => {
+                  toast.success(
+                    "Preparing PDF... Use your browser's Print dialog to save.",
+                  );
+                  setTimeout(() => window.print(), 500);
+                }}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Download CV
               </Button>
             </div>
           </motion.div>
+
+          {/* Rating Section */}
+          {["INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"].includes(
+            candidate.status?.toUpperCase(),
+          ) && (
+            <motion.div variants={fadeInUp} className="card-premium p-6">
+              <h3 className="font-semibold mb-4">Rate This Applicant</h3>
+
+              {ratingEdit ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Rating
+                    </label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() =>
+                            setRatingEdit({ ...ratingEdit, rating: star })
+                          }
+                          className="focus:outline-none transition"
+                        >
+                          <Star
+                            className={`w-6 h-6 cursor-pointer transition ${
+                              star <= ratingEdit.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-muted-foreground hover:text-amber-400"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Review (Optional)
+                    </label>
+                    <textarea
+                      value={ratingEdit.review}
+                      onChange={(e) =>
+                        setRatingEdit({ ...ratingEdit, review: e.target.value })
+                      }
+                      placeholder="Share your feedback about this candidate..."
+                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={async () => {
+                        if (ratingEdit.rating < 1 || ratingEdit.rating > 5) {
+                          toast.error("Please select a rating");
+                          return;
+                        }
+                        try {
+                          setIsSavingRating(true);
+                          await employerService.rateApplicant(
+                            candidate.id,
+                            ratingEdit.rating,
+                            ratingEdit.review || undefined,
+                          );
+                          toast.success("Rating saved successfully");
+                          setRatingEdit(null);
+                          // Optionally refresh the page
+                          const data = await employerService.getCandidate(
+                            candidate.id,
+                          );
+                          setCandidate(data);
+                        } catch (error: any) {
+                          toast.error(error.message || "Failed to save rating");
+                        } finally {
+                          setIsSavingRating(false);
+                        }
+                      }}
+                      disabled={isSavingRating}
+                    >
+                      {isSavingRating && (
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      Save Rating
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setRatingEdit(null)}
+                      disabled={isSavingRating}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : candidate.rating > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= candidate.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {candidate.rating}/5
+                    </span>
+                  </div>
+                  {candidate.interviewNotes && (
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                      {candidate.interviewNotes}
+                    </p>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() =>
+                      setRatingEdit({
+                        rating: candidate.rating || 0,
+                        review: candidate.interviewNotes || "",
+                      })
+                    }
+                  >
+                    Update Rating
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setRatingEdit({ rating: 0, review: "" })}
+                >
+                  Leave a Rating
+                </Button>
+              )}
+            </motion.div>
+          )}
 
           {/* Certifications */}
           {candidate.certifications && candidate.certifications.length > 0 && (
