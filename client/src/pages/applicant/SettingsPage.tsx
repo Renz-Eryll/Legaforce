@@ -14,6 +14,11 @@ import {
   User,
   Shield,
   Palette,
+  Zap,
+  Smartphone,
+  Mail,
+  BellRing,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { applicantService } from "@/services/applicantService";
+import { notificationService } from "@/services/notificationService";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -47,11 +54,16 @@ function SettingsPage() {
   const { user, logout } = useAuth();
 
   const [settings, setSettings] = useState({
-    // Notification preferences
+    // Notification preferences (synced with backend)
     emailNotifications: true,
     applicationUpdates: true,
     jobAlerts: true,
+    pushNotifications: false,
+    smsNotifications: false,
     promotionalEmails: false,
+
+    // Auto-apply (synced with backend)
+    autoApplyToMatching: false,
 
     // Privacy
     profileVisibility: "public",
@@ -69,11 +81,46 @@ function SettingsPage() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [autoApplyResult, setAutoApplyResult] = useState<string | null>(null);
+  const [pushPermission, setPushPermission] = useState<string>(notificationService.permission);
 
-  // Load theme from local storage
+  // Load settings from backend + local storage
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "system";
-    setSettings((s) => ({ ...s, theme: savedTheme }));
+    const loadSettings = async () => {
+      try {
+        const [backendSettings, savedTheme, savedLocalPrefs] = await Promise.all([
+          applicantService.getSettings(),
+          Promise.resolve(localStorage.getItem("theme") || "system"),
+          Promise.resolve(JSON.parse(localStorage.getItem("legaforce_settings") || "{}")),
+        ]);
+
+        setSettings((s) => ({
+          ...s,
+          // Backend-synced settings
+          autoApplyToMatching: backendSettings.autoApplyToMatching ?? false,
+          pushNotifications: backendSettings.pushNotifications ?? false,
+          smsNotifications: backendSettings.smsNotifications ?? false,
+          emailNotifications: backendSettings.emailNotifications ?? true,
+          jobAlerts: backendSettings.jobAlerts ?? true,
+          applicationUpdates: backendSettings.applicationUpdates ?? true,
+          // Local settings
+          theme: savedTheme,
+          profileVisibility: savedLocalPrefs.profileVisibility || "public",
+          showEmail: savedLocalPrefs.showEmail ?? false,
+          showPhone: savedLocalPrefs.showPhone ?? false,
+          language: savedLocalPrefs.language || "en",
+          promotionalEmails: savedLocalPrefs.promotionalEmails ?? false,
+        }));
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    loadSettings();
+    setPushPermission(notificationService.permission);
   }, []);
 
   const handleToggle = (key: string) => {
@@ -99,21 +146,118 @@ function SettingsPage() {
     }
   };
 
+  // ── Auto-Apply Toggle ──────────────────────────
+  const handleAutoApplyToggle = async () => {
+    const newVal = !settings.autoApplyToMatching;
+    setSettings((s) => ({ ...s, autoApplyToMatching: newVal }));
+
+    try {
+      const result = await applicantService.setAutoApply(newVal);
+      const msg = result?.message || (newVal ? "Auto-apply enabled" : "Auto-apply disabled");
+      toast.success(msg);
+      setAutoApplyResult(msg);
+
+      // Trigger push notification if auto-applied to jobs
+      if (result?.autoAppliedCount > 0) {
+        await notificationService.notifyAutoApply(result.autoAppliedCount);
+      }
+
+      // Clear message after 5s
+      setTimeout(() => setAutoApplyResult(null), 5000);
+    } catch (error: any) {
+      setSettings((s) => ({ ...s, autoApplyToMatching: !newVal }));
+      toast.error(error.response?.data?.message || "Failed to update auto-apply");
+    }
+  };
+
+  // ── Push Notification Toggle ───────────────────
+  const handlePushToggle = async () => {
+    if (!notificationService.isSupported) {
+      toast.error("Push notifications are not supported in this browser");
+      return;
+    }
+
+    if (!settings.pushNotifications) {
+      // Enabling — request permission
+      const permission = await notificationService.requestPermission();
+      setPushPermission(permission);
+
+      if (permission === "denied") {
+        toast.error("Notification permission denied. Please enable it in your browser settings.");
+        return;
+      }
+      if (permission !== "granted") {
+        toast.info("Notification permission was dismissed");
+        return;
+      }
+
+      // Permission granted — update backend
+      setSettings((s) => ({ ...s, pushNotifications: true }));
+      try {
+        await applicantService.updateNotificationPrefs({ pushNotifications: true });
+        toast.success("Push notifications enabled! 🔔");
+
+        // Show a test notification
+        await notificationService.notify({
+          title: "Notifications Enabled! 🎉",
+          body: "You will now receive push notifications for job matches and application updates.",
+          url: "/app/settings",
+        });
+      } catch {
+        setSettings((s) => ({ ...s, pushNotifications: false }));
+        toast.error("Failed to save push notification preference");
+      }
+    } else {
+      // Disabling
+      setSettings((s) => ({ ...s, pushNotifications: false }));
+      try {
+        await applicantService.updateNotificationPrefs({ pushNotifications: false });
+        toast.success("Push notifications disabled");
+      } catch {
+        setSettings((s) => ({ ...s, pushNotifications: true }));
+        toast.error("Failed to update preference");
+      }
+    }
+  };
+
+  // ── SMS Toggle ─────────────────────────────────
+  const handleSmsToggle = async () => {
+    const newVal = !settings.smsNotifications;
+    setSettings((s) => ({ ...s, smsNotifications: newVal }));
+    try {
+      await applicantService.updateNotificationPrefs({ smsNotifications: newVal });
+      toast.success(newVal ? "SMS notifications enabled" : "SMS notifications disabled");
+    } catch {
+      setSettings((s) => ({ ...s, smsNotifications: !newVal }));
+      toast.error("Failed to update SMS preference");
+    }
+  };
+
+  // ── Notification Pref Toggles (email, job alerts, app updates) ──
+  const handleNotifPrefToggle = async (key: string) => {
+    const newVal = !(settings as any)[key];
+    setSettings((s) => ({ ...s, [key]: newVal }));
+    try {
+      await applicantService.updateNotificationPrefs({ [key]: newVal });
+      toast.success("Preference updated");
+    } catch {
+      setSettings((s) => ({ ...s, [key]: !newVal }));
+      toast.error("Failed to update preference");
+    }
+  };
+
   const handleSavePreferences = async () => {
     setIsSaving(true);
     try {
-      // Save preferences to local storage for now
+      // Save privacy/appearance preferences to local storage
       localStorage.setItem("legaforce_settings", JSON.stringify({
-        emailNotifications: settings.emailNotifications,
-        applicationUpdates: settings.applicationUpdates,
-        jobAlerts: settings.jobAlerts,
-        promotionalEmails: settings.promotionalEmails,
         profileVisibility: settings.profileVisibility,
         showEmail: settings.showEmail,
         showPhone: settings.showPhone,
         language: settings.language,
+        promotionalEmails: settings.promotionalEmails,
       }));
-      await new Promise((r) => setTimeout(r, 500)); // Simulate API call
+      await new Promise((r) => setTimeout(r, 300));
       toast.success("Preferences saved successfully!");
     } catch (error) {
       toast.error("Failed to save preferences");
@@ -157,13 +301,15 @@ function SettingsPage() {
     }
   };
 
-  const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+  const ToggleSwitch = ({ enabled, onToggle, disabled }: { enabled: boolean; onToggle: () => void; disabled?: boolean }) => (
     <button
       type="button"
       onClick={onToggle}
+      disabled={disabled}
       className={cn(
         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200",
-        enabled ? "bg-accent" : "bg-muted-foreground/30"
+        enabled ? "bg-accent" : "bg-muted-foreground/30",
+        disabled && "opacity-50 cursor-not-allowed"
       )}
     >
       <span
@@ -226,7 +372,47 @@ function SettingsPage() {
         </div>
       </motion.div>
 
-      {/* Notification Preferences */}
+      {/* ── Auto-Apply & Smart Features ─────────── */}
+      <motion.div variants={fadeInUp} className="card-premium p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-xl bg-emerald-500/10">
+            <Zap className="w-5 h-5 text-emerald-500" />
+          </div>
+          <div>
+            <h2 className="text-lg font-display font-semibold">Smart Job Features</h2>
+            <p className="text-xs text-muted-foreground">Automate your job search with AI-powered tools</p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-3 border-b border-border">
+            <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-emerald-500" />
+                <p className="font-medium text-sm">Auto-Apply to Matching Jobs</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Automatically apply to new job openings that match your skills and profile. Earn 50 reward points per auto-application.
+              </p>
+              {autoApplyResult && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-emerald-500 mt-2 font-medium"
+                >
+                  ✓ {autoApplyResult}
+                </motion.p>
+              )}
+            </div>
+            <ToggleSwitch
+              enabled={settings.autoApplyToMatching}
+              onToggle={handleAutoApplyToggle}
+              disabled={isLoadingSettings}
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Notification Preferences ────────────── */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-blue-500/10">
@@ -235,23 +421,113 @@ function SettingsPage() {
           <h2 className="text-lg font-display font-semibold">Notifications</h2>
         </div>
         <div className="space-y-4">
-          {[
-            { key: "emailNotifications", label: "Email Notifications", desc: "Receive important updates via email" },
-            { key: "applicationUpdates", label: "Application Updates", desc: "Get notified when your application status changes" },
-            { key: "jobAlerts", label: "Job Alerts", desc: "Receive alerts for new jobs matching your profile" },
-            { key: "promotionalEmails", label: "Promotional Emails", desc: "Tips, offers, and platform updates" },
-          ].map((item) => (
-            <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-              <div>
-                <p className="font-medium text-sm">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+          {/* Push Notifications — browser-level */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
+            <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2">
+                <BellRing className="w-4 h-4 text-blue-500" />
+                <p className="font-medium text-sm">Push Notifications</p>
+                {pushPermission === "denied" && (
+                  <Badge variant="outline" className="text-destructive border-destructive/30 text-[10px]">
+                    Blocked
+                  </Badge>
+                )}
+                {pushPermission === "granted" && settings.pushNotifications && (
+                  <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 text-[10px]">
+                    Active
+                  </Badge>
+                )}
               </div>
-              <ToggleSwitch
-                enabled={(settings as any)[item.key]}
-                onToggle={() => handleToggle(item.key)}
-              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Receive browser push notifications for application updates, job matches, and important alerts — even when you're not on the site.
+              </p>
+              {pushPermission === "denied" && (
+                <p className="text-xs text-destructive mt-1">
+                  Permission is blocked. Go to your browser settings to re-enable notifications for this site.
+                </p>
+              )}
             </div>
-          ))}
+            <ToggleSwitch
+              enabled={settings.pushNotifications}
+              onToggle={handlePushToggle}
+              disabled={pushPermission === "denied"}
+            />
+          </div>
+
+          {/* SMS Notifications */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
+            <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-violet-500" />
+                <p className="font-medium text-sm">SMS Notifications</p>
+                <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30 text-[10px]">
+                  {settings.smsNotifications ? "Enabled" : "Off"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Receive text messages for critical status changes (shortlisted, selected, deployed). Standard SMS rates may apply.
+              </p>
+            </div>
+            <ToggleSwitch
+              enabled={settings.smsNotifications}
+              onToggle={handleSmsToggle}
+              disabled={isLoadingSettings}
+            />
+          </div>
+
+          {/* Email Notifications */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
+            <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-amber-500" />
+                <p className="font-medium text-sm">Email Notifications</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Receive important updates via email</p>
+            </div>
+            <ToggleSwitch
+              enabled={settings.emailNotifications}
+              onToggle={() => handleNotifPrefToggle("emailNotifications")}
+              disabled={isLoadingSettings}
+            />
+          </div>
+
+          {/* Application Updates */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
+            <div>
+              <p className="font-medium text-sm">Application Updates</p>
+              <p className="text-xs text-muted-foreground">Get notified when your application status changes</p>
+            </div>
+            <ToggleSwitch
+              enabled={settings.applicationUpdates}
+              onToggle={() => handleNotifPrefToggle("applicationUpdates")}
+              disabled={isLoadingSettings}
+            />
+          </div>
+
+          {/* Job Alerts */}
+          <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
+            <div>
+              <p className="font-medium text-sm">Job Alerts</p>
+              <p className="text-xs text-muted-foreground">Receive alerts for new jobs matching your profile</p>
+            </div>
+            <ToggleSwitch
+              enabled={settings.jobAlerts}
+              onToggle={() => handleNotifPrefToggle("jobAlerts")}
+              disabled={isLoadingSettings}
+            />
+          </div>
+
+          {/* Promotional */}
+          <div className="flex items-center justify-between py-3">
+            <div>
+              <p className="font-medium text-sm">Promotional Emails</p>
+              <p className="text-xs text-muted-foreground">Tips, offers, and platform updates</p>
+            </div>
+            <ToggleSwitch
+              enabled={settings.promotionalEmails}
+              onToggle={() => handleToggle("promotionalEmails")}
+            />
+          </div>
         </div>
       </motion.div>
 

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f1729"/>
+      <stop offset="100%" stop-color="#1a2744"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="600" cy="120" r="200" fill="#005085" opacity="0.08"/>
+  <circle cx="200" cy="480" r="150" fill="#c87533" opacity="0.06"/>
+  <!-- Central AI Brain -->
+  <circle cx="400" cy="260" r="80" fill="none" stroke="#005085" stroke-width="2" opacity="0.6"/>
+  <circle cx="400" cy="260" r="50" fill="none" stroke="#c87533" stroke-width="2" opacity="0.5"/>
+  <circle cx="400" cy="260" r="20" fill="#c87533" opacity="0.8"/>
+  <!-- Connection lines to candidates -->
+  <line x1="340" y1="230" x2="200" y2="160" stroke="#005085" stroke-width="1.5" opacity="0.4"/>
+  <line x1="460" y1="230" x2="600" y2="160" stroke="#005085" stroke-width="1.5" opacity="0.4"/>
+  <line x1="340" y1="290" x2="200" y2="380" stroke="#c87533" stroke-width="1.5" opacity="0.4"/>
+  <line x1="460" y1="290" x2="600" y2="380" stroke="#c87533" stroke-width="1.5" opacity="0.4"/>
+  <line x1="400" y1="340" x2="400" y2="450" stroke="#005085" stroke-width="1.5" opacity="0.4"/>
+  <!-- Candidate nodes -->
+  <circle cx="200" cy="160" r="30" fill="#005085" opacity="0.3"/>
+  <circle cx="200" cy="160" r="15" fill="#005085" opacity="0.7"/>
+  <circle cx="600" cy="160" r="30" fill="#005085" opacity="0.3"/>
+  <circle cx="600" cy="160" r="15" fill="#005085" opacity="0.7"/>
+  <circle cx="200" cy="380" r="30" fill="#c87533" opacity="0.3"/>
+  <circle cx="200" cy="380" r="15" fill="#c87533" opacity="0.7"/>
+  <circle cx="600" cy="380" r="30" fill="#c87533" opacity="0.3"/>
+  <circle cx="600" cy="380" r="15" fill="#c87533" opacity="0.7"/>
+  <circle cx="400" cy="450" r="30" fill="#005085" opacity="0.3"/>
+  <circle cx="400" cy="450" r="15" fill="#005085" opacity="0.7"/>
+  <!-- Match scores -->
+  <rect x="220" y="185" width="60" height="20" rx="10" fill="#4ade80" opacity="0.8"/>
+  <rect x="230" y="191" width="40" height="8" rx="4" fill="white" opacity="0.8"/>
+  <rect x="615" y="185" width="60" height="20" rx="10" fill="#4ade80" opacity="0.8"/>
+  <rect x="625" y="191" width="40" height="8" rx="4" fill="white" opacity="0.8"/>
+  <!-- Floating data points -->
+  <circle cx="300" cy="200" r="4" fill="#c87533" opacity="0.5"/>
+  <circle cx="500" cy="320" r="4" fill="#005085" opacity="0.5"/>
+  <circle cx="350" cy="400" r="3" fill="#c87533" opacity="0.4"/>
+  <circle cx="480" cy="180" r="3" fill="#005085" opacity="0.4"/>
+</svg>

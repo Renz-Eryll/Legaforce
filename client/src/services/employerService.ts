@@ -82,7 +82,7 @@ export const employerService = {
       location?: string;
       positions?: number;
       status?: string;
-    }
+    },
   ) {
     try {
       const res = await api.put(`/employer/job-orders/${id}`, payload);
@@ -229,12 +229,12 @@ export const employerService = {
 
   async updateInterviewRating(
     applicationId: string,
-    payload: { rating: number; notes?: string }
+    payload: { rating: number; notes?: string },
   ) {
     try {
       const res = await api.patch(
         `/employer/interviews/${applicationId}/rating`,
-        payload
+        payload,
       );
       return getData(res);
     } catch (error) {
@@ -246,7 +246,7 @@ export const employerService = {
   async shareInterviewFeedback(applicationId: string) {
     try {
       const res = await api.post(
-        `/employer/interviews/${applicationId}/share-feedback`
+        `/employer/interviews/${applicationId}/share-feedback`,
       );
       return getData(res);
     } catch (error) {
@@ -258,12 +258,12 @@ export const employerService = {
   // ───── Application Status ─────
   async updateApplicationStatus(
     applicationId: string,
-    payload: { status: string; notes?: string }
+    payload: { status: string; notes?: string },
   ) {
     try {
       const res = await api.patch(
         `/employer/applications/${applicationId}/status`,
-        payload
+        payload,
       );
       return getData(res);
     } catch (error) {
@@ -336,6 +336,21 @@ export const employerService = {
       return getData(res);
     } catch (error) {
       console.error("Failed to fetch reports:", error);
+      throw error;
+    }
+  },
+
+  // ───── Ratings ─────
+  async rateApplicant(applicantId: string, rating: number, review?: string) {
+    try {
+      const res = await api.post("/employer/rate-applicant", {
+        applicantId,
+        rating,
+        review,
+      });
+      return getData(res);
+    } catch (error) {
+      console.error("Failed to rate applicant:", error);
       throw error;
     }
   },

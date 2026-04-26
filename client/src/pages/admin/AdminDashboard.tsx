@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>({});
-  const [analytics, setAnalytics] = useState<any>({ trend: [], pipeline: [] });
+  const [analytics, setAnalytics] = useState<any>({ trend: [], pipeline: [], destinations: [], compliance: [] });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,12 +57,13 @@ export default function AdminDashboard() {
         setIsLoading(true);
         const [statsRes, analyticsRes, activityRes] = await Promise.all([
           adminService.getDashboardStats().catch(() => ({ data: {} })),
-          adminService.getDashboardAnalytics().catch(() => ({ trend: [], pipeline: [] })),
+          adminService.getDashboardAnalytics().catch(() => ({ data: { trend: [], pipeline: [], destinations: [], compliance: [] } })),
           adminService.getRecentActivity(8).catch(() => ({ data: [] })),
         ]);
+        
         const s = statsRes.data || {};
         setStats(s);
-        setAnalytics(analyticsRes || { trend: [], pipeline: [] });
+        setAnalytics(analyticsRes.data || { trend: [], pipeline: [], destinations: [], compliance: [] });
         setRecentActivity(activityRes.data || []);
         setPendingCount(s.pendingVerifications ?? 0);
       } catch (e) {
@@ -73,11 +74,15 @@ export default function AdminDashboard() {
     })();
   }, []);
 
+  const conversionRate = stats.totalApplications > 0 
+    ? Math.round((stats.totalDeployments / stats.totalApplications) * 100) 
+    : 0;
+
   const kpiCards = [
     { label: "Total Applicants",  value: stats.totalApplicants  ?? 0, icon: Users,     color: "text-blue-500",    bg: "bg-blue-500/10" },
-    { label: "Registered Employers", value: stats.totalEmployers   ?? 0, icon: Building2,  color: "text-violet-500",  bg: "bg-violet-500/10" },
     { label: "Active Job Orders", value: stats.activeJobOrders ?? 0, icon: Briefcase,  color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Total Deployments", value: stats.totalDeployments ?? 0, icon: Globe,     color: "text-emerald-500",   bg: "bg-emerald-500/10" },
+    { label: "Success Rate", value: `${conversionRate}%`, icon: Activity, color: "text-purple-500", bg: "bg-purple-500/10" },
   ];
 
   return (
@@ -86,8 +91,10 @@ export default function AdminDashboard() {
       {/* Header */}
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1">Admin Dashboard</h1>
-          <p className="text-muted-foreground text-sm">Platform Overview</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1 flex items-center gap-3">
+            Legaforce Intelligence <Badge className="bg-accent/10 text-accent border-accent/20">v1.2</Badge>
+          </h1>
+          <p className="text-muted-foreground text-sm">Real-time platform performance and compliance tracking</p>
         </div>
         <div className="flex gap-2">
           {pendingCount > 0 && (
@@ -100,7 +107,7 @@ export default function AdminDashboard() {
           )}
           <Link to="/admin/reports">
             <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg">
-              <Activity className="w-4 h-4 mr-2" />Generate Reports
+              <FileText className="w-4 h-4 mr-2" />Generate Analytics
             </Button>
           </Link>
         </div>
@@ -111,122 +118,204 @@ export default function AdminDashboard() {
         {kpiCards.map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }} className="card-premium p-5">
-            <div className="flex items-start justify-between mb-4">
-              <div className={cn("p-2.5 rounded-xl", card.bg)}>
-                <card.icon className={cn("h-5 w-5", card.color)} />
+            <div className="flex items-center gap-3 mb-3">
+              <div className={cn("p-2 rounded-lg", card.bg)}>
+                <card.icon className={cn("h-4 w-4", card.color)} />
               </div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
             </div>
-            <p className="text-3xl font-display font-bold mb-1">
-              {isLoading ? "—" : card.value.toLocaleString()}
+            <p className="text-3xl font-display font-bold">
+              {isLoading ? "—" : card.value}
             </p>
-            <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Simple Charts Row */}
+      {/* Primary Analytics Row */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Simple Bar Chart: Monthly Activity */}
+        {/* Trend Chart */}
         <motion.div variants={fadeInUp} className="lg:col-span-2 card-premium p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-display font-semibold">Monthly Platform Activity</h2>
-            <p className="text-xs text-muted-foreground">Applications and Deployments over the last 6 months</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-display font-semibold">Recruitment Velocity</h2>
+              <p className="text-xs text-muted-foreground">Applications vs Successful Deployments</p>
+            </div>
+            <div className="flex gap-2">
+               <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-500">Applications</Badge>
+               <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-500">Deployments</Badge>
+            </div>
           </div>
-          {analytics.trend?.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={analytics.trend} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))" }} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                <Bar dataKey="applications" name="Applications" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                <Bar dataKey="deployments" name="Deployments" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">No data available</div>
-          )}
+          <div className="h-[300px]">
+            {analytics.trend?.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.trend} margin={{ top: 5, right: 5, bottom: 0, left: -25 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))" }} />
+                  <Bar dataKey="applications" name="Applications" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                  <Bar dataKey="deployments" name="Deployments" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-sm text-muted-foreground italic">Gathering recruitment data...</div>
+            )}
+          </div>
         </motion.div>
 
-        {/* Simple Pie Chart: Application Status */}
+        {/* Pipeline Pie Chart */}
         <motion.div variants={fadeInUp} className="card-premium p-6 flex flex-col">
-          <div className="mb-2">
-            <h2 className="text-lg font-display font-semibold mb-1">Application Pipeline</h2>
-            <p className="text-xs text-muted-foreground">Total records by status</p>
+          <div className="mb-4">
+            <h2 className="text-lg font-display font-semibold mb-1">Status Distribution</h2>
+            <p className="text-xs text-muted-foreground">Active application lifecycle</p>
           </div>
-          {analytics.pipeline?.length > 0 ? (
-            <div className="flex-1 flex flex-col justify-center">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={analytics.pipeline} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={2}>
-                    {analytics.pipeline.map((d: any, i: number) => <Cell key={i} fill={STATUS_COLORS[d.name] || "#64748b"} />)}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-x-2 gap-y-3 mt-4">
-                {analytics.pipeline.map((d: any) => (
-                  <div key={d.name} className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: STATUS_COLORS[d.name] || "#64748b" }} />
-                    <span className="text-muted-foreground truncate">{d.name.charAt(0) + d.name.slice(1).toLowerCase()}</span>
-                    <span className="font-semibold ml-auto">{d.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">No pipeline data</div>
-          )}
+          <div className="flex-1 flex flex-col justify-center">
+            {analytics.pipeline?.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={analytics.pipeline} cx="50%" cy="50%" innerRadius={60} outerRadius={85} dataKey="value" paddingAngle={4}>
+                      {analytics.pipeline.map((d: any, i: number) => <Cell key={i} fill={STATUS_COLORS[d.name] || "#64748b"} />)}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  {analytics.pipeline.slice(0, 6).map((d: any) => (
+                    <div key={d.name} className="flex items-center gap-2 text-[11px]">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: STATUS_COLORS[d.name] || "#64748b" }} />
+                      <span className="text-muted-foreground truncate">{d.name}</span>
+                      <span className="font-semibold ml-auto">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-10 text-sm text-muted-foreground">No active pipeline</div>
+            )}
+          </div>
         </motion.div>
       </div>
 
-      {/* Row 3: Recent Activity Logging */}
+      {/* Secondary Analytics Row */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Compliance Radial Charts */}
+        <motion.div variants={fadeInUp} className="card-premium p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-display font-semibold">Compliance Checklist</h2>
+              <p className="text-xs text-muted-foreground">Document completion rate across all deployments</p>
+            </div>
+            <Shield className="w-5 h-5 text-accent opacity-50" />
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            {(analytics.compliance || []).map((item: any) => (
+              <div key={item.name} className="flex flex-col items-center text-center">
+                <div className="relative w-20 h-20 mb-3">
+                  {/* Progress Circle Placeholder / Simple Visual */}
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-muted/30" />
+                    <circle cx="40" cy="40" r="34" stroke={item.fill} strokeWidth="6" strokeDasharray={213.6} 
+                            strokeDashoffset={213.6 - (213.6 * item.value) / 100} fill="transparent" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center font-bold text-sm">
+                    {item.value}%
+                  </div>
+                </div>
+                <p className="text-xs font-semibold">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">Verified</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Top Destinations */}
+        <motion.div variants={fadeInUp} className="card-premium p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-display font-semibold">Top Destinations</h2>
+              <p className="text-xs text-muted-foreground">Geographic demand for Filipino workers</p>
+            </div>
+            <Globe className="w-5 h-5 text-accent opacity-50" />
+          </div>
+          
+          <div className="space-y-4">
+            {(analytics.destinations || []).map((dest: any, i: number) => (
+              <div key={dest.country} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium flex items-center gap-2">
+                    <Badge variant="outline" className="w-5 h-5 p-0 flex items-center justify-center text-[10px] border-accent/20 text-accent">{i + 1}</Badge>
+                    {dest.country}
+                  </span>
+                  <span className="text-muted-foreground">{dest.count} Job Orders</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${(dest.count / analytics.destinations[0].count) * 100}%` }}
+                              className="h-full bg-accent" transition={{ duration: 1, delay: i * 0.1 }} />
+                </div>
+              </div>
+            ))}
+            {(!analytics.destinations || analytics.destinations.length === 0) && (
+              <p className="text-center py-6 text-sm text-muted-foreground">No geographic data yet</p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Recent Activity Log */}
       <motion.div variants={fadeInUp} className="card-premium p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-display font-semibold">Recent System Logs</h2>
-            <p className="text-xs text-muted-foreground">Latest actions across all portals</p>
+            <h2 className="text-lg font-display font-semibold">System Audit Stream</h2>
+            <p className="text-xs text-muted-foreground">Latest events from applicants and employers</p>
           </div>
-          <Badge variant="outline" className="text-xs"><Clock className="w-3 h-3 mr-1" /> Live Updates</Badge>
+          <Badge variant="outline" className="text-[10px] flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Feed
+          </Badge>
         </div>
         
-        <div className="bg-muted/30 border border-border rounded-xl divide-y divide-border">
+        <div className="bg-secondary/30 rounded-xl overflow-hidden border border-border/50">
           {recentActivity.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">No recent activity detected.</div>
+            <div className="p-10 text-center text-muted-foreground text-sm italic">No recent activity detected.</div>
           ) : (
-            recentActivity.map((log: any, i: number) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                    log.type === "application" ? "bg-blue-500/10 text-blue-500" :
-                    log.type === "complaint"   ? "bg-red-500/10 text-red-500" :
-                    log.type === "job_order"   ? "bg-amber-500/10 text-amber-500" : 
-                    "bg-gray-500/10 text-gray-500"
-                  )}>
-                    {log.type === "application" ? <Users className="w-4 h-4" /> :
-                     log.type === "complaint" ? <AlertTriangle className="w-4 h-4" /> :
-                     log.type === "job_order" ? <Briefcase className="w-4 h-4" /> :
-                     <FileText className="w-4 h-4" />}
+            <div className="divide-y divide-border/40">
+              {recentActivity.map((log: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                      log.type === "application" ? "bg-blue-500/10 text-blue-500" :
+                      log.type === "complaint"   ? "bg-red-500/10 text-red-500" :
+                      log.type === "job_order"   ? "bg-amber-500/10 text-amber-500" : 
+                      "bg-gray-500/10 text-gray-500"
+                    )}>
+                      {log.type === "application" ? <Users className="w-4 h-4" /> :
+                       log.type === "complaint" ? <AlertTriangle className="w-4 h-4" /> :
+                       log.type === "job_order" ? <Briefcase className="w-4 h-4" /> :
+                       <FileText className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium group-hover:text-accent transition-colors">{log.description}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{log.type.replace('_', ' ')}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{log.description}</p>
-                    <p className="text-xs text-muted-foreground capitalize mt-0.5">{log.type.replace('_', ' ')} Logger</p>
+                  <div className="text-right">
+                    <p className="text-[11px] font-mono text-muted-foreground">
+                      {log.date ? new Date(log.date).toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }) : "Recently"}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
-                    {log.date ? new Date(log.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : "Recently"}
-                  </p>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
         
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-5">
           <Link to="/admin/applications">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">View Application Records <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              Explore All Logs <ArrowRight className="w-3 h-3 ml-2" />
+            </Button>
           </Link>
         </div>
       </motion.div>
@@ -234,3 +323,4 @@ export default function AdminDashboard() {
     </motion.div>
   );
 }
+

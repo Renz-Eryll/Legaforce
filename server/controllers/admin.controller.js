@@ -6,6 +6,8 @@
  */
 import prisma from "../config/database.js";
 import { sendStatusChangeEmail } from "../services/email.service.js";
+import { notifyStatusChange as sseNotifyStatusChange } from "../services/sse.service.js";
+import { logAction } from "../services/audit.service.js";
 
 // ── Dashboard Stats ────────────────────────────
 
@@ -49,6 +51,15 @@ export const getDashboardStats = async (req, res, next) => {
       _count: { id: true },
     });
 
+    // Additional metrics for Reports
+    const [pendingPayments, overdueInvoices, invoicedEmployers] = await Promise.all([
+      prisma.invoice.aggregate({ _sum: { amount: true }, where: { status: "PENDING" } }),
+      prisma.invoice.count({ where: { status: "OVERDUE" } }),
+      prisma.invoice.groupBy({ by: ["employerId"] }).then(res => res.length)
+    ]);
+
+    const conversionRate = totalApplications > 0 ? Math.round((totalDeployments / totalApplications) * 100) : 0;
+
     res.json({
       success: true,
       data: {
@@ -62,6 +73,10 @@ export const getDashboardStats = async (req, res, next) => {
         activeJobOrders,
         recentApplications,
         totalRevenue: revenue._sum.amount || 0,
+        pendingPayments: pendingPayments._sum.amount || 0,
+        overdueInvoices,
+        invoicedEmployers,
+        conversionRate,
         pipeline: pipeline.reduce((acc, p) => {
           acc[p.status] = p._count.id;
           return acc;
@@ -380,6 +395,17 @@ export const verifyEmployer = async (req, res, next) => {
       data: { isVerified: isVerified !== false },
     });
 
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "VERIFY_EMPLOYER",
+      entityType: "EMPLOYER",
+      entityId: id,
+      description: `${isVerified ? "Verified" : "Unverified"} employer: ${employer.companyName}`,
+      metadata: { isVerified },
+      ipAddress: req.ip,
+    });
+
     res.json({ success: true, data: employer });
   } catch (err) {
     next(err);
@@ -401,6 +427,17 @@ export const toggleUserActive = async (req, res, next) => {
       where: { id },
       data: { isActive: !user.isActive },
       select: { id: true, email: true, isActive: true, role: true },
+    });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "TOGGLE_USER_ACTIVE",
+      entityType: "USER",
+      entityId: id,
+      description: `${updated.isActive ? "Activated" : "Deactivated"} user: ${updated.email}`,
+      metadata: { isActive: updated.isActive, email: updated.email },
+      ipAddress: req.ip,
     });
 
     res.json({ success: true, data: updated });
@@ -456,6 +493,18 @@ export const updateJobOrderStatus = async (req, res, next) => {
       where: { id },
       data: { status },
     });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "UPDATE_JOB_STATUS",
+      entityType: "JOB_ORDER",
+      entityId: id,
+      description: `Changed job order status to ${status}`,
+      metadata: { status },
+      ipAddress: req.ip,
+    });
+
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
@@ -574,6 +623,35 @@ export const updateApplicationStatus = async (req, res, next) => {
     } catch (emailErr) {
       console.error("Failed to send status email from admin:", emailErr.message);
     }
+
+    // Real-time SSE notification to applicant
+    try {
+      if (updated.applicant?.userId) {
+        const jobOrder = await prisma.jobOrder.findUnique({
+          where: { id: updated.jobOrderId },
+          select: { employer: { select: { companyName: true } } },
+        });
+        sseNotifyStatusChange(updated.applicant.userId, {
+          status,
+          jobTitle: updated.jobOrder?.title || "Job",
+          companyName: jobOrder?.employer?.companyName || "Employer",
+          applicationId: id,
+        });
+      }
+    } catch (sseErr) {
+      console.error("SSE notification from admin failed:", sseErr.message);
+    }
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "UPDATE_APPLICATION_STATUS",
+      entityType: "APPLICATION",
+      entityId: id,
+      description: `Changed application status to ${status} for ${updated.applicant.firstName} ${updated.applicant.lastName}`,
+      metadata: { status, applicantId: updated.applicant.userId },
+      ipAddress: req.ip,
+    });
 
     res.json({ success: true, data: updated });
   } catch (err) {
@@ -708,6 +786,17 @@ export const updateDeployment = async (req, res, next) => {
       data,
     });
 
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "UPDATE_DEPLOYMENT_MONITORING",
+      entityType: "DEPLOYMENT",
+      entityId: id,
+      description: "Updated deployment monitoring checklist",
+      metadata: data,
+      ipAddress: req.ip,
+    });
+
     res.json({ success: true, data: deployment });
   } catch (err) {
     next(err);
@@ -753,7 +842,18 @@ export const getComplaints = async (req, res, next) => {
       },
     });
 
-    res.json({ success: true, data: complaints });
+    // Handle anonymity
+    const sanitized = complaints.map(c => {
+      if (c.isAnonymous) {
+        return {
+          ...c,
+          applicant: { firstName: "Anonymous", lastName: "User" }
+        };
+      }
+      return c;
+    });
+
+    res.json({ success: true, data: sanitized });
   } catch (err) {
     next(err);
   }
@@ -875,62 +975,7 @@ export const updateInvoiceStatus = async (req, res, next) => {
   }
 };
 
-// ── Reports / Analytics ────────────────────────
 
-export const getReports = async (req, res, next) => {
-  try {
-    const [
-      applicationsByStatus,
-      jobsByStatus,
-      monthlyApplications,
-      topEmployers,
-      topNationalities,
-    ] = await Promise.all([
-      prisma.application.groupBy({ by: ["status"], _count: { id: true } }),
-      prisma.jobOrder.groupBy({ by: ["status"], _count: { id: true } }),
-      prisma.$queryRaw`
-        SELECT DATE_TRUNC('month', "createdAt") as month, COUNT(*)::int as count
-        FROM "Application"
-        WHERE "createdAt" >= NOW() - INTERVAL '6 months'
-        GROUP BY DATE_TRUNC('month', "createdAt")
-        ORDER BY month ASC
-      `,
-      prisma.employer.findMany({
-        take: 5,
-        orderBy: { totalHires: "desc" },
-        select: { companyName: true, totalHires: true, country: true },
-      }),
-      prisma.profile.groupBy({
-        by: ["nationality"],
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
-        take: 5,
-      }),
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        applicationsByStatus: applicationsByStatus.reduce((acc, a) => {
-          acc[a.status] = a._count.id;
-          return acc;
-        }, {}),
-        jobsByStatus: jobsByStatus.reduce((acc, j) => {
-          acc[j.status] = j._count.id;
-          return acc;
-        }, {}),
-        monthlyApplications,
-        topEmployers,
-        topNationalities: topNationalities.map((n) => ({
-          nationality: n.nationality,
-          count: n._count.id,
-        })),
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 // ── Verification ───────────────────────────────
 
@@ -1142,6 +1187,17 @@ export const getComplaintDetail = async (req, res, next) => {
       return res
         .status(404)
         .json({ success: false, message: "Complaint not found" });
+    }
+
+    // Mask if anonymous
+    if (complaint.isAnonymous) {
+      complaint.applicant = {
+        firstName: "Anonymous",
+        lastName: "User",
+        phone: "REDACTED",
+        nationality: complaint.applicant.nationality,
+        user: { email: "REDACTED" }
+      };
     }
 
     res.json({ success: true, data: complaint });
@@ -1419,6 +1475,136 @@ export const getDashboardAnalytics = async (req, res, next) => {
     ];
 
     res.json({ success: true, data: { trend, pipeline, destinations, compliance } });
+  } catch (err) {
+    console.error("Dashboard analytics error:", err);
+    next(err);
+  }
+};
+
+// ── Reports & BI ───────────────────────────────
+
+export const getReports = async (req, res, next) => {
+  try {
+    const [topNationalities, topEmployers] = await Promise.all([
+      // Count applicants by nationality
+      prisma.profile.groupBy({
+        by: ["nationality"],
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 5,
+      }),
+      // Top employers by hire count
+      prisma.employer.findMany({
+        orderBy: { totalHires: "desc" },
+        take: 5,
+        select: { companyName: true, totalHires: true },
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        topNationalities: topNationalities.map((n) => ({
+          nationality: n.nationality,
+          count: n._count.id,
+        })),
+        topEmployers,
+      },
+    });
+  } catch (err) {
+    console.error("Reports aggregation error:", err);
+    next(err);
+  }
+};
+
+// ── System Logs ────────────────────────────────
+
+export const getSystemLogs = async (req, res, next) => {
+  try {
+    const { entityType, entityId, userId, limit = 50 } = req.query;
+    
+    if (!prisma.auditLog) {
+      console.error("⚠️ AuditLog model not found on Prisma client. Please run 'npx prisma generate'.");
+      return res.json({ success: true, data: [], message: "System logs are currently unavailable (initialization required)" });
+    }
+
+    // Ensure limit is a valid number
+    const take = Math.min(Math.max(parseInt(limit) || 50, 1), 200);
+
+    const logs = await prisma.auditLog.findMany({
+      where: {
+        ...(entityType && { entityType }),
+        ...(entityId && { entityId }),
+        ...(userId && { userId }),
+      },
+      take,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { 
+          select: { 
+            email: true, 
+            role: true,
+            profile: { select: { firstName: true, lastName: true } }
+          } 
+        },
+      },
+    });
+
+    res.json({ success: true, data: logs });
+  } catch (err) {
+    console.error("System logs error:", err);
+    res.json({ success: true, data: [], message: "Error fetching logs" });
+  }
+};
+
+// ── SLA Monitoring ─────────────────────────────
+
+export const getSlaAlerts = async (req, res, next) => {
+  try {
+    const now = new Date();
+    
+    // SLA Thresholds (in days)
+    const thresholds = {
+      APPLIED: 3,
+      SHORTLISTED: 5,
+      INTERVIEWED: 7,
+      SELECTED: 14,
+      PROCESSING: 21
+    };
+
+    const alerts = [];
+    
+    // Find all active applications
+    const activeApps = await prisma.application.findMany({
+      where: {
+        status: { in: Object.keys(thresholds) }
+      },
+      include: {
+        applicant: { select: { firstName: true, lastName: true } },
+        jobOrder: { select: { title: true, employer: { select: { companyName: true } } } }
+      }
+    });
+
+    for (const app of activeApps) {
+      const thresholdDays = thresholds[app.status];
+      const updatedAt = new Date(app.updatedAt);
+      const diffDays = Math.floor((now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= thresholdDays) {
+        alerts.push({
+          id: app.id,
+          applicantName: `${app.applicant.firstName} ${app.applicant.lastName}`,
+          jobTitle: app.jobOrder.title,
+          employerName: app.jobOrder.employer.companyName,
+          status: app.status,
+          daysInStatus: diffDays,
+          threshold: thresholdDays,
+          severity: diffDays >= thresholdDays * 2 ? "CRITICAL" : "WARNING"
+        });
+      }
+    }
+
+    res.json({ success: true, data: alerts.sort((a, b) => b.daysInStatus - a.daysInStatus) });
   } catch (err) {
     next(err);
   }

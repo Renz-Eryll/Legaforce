@@ -414,75 +414,64 @@ function CVBuilderPage() {
     const summary =
       aiGenerated?.cvSummary || cvData.summary || cvData.personalInfo.bio || "";
 
-    const strengthsHtml =
-      aiGenerated?.keyStrengths && aiGenerated.keyStrengths.length > 0
-        ? `<h2>Key Strengths</h2><ul>${aiGenerated.keyStrengths.map((s: string) => `<li>${s}</li>`).join("")}</ul>`
-        : "";
+    const contactParts = [
+      cvData.personalInfo.email,
+      cvData.personalInfo.phone,
+      cvData.personalInfo.location,
+    ].filter(Boolean);
+
+    const summaryHtml = summary
+      ? `<div class="section"><h2>Professional Summary</h2><p>${summary}</p></div>`
+      : "";
 
     const expHtml =
       cvData.experience.length > 0
-        ? `<h2>Work Experience</h2>` +
-          cvData.experience
-            .map(
-              (e) =>
-                `<div class="entry"><div class="entry-header"><strong>${e.position || "—"}</strong><span>${e.startDate || ""} – ${e.endDate || ""}</span></div><div class="sub">${e.employer || ""}</div>${e.description ? `<p>${e.description}</p>` : ""}</div>`,
-            )
-            .join("")
-        : "";
-
-    const eduHtml =
-      cvData.education.length > 0
-        ? `<h2>Education</h2>` +
-          cvData.education
-            .map(
-              (e) =>
-                `<div class="entry"><strong>${e.degree || "—"}</strong> — ${e.school || ""} (${e.year || ""})</div>`,
-            )
-            .join("")
+        ? `<div class="section"><h2>Work Experience</h2>${cvData.experience.map((e) => `<div class="entry"><div class="row"><strong>${e.position || "—"}</strong><span class="date">${e.startDate || ""} – ${e.endDate || ""}</span></div><div class="company">${e.employer || ""}</div>${e.description ? `<p class="desc">${e.description}</p>` : ""}</div>`).join("")}</div>`
         : "";
 
     const skillsHtml =
       cvData.skills.length > 0
-        ? `<h2>Skills</h2><div class="tags">${cvData.skills.map((s) => `<span class="tag">${s}</span>`).join("")}</div>`
+        ? `<div class="section"><h2>Skills</h2><ul class="skills">${cvData.skills.map((s) => `<li>${s}</li>`).join("")}</ul></div>`
+        : "";
+
+    const eduHtml =
+      cvData.education.length > 0
+        ? `<div class="section"><h2>Education</h2>${cvData.education.map((e) => `<div class="entry"><div class="row"><strong>${e.degree || "—"}</strong><span class="date">${e.year || ""}</span></div><div class="company">${e.school || ""}</div></div>`).join("")}</div>`
         : "";
 
     const certsHtml =
       cvData.certifications.length > 0
-        ? `<h2>Certifications</h2><p>${cvData.certifications.map((c) => `${c.name}${c.issuer ? ` (${c.issuer})` : ""}${c.year ? `, ${c.year}` : ""}`).join(" • ")}</p>`
+        ? `<div class="section"><h2>Certifications</h2><ul class="certs">${cvData.certifications.map((c) => `<li><strong>${c.name || "—"}</strong>${c.issuer ? `, ${c.issuer}` : ""}${c.year ? ` (${c.year})` : ""}</li>`).join("")}</ul></div>`
         : "";
 
-    const html = `<!DOCTYPE html><html><head><title>${name} — CV</title>
+    const html = `<!DOCTYPE html><html><head><title>${name} — Resume</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  @page { size: letter; margin: 0.5in 0.6in; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', Arial, sans-serif; color: #1f2937; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; }
-  h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; color: #111827; }
-  .contact { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
-  .contact span { margin-right: 16px; }
-  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #4f46e5; border-bottom: 2px solid #4f46e5; padding-bottom: 4px; margin: 28px 0 12px; }
-  .entry { margin-bottom: 14px; }
-  .entry-header { display: flex; justify-content: space-between; align-items: baseline; }
-  .entry-header span { font-size: 12px; color: #6b7280; white-space: nowrap; }
-  .sub { font-size: 13px; color: #6b7280; }
-  p { font-size: 13px; margin-top: 4px; }
-  ul { font-size: 13px; padding-left: 20px; }
-  li { margin-bottom: 4px; }
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { font-size: 12px; background: #eef2ff; color: #4f46e5; padding: 3px 10px; border-radius: 100px; }
-  @media print { body { padding: 0; } @page { margin: 1cm; } }
+  body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #222; line-height: 1.5; padding: 0.5in 0.6in; width: 8.5in; min-height: 11in; margin: 0 auto; font-size: 13px; }
+  h1 { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #222; padding-bottom: 6px; margin-bottom: 4px; }
+  .contact { font-size: 11.5px; color: #555; margin-bottom: 16px; padding-top: 4px; }
+  .contact span + span::before { content: " | "; color: #aaa; }
+  .section { margin-bottom: 14px; }
+  h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 8px; color: #333; }
+  p { margin-top: 2px; color: #444; }
+  .entry { margin-bottom: 10px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .date { font-size: 11.5px; color: #666; white-space: nowrap; }
+  .company { font-size: 12px; color: #666; font-style: italic; }
+  .desc { font-size: 12px; color: #444; margin-top: 3px; line-height: 1.55; }
+  .skills { list-style: none; column-count: 3; column-gap: 16px; }
+  .skills li { font-size: 12px; padding: 1.5px 0; }
+  .skills li::before { content: "•"; margin-right: 6px; color: #666; }
+  .certs { list-style: none; }
+  .certs li { font-size: 12px; padding: 2px 0; }
+  .certs li::before { content: "–"; margin-right: 6px; color: #999; }
+  @media print { body { padding: 0; width: auto; min-height: auto; } }
 </style></head><body>
   <h1>${name}</h1>
-  <div class="contact">
-    ${cvData.personalInfo.email ? `<span>${cvData.personalInfo.email}</span>` : ""}
-    ${cvData.personalInfo.phone ? `<span>${cvData.personalInfo.phone}</span>` : ""}
-    ${cvData.personalInfo.location ? `<span>${cvData.personalInfo.location}</span>` : ""}
-  </div>
-  ${summary ? `<h2>Professional Summary</h2><p>${summary}</p>` : ""}
-  ${strengthsHtml}
-  ${expHtml}
-  ${eduHtml}
-  ${skillsHtml}
-  ${certsHtml}
+  <div class="contact">${contactParts.map((p) => `<span>${p}</span>`).join("")}</div>
+  ${summaryHtml}${expHtml}${skillsHtml}${eduHtml}${certsHtml}
 </body></html>`;
 
     const printWindow = window.open("", "_blank");
@@ -754,56 +743,59 @@ function CVBuilderPage() {
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </Button>
                           </div>
-                          <Input
-                            value={exp.position}
-                            onChange={(e) =>
-                              updateExperience(idx, "position", e.target.value)
-                            }
-                            placeholder="Job Title"
-                          />
-                          <Input
-                            value={exp.employer}
-                            onChange={(e) =>
-                              updateExperience(idx, "employer", e.target.value)
-                            }
-                            placeholder="Company / Employer"
-                          />
-                          <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-sm font-medium mb-1 block text-muted-foreground">Job Title</label>
                             <Input
-                              value={exp.startDate}
+                              value={exp.position}
                               onChange={(e) =>
-                                updateExperience(
-                                  idx,
-                                  "startDate",
-                                  e.target.value,
-                                )
+                                updateExperience(idx, "position", e.target.value)
                               }
-                              placeholder="Start (e.g. Jan 2019)"
-                            />
-                            <Input
-                              value={exp.endDate}
-                              onChange={(e) =>
-                                updateExperience(
-                                  idx,
-                                  "endDate",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="End (e.g. Present)"
+                              placeholder="e.g. Registered Nurse, Welder"
                             />
                           </div>
-                          <Textarea
-                            value={exp.description}
-                            onChange={(e) =>
-                              updateExperience(
-                                idx,
-                                "description",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="Key responsibilities and achievements…"
-                            rows={2}
-                          />
+                          <div>
+                            <label className="text-sm font-medium mb-1 block text-muted-foreground">Company / Employer</label>
+                            <Input
+                              value={exp.employer}
+                              onChange={(e) =>
+                                updateExperience(idx, "employer", e.target.value)
+                              }
+                              placeholder="e.g. Saudi Aramco, Al Futtaim Group"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-sm font-medium mb-1 block text-muted-foreground">Start Date</label>
+                              <Input
+                                value={exp.startDate}
+                                onChange={(e) =>
+                                  updateExperience(idx, "startDate", e.target.value)
+                                }
+                                placeholder="e.g. Jan 2019"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-1 block text-muted-foreground">End Date</label>
+                              <Input
+                                value={exp.endDate}
+                                onChange={(e) =>
+                                  updateExperience(idx, "endDate", e.target.value)
+                                }
+                                placeholder="e.g. Present"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-1 block text-muted-foreground">Description</label>
+                            <Textarea
+                              value={exp.description}
+                              onChange={(e) =>
+                                updateExperience(idx, "description", e.target.value)
+                              }
+                              placeholder="Key responsibilities and achievements…"
+                              rows={2}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -850,20 +842,43 @@ function CVBuilderPage() {
                     )}
                     {cvData.skills.length === 0 && (
                       <p className="text-xs text-muted-foreground mb-2">
-                        Type a skill below and press Enter to add it
+                        Type a skill below and click Add or press Enter
                       </p>
                     )}
-                    <Input
-                      placeholder="Type a skill and press Enter (e.g. Welding, Carpentry)"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addSkill((e.target as HTMLInputElement).value);
-                          (e.target as HTMLInputElement).value = "";
-                        }
-                      }}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="skill-input"
+                        placeholder="e.g. Welding, Carpentry, Nursing"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addSkill((e.target as HTMLInputElement).value);
+                            (e.target as HTMLInputElement).value = "";
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.getElementById("skill-input") as HTMLInputElement;
+                          if (input?.value) {
+                            addSkill(input.value);
+                            input.value = "";
+                            input.focus();
+                          }
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
                   </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border my-2" />
 
                   {/* Certifications */}
                   <div>
@@ -990,7 +1005,7 @@ function CVBuilderPage() {
                       {cvData.education.map((edu, idx) => (
                         <div
                           key={edu.id}
-                          className="p-4 border border-border rounded-xl space-y-2 bg-muted/20"
+                          className="p-4 border border-border rounded-xl space-y-3 bg-muted/20"
                         >
                           <div className="flex justify-between items-start">
                             <span className="text-xs font-semibold text-accent uppercase tracking-wider">
@@ -1006,29 +1021,37 @@ function CVBuilderPage() {
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </Button>
                           </div>
-                          <Input
-                            value={edu.school}
-                            onChange={(e) =>
-                              updateEducation(idx, "school", e.target.value)
-                            }
-                            placeholder="School / University"
-                          />
+                          <div>
+                            <label className="text-sm font-medium mb-1 block text-muted-foreground">School / University</label>
+                            <Input
+                              value={edu.school}
+                              onChange={(e) =>
+                                updateEducation(idx, "school", e.target.value)
+                              }
+                              placeholder="e.g. University of the Philippines"
+                            />
+                          </div>
                           <div className="grid grid-cols-3 gap-2">
-                            <Input
-                              value={edu.degree}
-                              onChange={(e) =>
-                                updateEducation(idx, "degree", e.target.value)
-                              }
-                              placeholder="Degree"
-                              className="col-span-2"
-                            />
-                            <Input
-                              value={edu.year}
-                              onChange={(e) =>
-                                updateEducation(idx, "year", e.target.value)
-                              }
-                              placeholder="Year"
-                            />
+                            <div className="col-span-2">
+                              <label className="text-sm font-medium mb-1 block text-muted-foreground">Degree / Course</label>
+                              <Input
+                                value={edu.degree}
+                                onChange={(e) =>
+                                  updateEducation(idx, "degree", e.target.value)
+                                }
+                                placeholder="e.g. BS Nursing"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-1 block text-muted-foreground">Year</label>
+                              <Input
+                                value={edu.year}
+                                onChange={(e) =>
+                                  updateEducation(idx, "year", e.target.value)
+                                }
+                                placeholder="e.g. 2020"
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1210,42 +1233,48 @@ function CVBuilderPage() {
               </div>
             )}
 
-            {/* ── The CV Document ────────────── */}
+            {/* ── The CV Document (ATS-friendly) ─── */}
             <div
               ref={previewRef}
-              className="bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-lg overflow-hidden"
+              className="bg-white dark:bg-zinc-950 border border-border rounded-xl shadow-lg overflow-hidden"
             >
-              {/* CV Header */}
-              <div className="px-6 sm:px-8 pt-7 pb-5 border-b border-border/50">
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
+              {/* CV Header — clean, no color */}
+              <div className="px-6 sm:px-8 pt-7 pb-4 border-b-2 border-foreground/80">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground uppercase tracking-wide mb-1">
                   {cvData.personalInfo.fullName || (
-                    <span className="text-muted-foreground/40 italic">
+                    <span className="text-muted-foreground/30 italic normal-case font-normal">
                       Your Name
                     </span>
                   )}
                 </h1>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <div className="flex flex-wrap gap-x-1 text-[11px] text-muted-foreground">
                   {cvData.personalInfo.email && (
                     <span>{cvData.personalInfo.email}</span>
+                  )}
+                  {cvData.personalInfo.email && cvData.personalInfo.phone && (
+                    <span className="text-muted-foreground/40 mx-1">|</span>
                   )}
                   {cvData.personalInfo.phone && (
                     <span>{cvData.personalInfo.phone}</span>
                   )}
+                  {(cvData.personalInfo.email || cvData.personalInfo.phone) &&
+                    cvData.personalInfo.location && (
+                      <span className="text-muted-foreground/40 mx-1">|</span>
+                    )}
                   {cvData.personalInfo.location && (
                     <span>{cvData.personalInfo.location}</span>
                   )}
                 </div>
               </div>
 
-              <div className="px-6 sm:px-8 py-5 space-y-5 text-sm">
+              <div className="px-6 sm:px-8 py-5 space-y-4 text-sm">
                 {/* Summary */}
                 {displaySummary && (
                   <section>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider text-accent mb-2 flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-accent rounded-full" />
+                    <h2 className="text-[11px] font-bold uppercase tracking-[1.2px] text-foreground/70 mb-1.5 pb-1 border-b border-muted-foreground/30">
                       Professional Summary
                     </h2>
-                    <p className="text-muted-foreground leading-relaxed text-[13px]">
+                    <p className="text-muted-foreground leading-relaxed text-[12.5px]">
                       {displaySummary}
                     </p>
                   </section>
@@ -1254,8 +1283,7 @@ function CVBuilderPage() {
                 {/* Experience */}
                 {cvData.experience.length > 0 && (
                   <section>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider text-accent mb-3 flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-accent rounded-full" />
+                    <h2 className="text-[11px] font-bold uppercase tracking-[1.2px] text-foreground/70 mb-2 pb-1 border-b border-muted-foreground/30">
                       Work Experience
                     </h2>
                     <div className="space-y-3">
@@ -1264,7 +1292,7 @@ function CVBuilderPage() {
                           <div className="flex justify-between items-baseline">
                             <span className="font-semibold text-foreground text-[13px]">
                               {exp.position || (
-                                <span className="text-muted-foreground/40 italic">
+                                <span className="text-muted-foreground/30 italic font-normal">
                                   Job Title
                                 </span>
                               )}
@@ -1273,15 +1301,15 @@ function CVBuilderPage() {
                               {exp.startDate || "—"} – {exp.endDate || "—"}
                             </span>
                           </div>
-                          <p className="text-muted-foreground text-[12px]">
+                          <p className="text-muted-foreground text-[12px] italic">
                             {exp.employer || (
-                              <span className="italic text-muted-foreground/40">
+                              <span className="text-muted-foreground/30">
                                 Company
                               </span>
                             )}
                           </p>
                           {exp.description && (
-                            <p className="text-[12px] text-muted-foreground/80 mt-1">
+                            <p className="text-[12px] text-muted-foreground/80 mt-1 leading-relaxed">
                               {exp.description}
                             </p>
                           )}
@@ -1291,11 +1319,33 @@ function CVBuilderPage() {
                   </section>
                 )}
 
+                {/* Skills — 3-column bullet list (always visible) */}
+                <section>
+                  <h2 className="text-[11px] font-bold uppercase tracking-[1.2px] text-foreground/70 mb-2 pb-1 border-b border-muted-foreground/30">
+                    Skills
+                  </h2>
+                  {cvData.skills.length > 0 ? (
+                    <ul className="columns-2 sm:columns-3 gap-x-4 list-none">
+                      {cvData.skills.map((skill) => (
+                        <li
+                          key={skill}
+                          className="text-[12px] text-foreground py-0.5 before:content-['•'] before:mr-1.5 before:text-muted-foreground/50"
+                        >
+                          {skill}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[12px] text-muted-foreground/30 italic">
+                      Add skills in Step 3 — they will appear here
+                    </p>
+                  )}
+                </section>
+
                 {/* Education */}
                 {cvData.education.length > 0 && (
                   <section>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider text-accent mb-3 flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-accent rounded-full" />
+                    <h2 className="text-[11px] font-bold uppercase tracking-[1.2px] text-foreground/70 mb-2 pb-1 border-b border-muted-foreground/30">
                       Education
                     </h2>
                     <div className="space-y-2">
@@ -1304,20 +1354,18 @@ function CVBuilderPage() {
                           <div>
                             <span className="font-semibold text-foreground text-[13px]">
                               {edu.degree || (
-                                <span className="text-muted-foreground/40 italic">
+                                <span className="text-muted-foreground/30 italic font-normal">
                                   Degree
                                 </span>
                               )}
                             </span>
-                            <span className="text-muted-foreground text-[12px]">
-                              {" "}
-                              –{" "}
+                            <p className="text-muted-foreground text-[12px] italic">
                               {edu.school || (
-                                <span className="italic text-muted-foreground/40">
+                                <span className="text-muted-foreground/30">
                                   School
                                 </span>
                               )}
-                            </span>
+                            </p>
                           </div>
                           <span className="text-[11px] text-muted-foreground whitespace-nowrap ml-2">
                             {edu.year || "—"}
@@ -1328,56 +1376,38 @@ function CVBuilderPage() {
                   </section>
                 )}
 
-                {/* Skills */}
-                {cvData.skills.length > 0 && (
-                  <section>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider text-accent mb-2 flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-accent rounded-full" />
-                      Skills
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {cvData.skills.map((skill) => (
-                        <span
-                          key={skill}
-                          className="text-[11px] bg-accent/8 text-accent border border-accent/15 px-2.5 py-0.5 rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
                 {/* Certifications */}
                 {cvData.certifications.length > 0 && (
                   <section>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider text-accent mb-2 flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-accent rounded-full" />
+                    <h2 className="text-[11px] font-bold uppercase tracking-[1.2px] text-foreground/70 mb-1.5 pb-1 border-b border-muted-foreground/30">
                       Certifications
                     </h2>
-                    <div className="space-y-1">
+                    <ul className="list-none space-y-0.5">
                       {cvData.certifications.map((c) => (
-                        <div
+                        <li
                           key={c.id}
-                          className="text-[12px] text-muted-foreground"
+                          className="text-[12px] before:content-['–'] before:mr-1.5 before:text-muted-foreground/40"
                         >
-                          <span className="text-foreground font-medium">
+                          <span className="font-semibold text-foreground">
                             {c.name || (
-                              <span className="italic text-muted-foreground/40">
+                              <span className="italic text-muted-foreground/30 font-normal">
                                 Certificate
                               </span>
                             )}
                           </span>
-                          {c.issuer && ` — ${c.issuer}`}
-                          {c.year && (
-                            <span className="text-muted-foreground/60">
-                              {" "}
-                              ({c.year})
+                          {c.issuer && (
+                            <span className="text-muted-foreground">
+                              , {c.issuer}
                             </span>
                           )}
-                        </div>
+                          {c.year && (
+                            <span className="text-muted-foreground/60">
+                              {" "}({c.year})
+                            </span>
+                          )}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </section>
                 )}
 

@@ -13,10 +13,12 @@ import {
   Video,
   FileText,
   Loader2,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
@@ -78,6 +80,11 @@ function ApplicationDetailsPage() {
   const { id } = useParams();
   const [application, setApplication] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -95,6 +102,30 @@ function ApplicationDetailsPage() {
     };
     fetchApplication();
   }, [id]);
+
+  // Pre-fill existing rating if already rated
+  useEffect(() => {
+    if (application?.employerRating) {
+      setRatingValue(application.employerRating.rating);
+      setReviewText(application.employerRating.review || "");
+      setRatingSubmitted(true);
+    }
+  }, [application]);
+
+  const handleSubmitRating = async () => {
+    const employerId = application?.jobOrder?.employer?.id;
+    if (!employerId || ratingValue === 0) return;
+    try {
+      setIsSubmittingRating(true);
+      await applicantService.rateEmployer(employerId, ratingValue, reviewText || undefined);
+      toast.success("Thank you for your feedback!");
+      setRatingSubmitted(true);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to submit rating");
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -326,6 +357,84 @@ function ApplicationDetailsPage() {
           ))}
         </div>
       </motion.div>
+
+      {/* Employer Rating Section */}
+      {["SELECTED", "PROCESSING", "DEPLOYED"].includes(status) && (
+        <motion.div variants={fadeInUp} className="card-premium p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Star className="w-5 h-5 text-amber-500" />
+            <h2 className="text-lg font-display font-semibold">
+              {ratingSubmitted ? "Your Rating" : "Rate This Employer"}
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            {ratingSubmitted
+              ? `You rated ${employer} — your feedback helps other workers.`
+              : `How was your experience with ${employer}? Your feedback updates their Trust Score.`}
+          </p>
+
+          <div className="flex items-center gap-1 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                disabled={ratingSubmitted}
+                onClick={() => setRatingValue(star)}
+                onMouseEnter={() => !ratingSubmitted && setRatingHover(star)}
+                onMouseLeave={() => setRatingHover(0)}
+                className="p-0.5 focus:outline-none disabled:cursor-default transition-transform hover:scale-110"
+              >
+                <Star
+                  className={cn(
+                    "w-8 h-8 transition-colors",
+                    (ratingHover || ratingValue) >= star
+                      ? "fill-amber-400 text-amber-400"
+                      : "text-muted-foreground/25"
+                  )}
+                />
+              </button>
+            ))}
+            {ratingValue > 0 && (
+              <span className="ml-2 text-sm font-medium text-muted-foreground">
+                {ratingValue === 1 ? "Poor" : ratingValue === 2 ? "Fair" : ratingValue === 3 ? "Good" : ratingValue === 4 ? "Very Good" : "Excellent"}
+              </span>
+            )}
+          </div>
+
+          {ratingValue > 0 && !ratingSubmitted && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="space-y-3"
+            >
+              <Textarea
+                placeholder="Share your experience (optional)..."
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                className="resize-none bg-muted/50"
+                rows={3}
+              />
+              <Button
+                onClick={handleSubmitRating}
+                disabled={isSubmittingRating}
+                className="gradient-bg-accent text-accent-foreground"
+              >
+                {isSubmittingRating ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</>
+                ) : (
+                  "Submit Rating"
+                )}
+              </Button>
+            </motion.div>
+          )}
+
+          {ratingSubmitted && reviewText && (
+            <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground italic">
+              "{reviewText}"
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Rejected notice */}
       {status === "REJECTED" && (

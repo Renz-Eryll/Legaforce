@@ -13,6 +13,11 @@ export const authorize = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
     }
 
+    // SSE/EventSource fallback: token as query param (cannot send headers)
+    if (!token && req.query.token) {
+      token = req.query.token;
+    }
+
     if (!token) {
       return res.status(401).json({
         success: false,

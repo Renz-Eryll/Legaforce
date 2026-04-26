@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a1f3a"/>
+      <stop offset="100%" stop-color="#2d1b4e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c87533"/>
+      <stop offset="100%" stop-color="#e8a04a"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#005085"/>
+      <stop offset="100%" stop-color="#0078c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <!-- Decorative circles -->
+  <circle cx="650" cy="100" r="200" fill="#005085" opacity="0.15"/>
+  <circle cx="150" cy="500" r="150" fill="#c87533" opacity="0.1"/>
+  <!-- Whiteboard -->
+  <rect x="200" y="80" width="400" height="250" rx="8" fill="white" opacity="0.95"/>
+  <rect x="220" y="100" width="160" height="12" rx="4" fill="#005085" opacity="0.6"/>
+  <rect x="220" y="125" width="340" height="8" rx="4" fill="#ddd"/>
+  <rect x="220" y="145" width="300" height="8" rx="4" fill="#ddd"/>
+  <rect x="220" y="165" width="280" height="8" rx="4" fill="#ddd"/>
+  <rect x="220" y="200" width="120" height="100" rx="8" fill="#005085" opacity="0.1"/>
+  <rect x="360" y="200" width="120" height="100" rx="8" fill="#c87533" opacity="0.1"/>
+  <!-- Teacher figure -->
+  <circle cx="400" cy="400" r="40" fill="url(#accent)"/>
+  <rect x="370" y="440" width="60" height="80" rx="10" fill="url(#accent)"/>
+  <!-- Book -->
+  <rect x="340" y="460" width="30" height="40" rx="4" fill="url(#blue)" transform="rotate(-15 355 480)"/>
+  <!-- Students -->
+  <circle cx="250" cy="480" r="25" fill="url(#blue)"/>
+  <rect x="230" y="505" width="40" height="50" rx="8" fill="url(#blue)"/>
+  <circle cx="550" cy="480" r="25" fill="url(#blue)"/>
+  <rect x="530" y="505" width="40" height="50" rx="8" fill="url(#blue)"/>
+  <!-- Graduation cap -->
+  <polygon points="400,350 360,370 400,390 440,370" fill="url(#accent)"/>
+  <rect x="396" y="340" width="8" height="15" fill="url(#accent)"/>
+  <rect x="395" y="335" width="10" height="8" rx="4" fill="url(#accent)"/>
+</svg>

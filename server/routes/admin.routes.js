@@ -40,6 +40,8 @@ import {
   uploadDeploymentDocument,
   deleteDeploymentDocument,
   getDashboardAnalytics,
+  getSystemLogs,
+  getSlaAlerts,
 } from "../controllers/admin.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -108,6 +110,10 @@ router.get("/reports", getReports);
 
 // Verification
 router.get("/verification-queue", getVerificationQueue);
+
+// Logs
+router.get("/logs", getSystemLogs);
+router.get("/sla-alerts", getSlaAlerts);
 
 // Platform Settings
 router.get("/settings", getPlatformSettings);

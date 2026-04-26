@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#1a2744"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#1b2d45"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#0078c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="700" cy="80" r="180" fill="#005085" opacity="0.1"/>
+  <circle cx="100" cy="520" r="120" fill="#00b4d8" opacity="0.08"/>
+  <!-- Monitor -->
+  <rect x="150" y="80" width="500" height="320" rx="12" fill="#1a2744" stroke="#334155" stroke-width="2"/>
+  <rect x="165" y="95" width="470" height="280" rx="6" fill="url(#screen)"/>
+  <!-- Code lines -->
+  <rect x="185" y="115" width="60" height="8" rx="4" fill="#c87533" opacity="0.8"/>
+  <rect x="255" y="115" width="120" height="8" rx="4" fill="#00b4d8" opacity="0.6"/>
+  <rect x="200" y="135" width="80" height="8" rx="4" fill="#4ade80" opacity="0.5"/>
+  <rect x="290" y="135" width="150" height="8" rx="4" fill="white" opacity="0.3"/>
+  <rect x="200" y="155" width="100" height="8" rx="4" fill="#a78bfa" opacity="0.6"/>
+  <rect x="310" y="155" width="70" height="8" rx="4" fill="white" opacity="0.2"/>
+  <rect x="185" y="175" width="40" height="8" rx="4" fill="#c87533" opacity="0.8"/>
+  <rect x="200" y="195" width="90" height="8" rx="4" fill="#00b4d8" opacity="0.5"/>
+  <rect x="300" y="195" width="110" height="8" rx="4" fill="white" opacity="0.3"/>
+  <rect x="200" y="215" width="130" height="8" rx="4" fill="#4ade80" opacity="0.4"/>
+  <rect x="185" y="235" width="40" height="8" rx="4" fill="#c87533" opacity="0.8"/>
+  <rect x="185" y="265" width="60" height="8" rx="4" fill="#a78bfa" opacity="0.6"/>
+  <rect x="255" y="265" width="180" height="8" rx="4" fill="white" opacity="0.2"/>
+  <!-- Terminal on right side -->
+  <rect x="460" y="115" width="160" height="240" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+  <rect x="470" y="130" width="80" height="6" rx="3" fill="#4ade80" opacity="0.6"/>
+  <rect x="470" y="145" width="120" height="6" rx="3" fill="white" opacity="0.2"/>
+  <rect x="470" y="160" width="90" height="6" rx="3" fill="#00b4d8" opacity="0.5"/>
+  <rect x="470" y="175" width="130" height="6" rx="3" fill="white" opacity="0.15"/>
+  <!-- Monitor stand -->
+  <rect x="370" y="400" width="60" height="30" fill="#334155"/>
+  <rect x="330" y="425" width="140" height="10" rx="5" fill="#334155"/>
+  <!-- Keyboard -->
+  <rect x="250" y="460" width="300" height="60" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <!-- Floating icons -->
+  <circle cx="680" cy="200" r="30" fill="#005085" opacity="0.3"/>
+  <circle cx="120" cy="250" r="25" fill="#c87533" opacity="0.2"/>
+</svg>

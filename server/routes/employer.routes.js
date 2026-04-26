@@ -28,6 +28,7 @@ import {
   getInvoices,
   getReports,
   getDashboardAnalytics,
+  rateApplicant,
 } from "../controllers/employer.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -88,5 +89,8 @@ router.get("/interview-count", getInterviewCount);
 router.get("/deployed-worker-count", getDeployedWorkerCount);
 router.get("/dashboard-stats", getDashboardStats);
 router.get("/dashboard-analytics", getDashboardAnalytics);
+
+// Ratings
+router.post("/rate-applicant", rateApplicant);
 
 export default router;

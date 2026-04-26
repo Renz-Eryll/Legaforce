@@ -303,13 +303,26 @@ export default function ApplicantDashboard() {
             </h3>
             <div className="space-y-2">
               {recommendedJobs.length > 0 ? recommendedJobs.slice(0, 3).map((job: any, i) => (
-                <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{job.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{job.company} • {job.location}</p>
+                <Link to={`/app/jobs`} key={job.id || i}>
+                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{job.employer || job.company} • {job.location}</p>
+                    </div>
+                    {job.matchScore !== null && job.matchScore !== undefined ? (
+                      <Badge className={cn(
+                        "text-xs shrink-0 ml-2",
+                        job.matchScore >= 80 ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                        job.matchScore >= 50 ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
+                        "bg-red-500/10 text-red-400 border-red-500/20"
+                      )}>
+                        {job.matchScore}%
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-muted text-muted-foreground text-xs shrink-0 ml-2">New</Badge>
+                    )}
                   </div>
-                  <Badge className="bg-accent/10 text-accent border-accent/20 text-xs shrink-0 ml-2">{job.match}%</Badge>
-                </div>
+                </Link>
               )) : (
                 <div className="flex flex-col items-center py-4 text-center">
                   <Sparkles className="w-6 h-6 text-muted-foreground/30 mb-2" />

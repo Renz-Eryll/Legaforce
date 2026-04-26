@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
@@ -28,12 +28,15 @@ import {
   Wallet,
   Search,
   CheckCircle,
+  Activity,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { applicantService } from "@/services/applicantService";
 import { employerService } from "@/services/employerService";
 import { adminService } from "@/services/adminService";
+import { useSSENotifications } from "@/hooks/useSSENotifications";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -184,7 +187,7 @@ const getAdminNavigation = (badges: any = {}): NavSection[] => [
     ],
   },
   {
-    title: "Support",
+    title: "Support & System",
     items: [
       {
         name: "Complaints",
@@ -192,7 +195,9 @@ const getAdminNavigation = (badges: any = {}): NavSection[] => [
         icon: AlertTriangle,
         badge: badges.complaints || 0,
       },
-      { name: "User Verification", href: "/admin/verification", icon: Shield },
+      { name: "Verification", href: "/admin/verification", icon: Shield, badge: badges.verifications || 0 },
+      { name: "System Health", href: "/admin/health", icon: Activity },
+      { name: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
 ];
@@ -201,31 +206,127 @@ interface DashboardLayoutProps {
   userRole?: "applicant" | "employer" | "admin";
 }
 
+// ── Relative time helper ────────────────────────
+function timeAgo(date: string | Date): string {
+  const now = new Date();
+  const d = new Date(date);
+  const seconds = Math.floor((now.getTime() - d.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString();
+}
+
+// ── Notification type colors ────────────────────
+// Handles both SSE types (success/warning/info) and DB enum types (APPLICATION_STATUS, DEPLOYMENT, etc.)
+function getNotifColor(type: string): string {
+  switch (type) {
+    case "success":
+    case "DEPLOYMENT":
+    case "OFFER":
+      return "text-emerald-500";
+    case "warning":
+      return "text-amber-500";
+    case "info":
+    case "APPLICATION_STATUS":
+    case "JOB_RECOMMENDATION":
+    case "MESSAGE":
+    case "SYSTEM":
+      return "text-blue-500";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+// ── Map DB notification types to icon category ──
+function getNotifIconType(type: string): "success" | "warning" | "info" {
+  switch (type) {
+    case "success":
+    case "DEPLOYMENT":
+    case "OFFER":
+      return "success";
+    case "warning":
+      return "warning";
+    default:
+      return "info";
+  }
+}
+
 export function DashboardLayout({
   userRole = "applicant",
 }: DashboardLayoutProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [badges, setBadges] = useState<any>({});
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
+  // Real-time SSE notifications
+  const { liveNotifications, isConnected: sseConnected } = useSSENotifications();
+
+  // Merge live SSE notifications with polled notifications (dedup by id)
+  const allNotifications = (() => {
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    // Live SSE notifications first (newest)
+    for (const n of liveNotifications) {
+      const nid = n.id;
+      if (nid && !seen.has(nid)) {
+        seen.add(nid);
+        merged.push(n);
+      } else if (!nid) {
+        merged.push(n);
+      }
+    }
+    // Then polled notifications
+    for (const n of notifications) {
+      const nid = n.id || (n as any)._id;
+      if (nid && !seen.has(nid)) {
+        seen.add(nid);
+        merged.push(n);
+      } else if (!nid) {
+        merged.push(n);
+      }
+    }
+    return merged.slice(0, 20);
+  })();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Scroll to top when route changes
   useEffect(() => {
     window.scrollTo(0, 0);
+    setShowNotifDropdown(false);
   }, [location.pathname]);
 
-  // Fetch badges
+  // Fetch badges + notifications
   useEffect(() => {
     const fetchBadges = async () => {
       try {
         if (userRole === "applicant") {
-          const [apps, saved, points, complaints] = await Promise.allSettled([
+          const [apps, saved, points, complaints, notifs] = await Promise.allSettled([
             applicantService.getApplications(),
             applicantService.getSavedJobs(),
             applicantService.getRewardPoints(),
-            applicantService.getComplaints()
+            applicantService.getComplaints(),
+            applicantService.getNotifications(),
           ]);
           
           setBadges({
@@ -234,6 +335,10 @@ export function DashboardLayout({
             rewards: points.status === 'fulfilled' ? `${points.value} pts` : "0 pts",
             complaints: complaints.status === 'fulfilled' ? (complaints.value as any[]).length : 0,
           });
+
+          if (notifs.status === 'fulfilled') {
+            setNotifications(Array.isArray(notifs.value) ? notifs.value : []);
+          }
         } else if (userRole === "employer") {
           const [jobs, candidates, interviews] = await Promise.allSettled([
             employerService.getJobOrderCount("ACTIVE"),
@@ -396,6 +501,7 @@ export function DashboardLayout({
   };
 
   const roleBadge = getRoleBadge();
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -563,10 +669,152 @@ export function DashboardLayout({
             <div className="flex items-center gap-2">
 
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
-              </Button>
+
+              {/* ── Notification Bell with Dropdown ── */}
+              <div className="relative" ref={notifRef}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setShowNotifDropdown((v) => !v)}
+                  id="notification-bell"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-accent text-accent-foreground rounded-full px-1 animate-pulse">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                  {unreadCount === 0 && notifications.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-muted-foreground/40 rounded-full" />
+                  )}
+                </Button>
+
+                {/* Notification Dropdown */}
+                <AnimatePresence>
+                  {showNotifDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-12 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                    >
+                      {/* Dropdown Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-accent" />
+                          <h3 className="font-semibold text-sm">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <Badge className="bg-accent text-accent-foreground text-[10px] h-5">
+                              {unreadCount} new
+                            </Badge>
+                          )}
+                        </div>
+                        {sseConnected && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                            <span className="text-[10px] text-emerald-500 font-medium">Live</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Notification List */}
+                      <div className="max-h-[400px] overflow-y-auto scrollbar-thin">
+                          {allNotifications.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                            <Bell className="w-8 h-8 mb-2 opacity-40" />
+                            <p className="text-sm">No notifications yet</p>
+                            <p className="text-xs mt-1">You'll see updates here</p>
+                          </div>
+                        ) : (
+                          allNotifications.slice(0, 10).map((notif: any, idx: number) => (
+                            <div
+                              key={notif.id || notif._id || idx}
+                              className={cn(
+                                "px-4 py-3 border-b border-border/50 hover:bg-muted/50 cursor-pointer transition-colors",
+                                !notif.read && "bg-accent/5"
+                              )}
+                              onClick={async () => {
+                                setShowNotifDropdown(false);
+                                
+                                // Mark as read locally and on server
+                                if (!notif.read) {
+                                  try {
+                                    // Identify actual ID (handle SSE id prefix if present)
+                                    const nid = notif.id;
+                                    if (nid && !String(nid).startsWith('sse-') && userRole === "applicant") {
+                                      await applicantService.markNotificationRead(nid);
+                                    }
+                                    // Update local state
+                                    setNotifications(prev => prev.map(n => n.id === nid ? { ...n, read: true } : n));
+                                  } catch (e) {
+                                    console.error("Failed to mark as read", e);
+                                  }
+                                }
+
+                                if (userRole === "applicant") {
+                                  navigate("/app/applications");
+                                } else if (userRole === "employer") {
+                                  navigate("/employer/candidates");
+                                } else if (userRole === "admin") {
+                                  navigate("/admin/applications");
+                                }
+                              }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={cn("mt-0.5", getNotifColor(notif.type))}>
+                                  {getNotifIconType(notif.type) === "success" ? (
+                                    <CheckCircle className="w-4 h-4" />
+                                  ) : getNotifIconType(notif.type) === "warning" ? (
+                                    <AlertTriangle className="w-4 h-4" />
+                                  ) : (
+                                    <Bell className="w-4 h-4" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className={cn("text-sm font-medium truncate", !notif.read && "text-foreground")}>
+                                      {notif.title}
+                                    </p>
+                                    {!notif.read && (
+                                      <span className="w-2 h-2 bg-accent rounded-full flex-shrink-0" />
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                                    {notif.message}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground/70 mt-1">
+                                    {timeAgo(notif.date || notif.createdAt)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Dropdown Footer */}
+                      {allNotifications.length > 0 && (
+                        <div className="px-4 py-2.5 border-t border-border bg-muted/30">
+                          <button
+                            className="text-xs text-accent hover:underline font-medium w-full text-center"
+                            onClick={() => {
+                              setShowNotifDropdown(false);
+                              if (userRole === "applicant") navigate("/app/applications");
+                              else if (userRole === "employer") navigate("/employer/dashboard");
+                              else navigate("/admin/dashboard");
+                            }}
+                          >
+                            View all activity →
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-border">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/10 text-accent font-semibold text-sm">
                   {userInfo.initials}

@@ -297,16 +297,19 @@ export default function LandingPage() {
             >
               {/* Main Image Container with Neon Glow */}
               <div className="relative neon-box-lg rounded-3xl overflow-hidden aspect-[4/3]">
-                {/* Placeholder for hero image */}
+                {/* Hero image - Filipino workers */}
                 <img
-                  src="legaforce-image2.png"
+                  src="/images/hero-workers.png"
                   alt="Filipino workers connecting with global employers"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback gradient background if image doesn't load
-                    e.currentTarget.style.display = "none";
-                    e.currentTarget.parentElement!.style.background =
-                      "linear-gradient(135deg, hsl(201 100% 26%) 0%, hsl(26 74% 55%) 100%)";
+                    // Fallback to existing image
+                    e.currentTarget.src = "/legaforce-image2.png";
+                    e.currentTarget.onerror = () => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.parentElement!.style.background =
+                        "linear-gradient(135deg, hsl(201 100% 26%) 0%, hsl(26 74% 55%) 100%)";
+                    };
                   }}
                 />
 
@@ -478,7 +481,7 @@ export default function LandingPage() {
           >
             <div className="relative rounded-3xl overflow-hidden neon-box aspect-[16/9] lg:aspect-[21/9]">
               <img
-                src="/images/platform-dashboard.jpg"
+                src="/images/platform-dashboard.png"
                 alt="Legaforce platform dashboard showing AI CV builder and job matching"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -621,11 +624,10 @@ export default function LandingPage() {
                   className="relative text-center"
                 >
                   <motion.div
-                    className={`relative inline-flex items-center justify-center w-24 h-24 rounded-2xl ${
-                      item.color === "accent"
-                        ? "gradient-bg-accent"
-                        : "gradient-bg"
-                    } mb-6 shadow-lg`}
+                    className={`relative inline-flex items-center justify-center w-24 h-24 rounded-2xl ${item.color === "accent"
+                      ? "gradient-bg-accent"
+                      : "gradient-bg"
+                      } mb-6 shadow-lg`}
                     whileHover={{
                       scale: 1.1,
                       rotate: 5,
@@ -639,11 +641,10 @@ export default function LandingPage() {
                     <item.icon className="absolute w-12 h-12 text-white/20" />
                     {/* Pulse effect */}
                     <motion.div
-                      className={`absolute inset-0 rounded-2xl ${
-                        item.color === "accent"
-                          ? "bg-accent/20"
-                          : "bg-primary/20"
-                      }`}
+                      className={`absolute inset-0 rounded-2xl ${item.color === "accent"
+                        ? "bg-accent/20"
+                        : "bg-primary/20"
+                        }`}
                       animate={{
                         scale: [1, 1.2, 1],
                         opacity: [0.5, 0, 0.5],

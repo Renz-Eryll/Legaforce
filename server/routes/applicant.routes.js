@@ -16,6 +16,8 @@ import {
   applyToJob,
   getProfileCompletion,
   getNotifications,
+  markNotificationAsRead,
+  deleteNotification,
   getRecommendedJobs,
   getSavedJobs,
   saveJob,
@@ -30,6 +32,11 @@ import {
   uploadDocument,
   deleteDocument,
   getDashboardAnalytics,
+  getSettings,
+  updateAutoApply,
+  updateNotificationPrefs,
+  rateEmployer,
+  batchTalentMatching,
 } from "../controllers/applicant.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -68,7 +75,11 @@ router.post("/cv/generate", generateAICV);
 // Jobs (browse, save, apply)
 router.get("/jobs", getJobs);
 router.get("/jobs/:id", getJobById);
-router.post("/jobs/:id/apply", validateRequest(jobApplicationSchema), applyToJob);
+router.post(
+  "/jobs/:id/apply",
+  validateRequest(jobApplicationSchema),
+  applyToJob,
+);
 
 // Saved Jobs
 router.get("/saved-jobs", getSavedJobs);
@@ -83,12 +94,23 @@ router.post("/rewards/redeem", redeemReward);
 
 // Dashboard data
 router.get("/notifications", getNotifications);
+router.patch("/notifications/:id/read", markNotificationAsRead);
+router.delete("/notifications/:id", deleteNotification);
 router.get("/recommended-jobs", getRecommendedJobs);
+router.post("/talent-matching/batch", batchTalentMatching);
 router.get("/dashboard-analytics", getDashboardAnalytics);
+
+// Settings (auto-apply, notification preferences)
+router.get("/settings", getSettings);
+router.patch("/settings/auto-apply", updateAutoApply);
+router.patch("/settings/notifications", updateNotificationPrefs);
 
 // Documents (with actual file upload via multer)
 router.get("/documents", getDocuments);
 router.post("/documents", multerUpload.single("file"), uploadDocument);
 router.delete("/documents/:id", deleteDocument);
+
+// Ratings
+router.post("/rate-employer", rateEmployer);
 
 export default router;

@@ -87,6 +87,26 @@ export const applicantService = {
     }
   },
 
+  async markNotificationRead(id: string) {
+    try {
+      const res = await api.patch(`/applicant/notifications/${id}/read`);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      throw error;
+    }
+  },
+
+  async deleteNotification(id: string) {
+    try {
+      const res = await api.delete(`/applicant/notifications/${id}`);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      throw error;
+    }
+  },
+
   async getRecommendedJobs() {
     try {
       const res = await api.get("/applicant/recommended-jobs");
@@ -119,7 +139,9 @@ export const applicantService = {
 
   async unsaveJob(jobId: string) {
     try {
-      const res = await api.delete("/applicant/saved-jobs", { data: { jobId } });
+      const res = await api.delete("/applicant/saved-jobs", {
+        data: { jobId },
+      });
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to unsave job:", error);
@@ -310,6 +332,39 @@ export const applicantService = {
     }
   },
 
+  async getSettings() {
+    try {
+      const res = await api.get("/applicant/settings");
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+      return {
+        autoApplyToMatching: false,
+        pushNotifications: false,
+        smsNotifications: false,
+        emailNotifications: true,
+        jobAlerts: true,
+        applicationUpdates: true,
+      };
+    }
+  },
+
+  async updateNotificationPrefs(prefs: {
+    pushNotifications?: boolean;
+    smsNotifications?: boolean;
+    emailNotifications?: boolean;
+    jobAlerts?: boolean;
+    applicationUpdates?: boolean;
+  }) {
+    try {
+      const res = await api.patch("/applicant/settings/notifications", prefs);
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to update notification prefs:", error);
+      throw error;
+    }
+  },
+
   // ── Documents ──────────────────────────────────
 
   async getDocuments() {
@@ -343,6 +398,22 @@ export const applicantService = {
       return getData(res) ?? res.data;
     } catch (error) {
       console.error("Failed to delete document:", error);
+      throw error;
+    }
+  },
+
+  // ── Ratings ────────────────────────────────────
+
+  async rateEmployer(employerId: string, rating: number, review?: string) {
+    try {
+      const res = await api.post("/applicant/rate-employer", {
+        employerId,
+        rating,
+        review,
+      });
+      return getData(res) ?? res.data;
+    } catch (error) {
+      console.error("Failed to rate employer:", error);
       throw error;
     }
   },

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a1510"/>
+      <stop offset="100%" stop-color="#2a1f15"/>
+    </linearGradient>
+    <linearGradient id="fire" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#c87533"/>
+      <stop offset="50%" stop-color="#e8a04a"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#c87533" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#c87533" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <!-- Ambient glow -->
+  <circle cx="400" cy="300" r="250" fill="url(#glow)"/>
+  <!-- Sparks -->
+  <circle cx="350" cy="250" r="3" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="380" cy="220" r="2" fill="#fbbf24" opacity="0.7"/>
+  <circle cx="420" cy="240" r="2.5" fill="#e8a04a" opacity="0.8"/>
+  <circle cx="360" cy="200" r="1.5" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="440" cy="210" r="2" fill="#c87533" opacity="0.7"/>
+  <circle cx="330" cy="230" r="1.5" fill="#fbbf24" opacity="0.5"/>
+  <circle cx="450" cy="260" r="3" fill="#e8a04a" opacity="0.6"/>
+  <!-- Worker figure -->
+  <circle cx="400" cy="320" r="35" fill="#005085"/>
+  <!-- Hard hat -->
+  <ellipse cx="400" cy="295" rx="40" ry="15" fill="#fbbf24"/>
+  <rect x="365" y="285" width="70" height="12" rx="4" fill="#fbbf24"/>
+  <!-- Body -->
+  <rect x="370" y="355" width="60" height="90" rx="12" fill="#005085"/>
+  <!-- Arms holding tool -->
+  <rect x="330" y="370" width="50" height="15" rx="6" fill="#005085" transform="rotate(-30 355 377)"/>
+  <rect x="420" y="370" width="50" height="15" rx="6" fill="#005085" transform="rotate(30 445 377)"/>
+  <!-- Welding torch -->
+  <rect x="305" y="340" width="8" height="50" rx="4" fill="#475569" transform="rotate(-20 309 365)"/>
+  <!-- Metal piece -->
+  <rect x="280" y="420" width="240" height="30" rx="4" fill="#475569"/>
+  <rect x="280" y="420" width="240" height="5" fill="#64748b" opacity="0.5"/>
+  <!-- Workbench -->
+  <rect x="200" y="450" width="400" height="20" rx="4" fill="#374151"/>
+  <rect x="230" y="470" width="15" height="80" fill="#374151"/>
+  <rect x="555" y="470" width="15" height="80" fill="#374151"/>
+  <!-- More sparks -->
+  <circle cx="310" cy="380" r="2" fill="#fbbf24" opacity="0.8"/>
+  <circle cx="295" cy="395" r="1.5" fill="#e8a04a" opacity="0.6"/>
+  <circle cx="320" cy="400" r="2" fill="#fbbf24" opacity="0.7"/>
+</svg>
