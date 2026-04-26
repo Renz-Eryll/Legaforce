@@ -156,8 +156,8 @@ export default function LoginPage() {
               </p>
             </div>
 
-        
-           
+
+
           </motion.div>
 
           <p className="text-xs text-white/30 font-medium">
@@ -168,7 +168,7 @@ export default function LoginPage() {
 
       {/* ── Right panel (Modern Form) ── */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 lg:p-20 relative overflow-y-auto">
-        
+
         {/* Top Controls */}
         <div className="absolute top-6 right-6 flex items-center gap-3 z-10 bg-background/50 backdrop-blur-md px-4 py-2 rounded-full border border-border/50">
           <LanguageSwitcher />
@@ -207,8 +207,8 @@ export default function LoginPage() {
           {/* Error Alert */}
           <AnimatePresence>
             {loginError && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0, marginBottom: 0 }} 
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                 animate={{ opacity: 1, height: "auto", marginBottom: 32 }}
                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               >
