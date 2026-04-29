@@ -214,7 +214,12 @@ export const getCandidateById = async (req, res, next) => {
         jobOrder: { employerId: employer.id },
       },
       include: {
-        applicant: true,
+        applicant: {
+          include: {
+            documents: true,
+            user: { select: { email: true } }
+          }
+        },
         jobOrder: true,
       },
     });
@@ -246,7 +251,7 @@ export const getCandidateById = async (req, res, next) => {
         name:
           [a.firstName, a.lastName].filter(Boolean).join(" ") || "Applicant",
         position: application.jobOrder?.title,
-        email: null,
+        email: a.user?.email || null,
         phone: a.phone,
         location: a.nationality,
         experience: cv.experience?.length
@@ -254,8 +259,9 @@ export const getCandidateById = async (req, res, next) => {
           : "—",
         skills: cv.skills || cv.skillTags || [],
         certifications: cv.certifications || [],
+        documents: a.documents || [],
         matchScore: application.aiMatchScore || 0,
-        rating: 4,
+        rating: application.applicantRating || 0,
         trustScore: a.trustScore || 50,
         interviewNotes: application.interviewNotes,
       },
@@ -886,7 +892,7 @@ export const updateApplicationStatus = async (req, res, next) => {
 
     // ── Real-time & Persistent Notification ──
     try {
-      await notifyApplicationStatusChange(updated.applicant.id, {
+      await notifyApplicationStatusChange(updated.applicant.userId, {
         status,
         jobTitle: updated.jobOrder?.title || "Job",
         companyName: employer.companyName || "Employer",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -22,6 +22,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Upload,
+  Trash2,
+  ExternalLink,
+  Plus,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -64,12 +77,28 @@ const complaintStatusColors: Record<string, string> = {
   CLOSED: "bg-slate-500/10 text-slate-500 border-slate-500/20",
 };
 
+const DOCUMENT_CATEGORIES = [
+  { value: "PASSPORT", label: "Passport", icon: "🛂" },
+  { value: "CLEARANCE", label: "Clearance", icon: "🛡️" },
+  { value: "MEDICAL", label: "Medical", icon: "🏥" },
+  { value: "VISA", label: "Visa", icon: "🛂" },
+  { value: "CV", label: "CV/Resume", icon: "📄" },
+  { value: "OTHER", label: "Other", icon: "📁" },
+];
+
 function ApplicantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [applicant, setApplicant] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
+  
+  // Documents state
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState("PASSPORT");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchApplicant = async () => {
@@ -88,6 +117,63 @@ function ApplicantDetailPage() {
 
     fetchApplicant();
   }, [id]);
+
+  // Load documents
+  useEffect(() => {
+    const fetchDocs = async () => {
+      if (!applicant?.id) return;
+      try {
+        setIsLoadingDocs(true);
+        const response = await adminService.getProfileDocuments(applicant.id);
+        setDocuments(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoadingDocs(false);
+      }
+    };
+    fetchDocs();
+  }, [applicant?.id]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !applicant?.id) return;
+
+    try {
+      setIsUploading(true);
+      await adminService.uploadProfileDocument(applicant.id, file, uploadCategory);
+      toast.success(`${file.name} uploaded successfully`);
+      
+      // Refresh list
+      const response = await adminService.getProfileDocuments(applicant.id);
+      setDocuments(response.data || []);
+    } catch (error) {
+      toast.error("Failed to upload document");
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string, fileName: string) => {
+    if (!confirm(`Delete "${fileName}"?`)) return;
+    try {
+      await adminService.deleteProfileDocument(docId);
+      setDocuments(documents.filter((d: any) => d.id !== docId));
+      toast.success("Document deleted");
+    } catch (error) {
+      toast.error("Failed to delete document");
+      console.error(error);
+    }
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
 
   const handleToggleActive = async () => {
     if (!applicant?.user?.id) return;
@@ -271,6 +357,10 @@ function ApplicantDetailPage() {
               <Briefcase className="w-4 h-4 mr-2" />
               Applications ({applicant.applications?.length || 0})
             </TabsTrigger>
+            <TabsTrigger value="documents">
+              <FileText className="w-4 h-4 mr-2" />
+              Documents ({documents.length})
+            </TabsTrigger>
             <TabsTrigger value="complaints">
               <AlertTriangle className="w-4 h-4 mr-2" />
               Complaints ({applicant.complaints?.length || 0})
@@ -329,6 +419,94 @@ function ApplicantDetailPage() {
               <div className="flex flex-col items-center justify-center py-12">
                 <Briefcase className="w-12 h-12 text-muted-foreground mb-3" />
                 <p className="text-muted-foreground">No applications yet</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="card-premium mt-4 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-accent" />
+                Applicant Documents
+              </h3>
+              <div className="flex items-center gap-3">
+                <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                  <SelectTrigger className="w-36 h-9">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.icon} {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  {isUploading ? "Uploading..." : "Add Document"}
+                </Button>
+              </div>
+            </div>
+
+            {isLoadingDocs ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : documents.length === 0 ? (
+              <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                <p className="text-muted-foreground">No documents uploaded yet.</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {documents.map((doc) => {
+                  const cat = DOCUMENT_CATEGORIES.find(c => c.value === doc.category);
+                  return (
+                    <div key={doc.id} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 group hover:border-accent/30 transition-all">
+                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{doc.fileName}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                            {cat?.label || doc.category}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">•</span>
+                          <span className="text-[10px] text-muted-foreground">{formatFileSize(doc.fileSize)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a href={doc.fileUrl} target="_blank" rel="noreferrer">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </a>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-500/10" onClick={() => handleDeleteDoc(doc.id, doc.fileName)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </TabsContent>

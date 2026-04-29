@@ -15,9 +15,6 @@ import {
   getJobById,
   applyToJob,
   getProfileCompletion,
-  getNotifications,
-  markNotificationAsRead,
-  deleteNotification,
   getRecommendedJobs,
   getSavedJobs,
   saveJob,
@@ -93,9 +90,6 @@ router.get("/rewards/catalog", getRewardCatalog);
 router.post("/rewards/redeem", redeemReward);
 
 // Dashboard data
-router.get("/notifications", getNotifications);
-router.patch("/notifications/:id/read", markNotificationAsRead);
-router.delete("/notifications/:id", deleteNotification);
 router.get("/recommended-jobs", getRecommendedJobs);
 router.post("/talent-matching/batch", batchTalentMatching);
 router.get("/dashboard-analytics", getDashboardAnalytics);

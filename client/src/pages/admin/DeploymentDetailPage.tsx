@@ -60,6 +60,8 @@ const COMPLIANCE_STATUSES = [
 ];
 
 const DOCUMENT_CATEGORIES = [
+  { value: "PASSPORT", label: "Passport", icon: "🛂" },
+  { value: "CLEARANCE", label: "Clearance", icon: "🛡️" },
   { value: "MEDICAL", label: "Medical", icon: "🏥" },
   { value: "VISA", label: "Visa", icon: "🛂" },
   { value: "OEC", label: "OEC", icon: "📋" },

@@ -39,6 +39,9 @@ import {
   getDeploymentDocuments,
   uploadDeploymentDocument,
   deleteDeploymentDocument,
+  getProfileDocuments,
+  uploadProfileDocument,
+  deleteProfileDocument,
   getDashboardAnalytics,
   getSystemLogs,
   getSlaAlerts,
@@ -125,5 +128,10 @@ import { multerUpload } from "../services/upload.service.js";
 router.get("/deployments/:id/documents", getDeploymentDocuments);
 router.post("/deployments/:id/documents", multerUpload.single("file"), uploadDeploymentDocument);
 router.delete("/deployment-documents/:docId", deleteDeploymentDocument);
+
+// Profile Documents
+router.get("/profiles/:id/documents", getProfileDocuments);
+router.post("/profiles/:id/documents", multerUpload.single("file"), uploadProfileDocument);
+router.delete("/profile-documents/:docId", deleteProfileDocument);
 
 export default router;

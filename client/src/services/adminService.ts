@@ -443,4 +443,42 @@ export const adminService = {
       throw error;
     }
   },
+
+  // ── Profile Documents ───────────────────────────
+
+  async getProfileDocuments(profileId: string) {
+    try {
+      const { data } = await api.get(`/admin/profiles/${profileId}/documents`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch profile documents:", error);
+      throw error;
+    }
+  },
+
+  async uploadProfileDocument(profileId: string, file: File, category: string) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", category);
+      
+      const { data } = await api.post(`/admin/profiles/${profileId}/documents`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to upload profile document:", error);
+      throw error;
+    }
+  },
+
+  async deleteProfileDocument(docId: string) {
+    try {
+      const { data } = await api.delete(`/admin/profile-documents/${docId}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to delete profile document:", error);
+      throw error;
+    }
+  },
 };

@@ -59,7 +59,6 @@ const AdminJobOrderDetailPage = lazy(() => import("./pages/admin/JobOrderDetailP
 const ReportsPage = lazy(() => import("./pages/admin/ReportsPage"));
 const VerificationPage = lazy(() => import("./pages/admin/VerificationPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/SettingsPage"));
-const SystemHealthPage = lazy(() => import("./pages/admin/SystemHealthPage"));
 
 // Employer pages
 const CandidateDetailsPage = lazy(() => import("./pages/employer/CandidateDetailsPage"));
@@ -215,7 +214,6 @@ const App = () => {
                 <Route path="complaints/:id" element={<ComplaintDetailPage />} />
                 <Route path="verification" element={<VerificationPage />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
-                <Route path="health" element={<SystemHealthPage />} />
                 <Route index element={<Navigate to="dashboard" replace />} />
               </Route>
 

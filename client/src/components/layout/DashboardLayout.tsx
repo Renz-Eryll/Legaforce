@@ -36,6 +36,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { applicantService } from "@/services/applicantService";
 import { employerService } from "@/services/employerService";
 import { adminService } from "@/services/adminService";
+import { notificationApiService } from "@/services/notificationApiService";
 import { useSSENotifications } from "@/hooks/useSSENotifications";
 
 import { Badge } from "@/components/ui/badge";
@@ -320,25 +321,25 @@ export function DashboardLayout({
   useEffect(() => {
     const fetchBadges = async () => {
       try {
+        const notifsRes = await notificationApiService.getNotifications();
+        if (notifsRes.success) {
+          setNotifications(Array.isArray(notifsRes.data) ? notifsRes.data : []);
+        }
+
         if (userRole === "applicant") {
-          const [apps, saved, points, complaints, notifs] = await Promise.allSettled([
+          const [apps, saved, points, complaints] = await Promise.allSettled([
             applicantService.getApplications(),
             applicantService.getSavedJobs(),
             applicantService.getRewardPoints(),
             applicantService.getComplaints(),
-            applicantService.getNotifications(),
           ]);
-          
+
           setBadges({
             applications: apps.status === 'fulfilled' ? (apps.value as any[]).length : 0,
             savedJobs: saved.status === 'fulfilled' ? (saved.value as any[]).length : 0,
             rewards: points.status === 'fulfilled' ? `${points.value} pts` : "0 pts",
             complaints: complaints.status === 'fulfilled' ? (complaints.value as any[]).length : 0,
           });
-
-          if (notifs.status === 'fulfilled') {
-            setNotifications(Array.isArray(notifs.value) ? notifs.value : []);
-          }
         } else if (userRole === "employer") {
           const [jobs, candidates, interviews] = await Promise.allSettled([
             employerService.getJobOrderCount("ACTIVE"),
@@ -610,7 +611,7 @@ export function DashboardLayout({
                           className={cn(
                             "h-5 min-w-5 flex items-center justify-center text-xs",
                             isActive(item.href) &&
-                              "bg-accent text-accent-foreground",
+                            "bg-accent text-accent-foreground",
                           )}
                         >
                           {item.badge}
@@ -676,7 +677,19 @@ export function DashboardLayout({
                   variant="ghost"
                   size="icon"
                   className="relative"
-                  onClick={() => setShowNotifDropdown((v) => !v)}
+                  onClick={async () => {
+                    const willOpen = !showNotifDropdown;
+                    setShowNotifDropdown(willOpen);
+
+                    if (willOpen && unreadCount > 0) {
+                      try {
+                        await notificationApiService.markAllRead();
+                        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                      } catch (err) {
+                        console.error("Failed to mark notifications as read:", err);
+                      }
+                    }
+                  }}
                   id="notification-bell"
                 >
                   <Bell className="h-5 w-5" />
@@ -721,7 +734,7 @@ export function DashboardLayout({
 
                       {/* Notification List */}
                       <div className="max-h-[400px] overflow-y-auto scrollbar-thin">
-                          {allNotifications.length === 0 ? (
+                        {allNotifications.length === 0 ? (
                           <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                             <Bell className="w-8 h-8 mb-2 opacity-40" />
                             <p className="text-sm">No notifications yet</p>
@@ -737,14 +750,13 @@ export function DashboardLayout({
                               )}
                               onClick={async () => {
                                 setShowNotifDropdown(false);
-                                
+
                                 // Mark as read locally and on server
                                 if (!notif.read) {
                                   try {
-                                    // Identify actual ID (handle SSE id prefix if present)
                                     const nid = notif.id;
-                                    if (nid && !String(nid).startsWith('sse-') && userRole === "applicant") {
-                                      await applicantService.markNotificationRead(nid);
+                                    if (nid && !String(nid).startsWith('sse-')) {
+                                      await notificationApiService.markRead(nid);
                                     }
                                     // Update local state
                                     setNotifications(prev => prev.map(n => n.id === nid ? { ...n, read: true } : n));
@@ -753,12 +765,13 @@ export function DashboardLayout({
                                   }
                                 }
 
-                                if (userRole === "applicant") {
-                                  navigate("/app/applications");
-                                } else if (userRole === "employer") {
-                                  navigate("/employer/candidates");
-                                } else if (userRole === "admin") {
-                                  navigate("/admin/applications");
+                                // Dynamic navigation based on notification link or role
+                                if (notif.link) {
+                                  navigate(notif.link);
+                                } else {
+                                  if (userRole === "applicant") navigate("/app/applications");
+                                  else if (userRole === "employer") navigate("/employer/dashboard");
+                                  else navigate("/admin/dashboard");
                                 }
                               }}
                             >
@@ -794,22 +807,6 @@ export function DashboardLayout({
                         )}
                       </div>
 
-                      {/* Dropdown Footer */}
-                      {allNotifications.length > 0 && (
-                        <div className="px-4 py-2.5 border-t border-border bg-muted/30">
-                          <button
-                            className="text-xs text-accent hover:underline font-medium w-full text-center"
-                            onClick={() => {
-                              setShowNotifDropdown(false);
-                              if (userRole === "applicant") navigate("/app/applications");
-                              else if (userRole === "employer") navigate("/employer/dashboard");
-                              else navigate("/admin/dashboard");
-                            }}
-                          >
-                            View all activity →
-                          </button>
-                        </div>
-                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

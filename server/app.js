@@ -15,6 +15,7 @@ import authRouter from "./routes/auth.routes.js";
 import applicantRouter from "./routes/applicant.routes.js";
 import employerRouter from "./routes/employer.routes.js";
 import adminRouter from "./routes/admin.routes.js";
+import notificationRouter from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -119,6 +120,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/applicant", applicantRouter);
 app.use("/api/v1/employer", employerRouter);
 app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/notifications", notificationRouter);
 
 app.use(errorMiddleware);
 

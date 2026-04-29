@@ -561,26 +561,6 @@ export const getProfileCompletion = async (req, res, next) => {
   }
 };
 
-export const getNotifications = async (req, res, next) => {
-  try {
-    const profile = getProfileFromReq(req);
-
-    // Fetch persisted notifications from database
-    const notifications = await prisma.notification.findMany({
-      where: { profileId: profile.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-
-    res.json({
-      success: true,
-      data: notifications,
-      unreadCount: notifications.filter((n) => !n.read).length,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 export const getRecommendedJobs = async (req, res, next) => {
   try {
@@ -1476,7 +1456,7 @@ export const markNotificationAsRead = async (req, res, next) => {
     const { id } = req.params;
 
     const notification = await prisma.notification.findFirst({
-      where: { id, profileId: profile.id },
+      where: { id, userId: req.user.id },
     });
 
     if (!notification) {
@@ -1505,7 +1485,7 @@ export const deleteNotification = async (req, res, next) => {
     const { id } = req.params;
 
     const notification = await prisma.notification.findFirst({
-      where: { id, profileId: profile.id },
+      where: { id, userId: req.user.id },
     });
 
     if (!notification) {
