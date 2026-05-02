@@ -32,6 +32,8 @@ export const applicantService = {
     phone?: string;
     nationality?: string;
     dateOfBirth?: string;
+    emergencyContact?: string;
+    emergencyPhone?: string;
     bio?: string;
     skills?: string[];
     experience?: Array<Record<string, string>>;

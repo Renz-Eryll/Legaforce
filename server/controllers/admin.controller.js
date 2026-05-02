@@ -10,6 +10,7 @@ import { checkAndNotifySlaBreaches } from "../services/sla.service.js";
 import { notifyStatusChange as sseNotifyStatusChange } from "../services/sse.service.js";
 import { logAction } from "../services/audit.service.js";
 import { sendStatusChangeEmail } from "../services/email.service.js";
+import { notifyApplicationStatusChange } from "../services/notification.service.js";
 
 // ── Dashboard Stats ────────────────────────────
 
@@ -663,6 +664,24 @@ export const updateApplicationStatus = async (req, res, next) => {
       }
     } catch (sseErr) {
       console.error("SSE notification from admin failed:", sseErr.message);
+    }
+
+    // Persistent DB notification (so user sees it when they log back in)
+    try {
+      if (updated.applicant?.userId) {
+        const jobOrder = await prisma.jobOrder.findUnique({
+          where: { id: updated.jobOrderId },
+          select: { employer: { select: { companyName: true } } },
+        });
+        await notifyApplicationStatusChange(updated.applicant.userId, {
+          status,
+          jobTitle: updated.jobOrder?.title || "Job",
+          companyName: jobOrder?.employer?.companyName || "Employer",
+          applicationId: id,
+        });
+      }
+    } catch (dbNotifErr) {
+      console.error("DB notification from admin failed:", dbNotifErr.message);
     }
 
     // Audit Log

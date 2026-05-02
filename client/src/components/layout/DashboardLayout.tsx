@@ -198,7 +198,6 @@ const getAdminNavigation = (badges: any = {}): NavSection[] => [
       },
       { name: "Verification", href: "/admin/verification", icon: Shield, badge: badges.verifications || 0 },
       { name: "System Health", href: "/admin/health", icon: Activity },
-      { name: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
 ];

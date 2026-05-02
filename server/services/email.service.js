@@ -6,9 +6,10 @@
  */
 import sgMail from "../config/sendgrid.js";
 import devMailer from "../config/mailer.js";
-import { NODE_ENV, FRONTEND_URL, EMAIL_USER } from "../config/env.js";
+import { NODE_ENV, FRONTEND_URL, EMAIL_USER, SENDGRID_FROM_EMAIL } from "../config/env.js";
 
-const FROM_EMAIL = "noreply@legaforce.com";
+// Use SENDGRID_FROM_EMAIL if set, otherwise fall back to EMAIL_USER (Gmail)
+const FROM_EMAIL = SENDGRID_FROM_EMAIL || EMAIL_USER || "noreply@legaforce.com";
 const FROM_NAME = "Legaforce Recruitment";
 
 async function sendEmail(to, subject, html) {
