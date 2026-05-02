@@ -15,6 +15,7 @@ import {
   Loader2,
   X,
   User,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,8 @@ interface ProfileData {
   phone: string;
   nationality: string;
   dateOfBirth: string | null;
+  emergencyContact: string;
+  emergencyPhone: string;
   bio: string;
   skills: string[];
   certifications: Array<{ name: string; issuer?: string; date?: string }>;
@@ -72,6 +75,8 @@ function ProfilePage() {
     phone: "",
     nationality: "PH",
     dateOfBirth: null,
+    emergencyContact: "",
+    emergencyPhone: "",
     bio: "",
     skills: [],
     certifications: [],
@@ -104,6 +109,8 @@ function ProfilePage() {
             dateOfBirth: profileRes.dateOfBirth
               ? new Date(profileRes.dateOfBirth).toISOString().split("T")[0]
               : null,
+            emergencyContact: profileRes.emergencyContact || "",
+            emergencyPhone: profileRes.emergencyPhone || "",
             bio: cv.summary || "",
             skills: cv.skills || [],
             certifications: cv.certifications || [],
@@ -139,6 +146,8 @@ function ProfilePage() {
         phone: formData.phone,
         nationality: formData.nationality,
         dateOfBirth: formData.dateOfBirth || undefined,
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
         bio: formData.bio,
         skills: formData.skills,
         experience: formData.experience,
@@ -302,6 +311,20 @@ function ProfilePage() {
                   onChange={handleChange}
                   placeholder="Date of Birth"
                 />
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Input
+                    name="emergencyContact"
+                    value={formData.emergencyContact}
+                    onChange={handleChange}
+                    placeholder="Emergency Contact Name"
+                  />
+                  <Input
+                    name="emergencyPhone"
+                    value={formData.emergencyPhone}
+                    onChange={handleChange}
+                    placeholder="Emergency Contact Phone"
+                  />
+                </div>
                 <textarea
                   name="bio"
                   value={formData.bio}
@@ -329,6 +352,14 @@ function ProfilePage() {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     {new Date(profile.dateOfBirth).toLocaleDateString()}
+                  </div>
+                )}
+                {profile.emergencyContact && (
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/40">
+                    <ShieldAlert className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs uppercase font-semibold tracking-wide text-amber-600 dark:text-amber-400">Emergency:</span>
+                    <span>{profile.emergencyContact}</span>
+                    {profile.emergencyPhone && <span className="text-muted-foreground">({profile.emergencyPhone})</span>}
                   </div>
                 )}
               </div>

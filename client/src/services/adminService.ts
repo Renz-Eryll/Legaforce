@@ -481,4 +481,56 @@ export const adminService = {
       throw error;
     }
   },
+
+  // ── Invoice Export ─────────────────────────────
+
+  async exportInvoicesCSV(status?: string) {
+    try {
+      let url = "/admin/invoices/export-csv";
+      if (status) url += `?status=${status}`;
+      const response = await api.get(url, { responseType: "blob" });
+      // Trigger download
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `invoices_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to export invoices:", error);
+      throw error;
+    }
+  },
+
+  // ── Trust Score Admin Overrides ────────────────
+
+  async updateApplicantTrustScore(profileId: string, trustScore: number, reason?: string) {
+    try {
+      const { data } = await api.patch(`/admin/applicants/${profileId}/trust-score`, {
+        trustScore,
+        reason,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to update applicant trust score:", error);
+      throw error;
+    }
+  },
+
+  async updateEmployerTrustScore(employerId: string, trustScore: number, reason?: string) {
+    try {
+      const { data } = await api.patch(`/admin/employers/${employerId}/trust-score`, {
+        trustScore,
+        reason,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to update employer trust score:", error);
+      throw error;
+    }
+  },
 };

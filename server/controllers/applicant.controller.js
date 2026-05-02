@@ -49,6 +49,8 @@ export const updateProfile = async (req, res, next) => {
       phone,
       nationality,
       dateOfBirth,
+      emergencyContact,
+      emergencyPhone,
       // CV-related fields stored in aiGeneratedCV JSON
       bio,
       skills,
@@ -65,6 +67,8 @@ export const updateProfile = async (req, res, next) => {
     if (nationality !== undefined) updateData.nationality = nationality;
     if (dateOfBirth !== undefined)
       updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (emergencyContact !== undefined) updateData.emergencyContact = emergencyContact;
+    if (emergencyPhone !== undefined) updateData.emergencyPhone = emergencyPhone;
 
     // Merge CV-related fields into aiGeneratedCV JSON
     const existingCV =

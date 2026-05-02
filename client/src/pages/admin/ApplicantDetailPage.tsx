@@ -563,7 +563,7 @@ function ApplicantDetailPage() {
           {/* Actions Tab */}
           <TabsContent value="actions" className="card-premium mt-4 p-6">
             <h3 className="text-lg font-semibold mb-4">Admin Actions</h3>
-            <div className="space-y-3">
+            <div className="space-y-6">
               <Button
                 variant="outline"
                 className="w-full justify-start"
@@ -579,6 +579,68 @@ function ApplicantDetailPage() {
                 )}
                 {isActive ? "Suspend Account" : "Activate Account"}
               </Button>
+
+              {/* Trust Score Override */}
+              <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-purple-500" />
+                  Trust Score Override
+                </h4>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Override the system-calculated trust score. Changes are audit-logged.
+                </p>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-sm font-medium w-24">Current: {applicant.trustScore || 50}/100</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue={applicant.trustScore || 50}
+                    id="trust-score-slider"
+                    className="flex-1 accent-purple-500"
+                    onChange={(e) => {
+                      const label = document.getElementById("trust-score-label");
+                      if (label) label.textContent = e.target.value;
+                    }}
+                  />
+                  <span id="trust-score-label" className="text-sm font-bold w-8 text-right">
+                    {applicant.trustScore || 50}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    id="trust-score-reason"
+                    placeholder="Reason for override (required)..."
+                    className="flex-1 px-3 py-2 rounded-md border border-border bg-background text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={async () => {
+                      const slider = document.getElementById("trust-score-slider") as HTMLInputElement;
+                      const reasonInput = document.getElementById("trust-score-reason") as HTMLInputElement;
+                      const newScore = parseInt(slider?.value || "50");
+                      const reason = reasonInput?.value?.trim();
+                      if (!reason) {
+                        toast.error("Please provide a reason for the override");
+                        return;
+                      }
+                      try {
+                        await adminService.updateApplicantTrustScore(applicant.id, newScore, reason);
+                        setApplicant((prev: any) => ({ ...prev, trustScore: newScore }));
+                        toast.success(`Trust score updated to ${newScore}`);
+                        if (reasonInput) reasonInput.value = "";
+                      } catch {
+                        toast.error("Failed to update trust score");
+                      }
+                    }}
+                  >
+                    Apply Override
+                  </Button>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

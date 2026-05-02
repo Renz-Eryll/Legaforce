@@ -395,10 +395,28 @@ export const verifyEmployer = async (req, res, next) => {
     const { id } = req.params;
     const { isVerified } = req.body;
 
+    // Gap 6 — Trust Score Prioritization
+    // Verified employers get a trust score boost; high-trust employers get priority sourcing
+    const currentEmployer = await prisma.employer.findUnique({ where: { id } });
+    if (!currentEmployer) {
+      return res.status(404).json({ success: false, message: "Employer not found" });
+    }
+
+    const updateData = { isVerified: isVerified !== false };
+
+    // On verification, boost trust score by 10 (capped at 100)
+    if (isVerified && !currentEmployer.isVerified) {
+      const newTrustScore = Math.min((currentEmployer.trustScore || 50) + 10, 100);
+      updateData.trustScore = newTrustScore;
+    }
+
     const employer = await prisma.employer.update({
       where: { id },
-      data: { isVerified: isVerified !== false },
+      data: updateData,
     });
+
+    // Determine priority status: high trust score = faster approvals & priority sourcing
+    const isPriority = (employer.trustScore || 0) >= 80;
 
     // Audit Log
     logAction({
@@ -406,12 +424,12 @@ export const verifyEmployer = async (req, res, next) => {
       action: "VERIFY_EMPLOYER",
       entityType: "EMPLOYER",
       entityId: id,
-      description: `${isVerified ? "Verified" : "Unverified"} employer: ${employer.companyName}`,
-      metadata: { isVerified },
+      description: `${isVerified ? "Verified" : "Unverified"} employer: ${employer.companyName}${isPriority ? " (PRIORITY)" : ""}`,
+      metadata: { isVerified, trustScore: employer.trustScore, isPriority },
       ipAddress: req.ip,
     });
 
-    res.json({ success: true, data: employer });
+    res.json({ success: true, data: { ...employer, isPriority } });
   } catch (err) {
     next(err);
   }
@@ -1703,6 +1721,132 @@ export const getSlaAlerts = async (req, res, next) => {
     }
 
     res.json({ success: true, data: alerts.sort((a, b) => b.daysInStatus - a.daysInStatus) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Invoice Export (CSV) ───────────────────────
+
+export const exportInvoicesCSV = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const where = status ? { status } : {};
+
+    const invoices = await prisma.invoice.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        employer: { select: { companyName: true, contactPerson: true } },
+      },
+    });
+
+    // Build CSV
+    const header = "Invoice Number,Employer,Contact Person,Amount,Currency,Status,Due Date,Paid Date,Created At";
+    const rows = invoices.map((inv) => {
+      const lineDesc = Array.isArray(inv.lineItems)
+        ? inv.lineItems.map(li => li.description || li.item).filter(Boolean).join(" | ")
+        : "";
+      return [
+        inv.invoiceNumber,
+        `"${(inv.employer?.companyName || "").replace(/"/g, '""')}"`,
+        `"${(inv.employer?.contactPerson || "").replace(/"/g, '""')}"`,
+        inv.amount,
+        inv.currency,
+        inv.status,
+        inv.dueDate ? new Date(inv.dueDate).toISOString().split("T")[0] : "",
+        inv.paidAt ? new Date(inv.paidAt).toISOString().split("T")[0] : "",
+        inv.createdAt ? new Date(inv.createdAt).toISOString().split("T")[0] : "",
+      ].join(",");
+    });
+
+    const csv = [header, ...rows].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="invoices_${new Date().toISOString().split("T")[0]}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Admin Trust Score Override ─────────────────
+
+export const updateApplicantTrustScore = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { trustScore, reason } = req.body;
+
+    if (typeof trustScore !== "number" || trustScore < 0 || trustScore > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "trustScore must be a number between 0 and 100",
+      });
+    }
+
+    const profile = await prisma.profile.findUnique({ where: { id } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Applicant not found" });
+    }
+
+    const previousScore = profile.trustScore;
+    const updated = await prisma.profile.update({
+      where: { id },
+      data: { trustScore },
+    });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "OVERRIDE_TRUST_SCORE",
+      entityType: "PROFILE",
+      entityId: id,
+      description: `Admin overrode applicant trust score from ${previousScore} to ${trustScore}. Reason: ${reason || "Not specified"}`,
+      metadata: { previousScore, newScore: trustScore, reason },
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateEmployerTrustScore = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { trustScore, reason } = req.body;
+
+    if (typeof trustScore !== "number" || trustScore < 0 || trustScore > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "trustScore must be a number between 0 and 100",
+      });
+    }
+
+    const employer = await prisma.employer.findUnique({ where: { id } });
+    if (!employer) {
+      return res.status(404).json({ success: false, message: "Employer not found" });
+    }
+
+    const previousScore = employer.trustScore;
+    const updated = await prisma.employer.update({
+      where: { id },
+      data: { trustScore },
+    });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "OVERRIDE_TRUST_SCORE",
+      entityType: "EMPLOYER",
+      entityId: id,
+      description: `Admin overrode employer trust score from ${previousScore} to ${trustScore}. Reason: ${reason || "Not specified"}`,
+      metadata: { previousScore, newScore: trustScore, reason },
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
   }

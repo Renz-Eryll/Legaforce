@@ -32,6 +32,7 @@ import {
   getInvoiceDetail,
   updateInvoiceStatus,
   generateInvoice,
+  exportInvoicesCSV,
   getReports,
   getVerificationQueue,
   getPlatformSettings,
@@ -45,6 +46,8 @@ import {
   getDashboardAnalytics,
   getSystemLogs,
   getSlaAlerts,
+  updateApplicantTrustScore,
+  updateEmployerTrustScore,
 } from "../controllers/admin.controller.js";
 
 import { validateRequest } from "../middlewares/validation.middleware.js";
@@ -104,6 +107,7 @@ router.patch("/complaints/:id", validateRequest(complaintUpdateSchema), updateCo
 
 // Invoices
 router.get("/invoices", getInvoices);
+router.get("/invoices/export-csv", exportInvoicesCSV);
 router.get("/invoices/:id", getInvoiceDetail);
 router.patch("/invoices/:id/status", updateInvoiceStatus);
 router.post("/invoices/generate", generateInvoice);
@@ -133,5 +137,9 @@ router.delete("/deployment-documents/:docId", deleteDeploymentDocument);
 router.get("/profiles/:id/documents", getProfileDocuments);
 router.post("/profiles/:id/documents", multerUpload.single("file"), uploadProfileDocument);
 router.delete("/profile-documents/:docId", deleteProfileDocument);
+
+// Trust Score Admin Overrides
+router.patch("/applicants/:id/trust-score", updateApplicantTrustScore);
+router.patch("/employers/:id/trust-score", updateEmployerTrustScore);
 
 export default router;
