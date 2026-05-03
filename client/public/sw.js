@@ -72,14 +72,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets (JS, CSS, fonts): Cache-first
+  // Static assets (JS, CSS, fonts): Network-first (ensure updates are picked up)
   if (
     request.destination === "script" ||
     request.destination === "style" ||
     request.destination === "font" ||
     url.pathname.match(/\.(js|css|woff2?)$/)
   ) {
-    event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
+    event.respondWith(networkFirstStrategy(request, STATIC_CACHE));
     return;
   }
 

@@ -5,9 +5,12 @@
  * job orders, applications, deployments, invoices, and complaints.
  */
 import prisma from "../config/database.js";
-import { sendStatusChangeEmail } from "../services/email.service.js";
+import { uploadFile, deleteFile } from "../services/upload.service.js";
+import { checkAndNotifySlaBreaches } from "../services/sla.service.js";
 import { notifyStatusChange as sseNotifyStatusChange } from "../services/sse.service.js";
 import { logAction } from "../services/audit.service.js";
+import { sendStatusChangeEmail } from "../services/email.service.js";
+import { notifyApplicationStatusChange } from "../services/notification.service.js";
 
 // ── Dashboard Stats ────────────────────────────
 
@@ -59,6 +62,9 @@ export const getDashboardStats = async (req, res, next) => {
     ]);
 
     const conversionRate = totalApplications > 0 ? Math.round((totalDeployments / totalApplications) * 100) : 0;
+
+    // Trigger SLA breach checks in background
+    checkAndNotifySlaBreaches().catch(err => console.error("SLA check trigger failed:", err));
 
     res.json({
       success: true,
@@ -390,10 +396,28 @@ export const verifyEmployer = async (req, res, next) => {
     const { id } = req.params;
     const { isVerified } = req.body;
 
+    // Gap 6 — Trust Score Prioritization
+    // Verified employers get a trust score boost; high-trust employers get priority sourcing
+    const currentEmployer = await prisma.employer.findUnique({ where: { id } });
+    if (!currentEmployer) {
+      return res.status(404).json({ success: false, message: "Employer not found" });
+    }
+
+    const updateData = { isVerified: isVerified !== false };
+
+    // On verification, boost trust score by 10 (capped at 100)
+    if (isVerified && !currentEmployer.isVerified) {
+      const newTrustScore = Math.min((currentEmployer.trustScore || 50) + 10, 100);
+      updateData.trustScore = newTrustScore;
+    }
+
     const employer = await prisma.employer.update({
       where: { id },
-      data: { isVerified: isVerified !== false },
+      data: updateData,
     });
+
+    // Determine priority status: high trust score = faster approvals & priority sourcing
+    const isPriority = (employer.trustScore || 0) >= 80;
 
     // Audit Log
     logAction({
@@ -401,12 +425,12 @@ export const verifyEmployer = async (req, res, next) => {
       action: "VERIFY_EMPLOYER",
       entityType: "EMPLOYER",
       entityId: id,
-      description: `${isVerified ? "Verified" : "Unverified"} employer: ${employer.companyName}`,
-      metadata: { isVerified },
+      description: `${isVerified ? "Verified" : "Unverified"} employer: ${employer.companyName}${isPriority ? " (PRIORITY)" : ""}`,
+      metadata: { isVerified, trustScore: employer.trustScore, isPriority },
       ipAddress: req.ip,
     });
 
-    res.json({ success: true, data: employer });
+    res.json({ success: true, data: { ...employer, isPriority } });
   } catch (err) {
     next(err);
   }
@@ -640,6 +664,24 @@ export const updateApplicationStatus = async (req, res, next) => {
       }
     } catch (sseErr) {
       console.error("SSE notification from admin failed:", sseErr.message);
+    }
+
+    // Persistent DB notification (so user sees it when they log back in)
+    try {
+      if (updated.applicant?.userId) {
+        const jobOrder = await prisma.jobOrder.findUnique({
+          where: { id: updated.jobOrderId },
+          select: { employer: { select: { companyName: true } } },
+        });
+        await notifyApplicationStatusChange(updated.applicant.userId, {
+          status,
+          jobTitle: updated.jobOrder?.title || "Job",
+          companyName: jobOrder?.employer?.companyName || "Employer",
+          applicationId: id,
+        });
+      }
+    } catch (dbNotifErr) {
+      console.error("DB notification from admin failed:", dbNotifErr.message);
     }
 
     // Audit Log
@@ -937,7 +979,7 @@ export const updateInvoiceStatus = async (req, res, next) => {
     const { status } = req.body;
 
     // Validate status is in allowed transitions
-    const VALID_STATUSES = ["DRAFT", "SENT", "PAID", "OVERDUE", "DISPUTED"];
+    const VALID_STATUSES = ["PENDING", "PAID", "OVERDUE", "CANCELLED"];
     if (!VALID_STATUSES.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -1307,8 +1349,6 @@ export const updatePlatformSettings = async (req, res, next) => {
 
 // ── Deployment Documents ───────────────────────
 
-import { uploadFile, deleteFile } from "../services/upload.service.js";
-
 export const getDeploymentDocuments = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -1397,6 +1437,101 @@ export const deleteDeploymentDocument = async (req, res, next) => {
     }
 
     await prisma.deploymentDocument.delete({ where: { id: docId } });
+
+    res.json({ success: true, message: "Document deleted" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Profile Documents ───────────────────────────
+
+export const getProfileDocuments = async (req, res, next) => {
+  try {
+    const { id } = req.params; // Profile ID
+
+    if (!prisma.profileDocument) {
+      console.error("⚠️ ProfileDocument model not found on Prisma client.");
+      return res.json({ success: true, data: [], message: "Document service initializing..." });
+    }
+
+    const docs = await prisma.profileDocument.findMany({
+      where: { profileId: id },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ success: true, data: docs });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadProfileDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params; // Profile ID
+    const { category } = req.body;
+
+    if (!prisma.profileDocument) {
+      return res.status(503).json({ success: false, message: "Document service is temporarily unavailable" });
+    }
+
+    const profile = await prisma.profile.findUnique({ where: { id } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Profile not found" });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "File is required" });
+    }
+
+    const result = await uploadFile(
+      file.buffer,
+      file.originalname,
+      "profile_docs",
+      file.mimetype
+    );
+
+    const doc = await prisma.profileDocument.create({
+      data: {
+        profileId: id,
+        category: category || "OTHER",
+        fileName: file.originalname,
+        fileUrl: result.url,
+        fileKey: result.key,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadedBy: req.user?.id || null,
+      },
+    });
+
+    res.status(201).json({ success: true, data: doc });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteProfileDocument = async (req, res, next) => {
+  try {
+    const { docId } = req.params;
+
+    if (!prisma.profileDocument) {
+      return res.status(503).json({ success: false, message: "Document service is temporarily unavailable" });
+    }
+
+    const doc = await prisma.profileDocument.findUnique({ where: { id: docId } });
+    if (!doc) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    if (doc.fileKey) {
+      try {
+        await deleteFile(doc.fileKey);
+      } catch (fileErr) {
+        console.error("Non-critical: failed to delete profile file from storage:", fileErr.message);
+      }
+    }
+
+    await prisma.profileDocument.delete({ where: { id: docId } });
 
     res.json({ success: true, message: "Document deleted" });
   } catch (err) {
@@ -1521,13 +1656,13 @@ export const getReports = async (req, res, next) => {
 
 export const getSystemLogs = async (req, res, next) => {
   try {
-    const { entityType, entityId, userId, limit = 50 } = req.query;
-    
     if (!prisma.auditLog) {
       console.error("⚠️ AuditLog model not found on Prisma client. Please run 'npx prisma generate'.");
       return res.json({ success: true, data: [], message: "System logs are currently unavailable (initialization required)" });
     }
 
+    const { entityType, entityId, userId, limit = 50 } = req.query;
+    
     // Ensure limit is a valid number
     const take = Math.min(Math.max(parseInt(limit) || 50, 1), 200);
 
@@ -1605,6 +1740,132 @@ export const getSlaAlerts = async (req, res, next) => {
     }
 
     res.json({ success: true, data: alerts.sort((a, b) => b.daysInStatus - a.daysInStatus) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Invoice Export (CSV) ───────────────────────
+
+export const exportInvoicesCSV = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const where = status ? { status } : {};
+
+    const invoices = await prisma.invoice.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        employer: { select: { companyName: true, contactPerson: true } },
+      },
+    });
+
+    // Build CSV
+    const header = "Invoice Number,Employer,Contact Person,Amount,Currency,Status,Due Date,Paid Date,Created At";
+    const rows = invoices.map((inv) => {
+      const lineDesc = Array.isArray(inv.lineItems)
+        ? inv.lineItems.map(li => li.description || li.item).filter(Boolean).join(" | ")
+        : "";
+      return [
+        inv.invoiceNumber,
+        `"${(inv.employer?.companyName || "").replace(/"/g, '""')}"`,
+        `"${(inv.employer?.contactPerson || "").replace(/"/g, '""')}"`,
+        inv.amount,
+        inv.currency,
+        inv.status,
+        inv.dueDate ? new Date(inv.dueDate).toISOString().split("T")[0] : "",
+        inv.paidAt ? new Date(inv.paidAt).toISOString().split("T")[0] : "",
+        inv.createdAt ? new Date(inv.createdAt).toISOString().split("T")[0] : "",
+      ].join(",");
+    });
+
+    const csv = [header, ...rows].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="invoices_${new Date().toISOString().split("T")[0]}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Admin Trust Score Override ─────────────────
+
+export const updateApplicantTrustScore = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { trustScore, reason } = req.body;
+
+    if (typeof trustScore !== "number" || trustScore < 0 || trustScore > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "trustScore must be a number between 0 and 100",
+      });
+    }
+
+    const profile = await prisma.profile.findUnique({ where: { id } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Applicant not found" });
+    }
+
+    const previousScore = profile.trustScore;
+    const updated = await prisma.profile.update({
+      where: { id },
+      data: { trustScore },
+    });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "OVERRIDE_TRUST_SCORE",
+      entityType: "PROFILE",
+      entityId: id,
+      description: `Admin overrode applicant trust score from ${previousScore} to ${trustScore}. Reason: ${reason || "Not specified"}`,
+      metadata: { previousScore, newScore: trustScore, reason },
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateEmployerTrustScore = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { trustScore, reason } = req.body;
+
+    if (typeof trustScore !== "number" || trustScore < 0 || trustScore > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "trustScore must be a number between 0 and 100",
+      });
+    }
+
+    const employer = await prisma.employer.findUnique({ where: { id } });
+    if (!employer) {
+      return res.status(404).json({ success: false, message: "Employer not found" });
+    }
+
+    const previousScore = employer.trustScore;
+    const updated = await prisma.employer.update({
+      where: { id },
+      data: { trustScore },
+    });
+
+    // Audit Log
+    logAction({
+      userId: req.user?.id,
+      action: "OVERRIDE_TRUST_SCORE",
+      entityType: "EMPLOYER",
+      entityId: id,
+      description: `Admin overrode employer trust score from ${previousScore} to ${trustScore}. Reason: ${reason || "Not specified"}`,
+      metadata: { previousScore, newScore: trustScore, reason },
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
   }

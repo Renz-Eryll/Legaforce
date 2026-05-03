@@ -60,6 +60,8 @@ const COMPLIANCE_STATUSES = [
 ];
 
 const DOCUMENT_CATEGORIES = [
+  { value: "PASSPORT", label: "Passport", icon: "🛂" },
+  { value: "CLEARANCE", label: "Clearance", icon: "🛡️" },
   { value: "MEDICAL", label: "Medical", icon: "🏥" },
   { value: "VISA", label: "Visa", icon: "🛂" },
   { value: "OEC", label: "OEC", icon: "📋" },
@@ -647,6 +649,109 @@ function DeploymentDetailPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Post-Deployment Monitoring */}
+      {allApproved && (
+        <motion.div variants={fadeInUp} className="card-premium p-6">
+          <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            Post-Deployment Monitoring
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Track worker welfare and contract compliance after deployment.
+          </p>
+
+          <div className="grid sm:grid-cols-3 gap-4 mb-6">
+            {/* Deployment Duration */}
+            <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+              <p className="text-xs uppercase font-semibold tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">Deployment Duration</p>
+              <p className="text-2xl font-display font-bold">
+                {arrivalDate
+                  ? `${Math.max(0, Math.floor((Date.now() - new Date(arrivalDate).getTime()) / (1000 * 60 * 60 * 24)))} days`
+                  : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {arrivalDate ? `Since ${new Date(arrivalDate).toLocaleDateString()}` : "Awaiting arrival date"}
+              </p>
+            </div>
+
+            {/* Contract Status */}
+            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+              <p className="text-xs uppercase font-semibold tracking-wider text-blue-600 dark:text-blue-400 mb-1">Contract Status</p>
+              <p className="text-2xl font-display font-bold text-blue-600">Active</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {visaExpiryDate ? `Visa expires: ${new Date(visaExpiryDate).toLocaleDateString()}` : "No visa expiry set"}
+              </p>
+            </div>
+
+            {/* Welfare Check-ins */}
+            <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
+              <p className="text-xs uppercase font-semibold tracking-wider text-purple-600 dark:text-purple-400 mb-1">Welfare Status</p>
+              <p className="text-2xl font-display font-bold text-purple-600">OK</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                No complaints filed
+              </p>
+            </div>
+          </div>
+
+          {/* Upcoming Renewals & Alerts */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-muted-foreground">Upcoming Renewals & Alerts</h4>
+            {[
+              {
+                label: "Medical Certificate",
+                date: medicalExpiryDate,
+                icon: "🏥",
+              },
+              {
+                label: "Visa Renewal",
+                date: visaExpiryDate,
+                icon: "🛂",
+              },
+            ].map((item) => {
+              if (!item.date) return null;
+              const expiry = new Date(item.date);
+              const daysLeft = Math.floor((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              const isUrgent = daysLeft <= 30;
+              const isExpired = daysLeft < 0;
+              return (
+                <div
+                  key={item.label}
+                  className={`flex items-center gap-3 p-3 rounded-lg border ${
+                    isExpired
+                      ? "bg-red-500/5 border-red-500/20"
+                      : isUrgent
+                        ? "bg-amber-500/5 border-amber-500/20"
+                        : "bg-muted/30 border-border/50"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isExpired
+                        ? `Expired ${Math.abs(daysLeft)} days ago`
+                        : `Expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""} — ${expiry.toLocaleDateString()}`}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      isExpired
+                        ? "bg-red-500/10 text-red-500 border-red-500/20"
+                        : isUrgent
+                          ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                    }
+                  >
+                    {isExpired ? "EXPIRED" : isUrgent ? "RENEW SOON" : "VALID"}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Created / Updated */}
       <motion.div variants={fadeInUp} className="card-premium p-6">

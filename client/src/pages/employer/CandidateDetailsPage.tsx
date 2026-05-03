@@ -275,6 +275,35 @@ function CandidateDetailsPage() {
               </p>
             </motion.div>
           )}
+          {/* Documents Section */}
+          {candidate.documents && candidate.documents.length > 0 && (
+            <motion.div variants={fadeInUp} className="card-premium p-6 mt-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Download className="w-5 h-5 text-accent" />
+                Uploaded Documents
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {candidate.documents.map((doc: any) => (
+                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded bg-accent/10 flex items-center justify-center text-accent">
+                        {doc.category === 'PASSPORT' ? '🛂' : '📄'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{doc.category}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">{doc.mimeType?.split('/')[1] || 'FILE'}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" download>
+                        <Download className="w-4 h-4" />
+                      </a>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -287,10 +316,12 @@ function CandidateDetailsPage() {
             <div className="space-y-4">
               <Button
                 className="w-full gradient-bg-accent text-accent-foreground"
-                onClick={() => toast.info("Messaging feature coming soon!")}
+                asChild
               >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Send Message
+                <a href={`mailto:${candidate.email}?subject=Application for ${candidate.position} - Legaforce`}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Send Message
+                </a>
               </Button>
               <Button
                 className="w-full"
@@ -318,7 +349,7 @@ function CandidateDetailsPage() {
                 }}
               >
                 {candidate.status === "SHORTLISTED" ||
-                candidate.status === "INTERVIEWED" ? (
+                  candidate.status === "INTERVIEWED" ? (
                   <>
                     <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />{" "}
                     Shortlisted
@@ -351,7 +382,7 @@ function CandidateDetailsPage() {
                 }}
               >
                 {candidate.status === "SELECTED" ||
-                candidate.status === "DEPLOYED" ? (
+                  candidate.status === "DEPLOYED" ? (
                   <>
                     <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />{" "}
                     Selected
@@ -364,14 +395,19 @@ function CandidateDetailsPage() {
                 className="w-full"
                 variant="outline"
                 onClick={() => {
-                  toast.success(
-                    "Preparing PDF... Use your browser's Print dialog to save.",
-                  );
-                  setTimeout(() => window.print(), 500);
+                  const cvDoc = candidate.documents?.find((d: any) => d.category === 'CV' || d.category === 'RESUME');
+                  if (cvDoc) {
+                    window.open(cvDoc.fileUrl, '_blank');
+                  } else {
+                    toast.success(
+                      "Preparing PDF... Use your browser's Print dialog to save.",
+                    );
+                    setTimeout(() => window.print(), 500);
+                  }
                 }}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Download CV
+                {candidate.documents?.some((d: any) => d.category === 'CV' || d.category === 'RESUME') ? 'Download PDF CV' : 'Generate CV (Print)'}
               </Button>
             </div>
           </motion.div>
@@ -380,146 +416,144 @@ function CandidateDetailsPage() {
           {["INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"].includes(
             candidate.status?.toUpperCase(),
           ) && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
-              <h3 className="font-semibold mb-4">Rate This Applicant</h3>
+              <motion.div variants={fadeInUp} className="card-premium p-6">
+                <h3 className="font-semibold mb-4">Rate This Applicant</h3>
 
-              {ratingEdit ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Rating
-                    </label>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() =>
-                            setRatingEdit({ ...ratingEdit, rating: star })
+                {ratingEdit ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Rating
+                      </label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() =>
+                              setRatingEdit({ ...ratingEdit, rating: star })
+                            }
+                            className="focus:outline-none transition"
+                          >
+                            <Star
+                              className={`w-6 h-6 cursor-pointer transition ${star <= ratingEdit.rating
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-muted-foreground hover:text-amber-400"
+                                }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Review (Optional)
+                      </label>
+                      <textarea
+                        value={ratingEdit.review}
+                        onChange={(e) =>
+                          setRatingEdit({ ...ratingEdit, review: e.target.value })
+                        }
+                        placeholder="Share your feedback about this candidate..."
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={async () => {
+                          if (ratingEdit.rating < 1 || ratingEdit.rating > 5) {
+                            toast.error("Please select a rating");
+                            return;
                           }
-                          className="focus:outline-none transition"
-                        >
+                          try {
+                            setIsSavingRating(true);
+                            await employerService.rateApplicant(
+                              candidate.id,
+                              ratingEdit.rating,
+                              ratingEdit.review || undefined,
+                            );
+                            toast.success("Rating saved successfully");
+                            setRatingEdit(null);
+                            // Optionally refresh the page
+                            const data = await employerService.getCandidate(
+                              candidate.id,
+                            );
+                            setCandidate(data);
+                          } catch (error: any) {
+                            toast.error(error.message || "Failed to save rating");
+                          } finally {
+                            setIsSavingRating(false);
+                          }
+                        }}
+                        disabled={isSavingRating}
+                      >
+                        {isSavingRating && (
+                          <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        )}
+                        Save Rating
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setRatingEdit(null)}
+                        disabled={isSavingRating}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : candidate.rating > 0 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
                           <Star
-                            className={`w-6 h-6 cursor-pointer transition ${
-                              star <= ratingEdit.rating
+                            key={star}
+                            className={`w-4 h-4 ${star <= candidate.rating
                                 ? "fill-amber-400 text-amber-400"
-                                : "text-muted-foreground hover:text-amber-400"
-                            }`}
+                                : "text-muted-foreground"
+                              }`}
                           />
-                        </button>
-                      ))}
+                        ))}
+                      </div>
+                      <span className="text-sm font-semibold">
+                        {candidate.rating}/5
+                      </span>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Review (Optional)
-                    </label>
-                    <textarea
-                      value={ratingEdit.review}
-                      onChange={(e) =>
-                        setRatingEdit({ ...ratingEdit, review: e.target.value })
+                    {candidate.interviewNotes && (
+                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                        {candidate.interviewNotes}
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() =>
+                        setRatingEdit({
+                          rating: candidate.rating || 0,
+                          review: candidate.interviewNotes || "",
+                        })
                       }
-                      placeholder="Share your feedback about this candidate..."
-                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={async () => {
-                        if (ratingEdit.rating < 1 || ratingEdit.rating > 5) {
-                          toast.error("Please select a rating");
-                          return;
-                        }
-                        try {
-                          setIsSavingRating(true);
-                          await employerService.rateApplicant(
-                            candidate.id,
-                            ratingEdit.rating,
-                            ratingEdit.review || undefined,
-                          );
-                          toast.success("Rating saved successfully");
-                          setRatingEdit(null);
-                          // Optionally refresh the page
-                          const data = await employerService.getCandidate(
-                            candidate.id,
-                          );
-                          setCandidate(data);
-                        } catch (error: any) {
-                          toast.error(error.message || "Failed to save rating");
-                        } finally {
-                          setIsSavingRating(false);
-                        }
-                      }}
-                      disabled={isSavingRating}
                     >
-                      {isSavingRating && (
-                        <Loader className="w-4 h-4 mr-2 animate-spin" />
-                      )}
-                      Save Rating
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setRatingEdit(null)}
-                      disabled={isSavingRating}
-                    >
-                      Cancel
+                      Update Rating
                     </Button>
                   </div>
-                </div>
-              ) : candidate.rating > 0 ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= candidate.rating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm font-semibold">
-                      {candidate.rating}/5
-                    </span>
-                  </div>
-                  {candidate.interviewNotes && (
-                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
-                      {candidate.interviewNotes}
-                    </p>
-                  )}
+                ) : (
                   <Button
                     size="sm"
-                    variant="ghost"
                     className="w-full"
-                    onClick={() =>
-                      setRatingEdit({
-                        rating: candidate.rating || 0,
-                        review: candidate.interviewNotes || "",
-                      })
-                    }
+                    onClick={() => setRatingEdit({ rating: 0, review: "" })}
                   >
-                    Update Rating
+                    Leave a Rating
                   </Button>
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => setRatingEdit({ rating: 0, review: "" })}
-                >
-                  Leave a Rating
-                </Button>
-              )}
-            </motion.div>
-          )}
+                )}
+              </motion.div>
+            )}
 
           {/* Certifications */}
           {candidate.certifications && candidate.certifications.length > 0 && (

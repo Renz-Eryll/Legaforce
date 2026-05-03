@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Activity, 
-  Clock, 
-  Shield, 
-  AlertCircle, 
-  History, 
-  User, 
+import {
+  Activity,
+  Clock,
+  Shield,
+  AlertCircle,
+  History,
+  User,
   ExternalLink,
   Loader2,
   RefreshCcw,
@@ -85,7 +85,7 @@ export default function SystemHealthPage() {
                 <AlertCircle className="w-5 h-5 text-amber-500" />
                 Pipeline Bottlenecks
               </h3>
-              
+
               {isLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
               ) : slaAlerts.length === 0 ? (
@@ -98,8 +98,8 @@ export default function SystemHealthPage() {
                   {slaAlerts.map((alert) => (
                     <div key={alert.id} className={cn(
                       "flex items-center justify-between p-4 rounded-xl border transition-all",
-                      alert.severity === "CRITICAL" 
-                        ? "bg-red-500/5 border-red-500/20" 
+                      alert.severity === "CRITICAL"
+                        ? "bg-red-500/5 border-red-500/20"
                         : "bg-amber-500/5 border-amber-500/20"
                     )}>
                       <div className="flex items-center gap-4">
@@ -128,20 +128,20 @@ export default function SystemHealthPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-4">
-               <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
-                  <p className="text-xs font-bold text-blue-500 uppercase mb-1">Response Target</p>
-                  <p className="text-sm text-muted-foreground">Applications should be reviewed within 72 hours for high platform trust.</p>
-               </div>
-               <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
-                  <p className="text-xs font-bold text-emerald-500 uppercase mb-1">SLA Auto-Flag</p>
-                  <p className="text-sm text-muted-foreground">Critical alerts (2x threshold) are automatically highlighted for admin priority.</p>
-               </div>
-               <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
-                  <p className="text-xs font-bold text-purple-500 uppercase mb-1">Compliance Rate</p>
-                  <p className="text-sm text-muted-foreground">Current platform-wide SLA compliance is at <span className="font-bold text-foreground">92%</span>.</p>
-               </div>
+              <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                <p className="text-xs font-bold text-blue-500 uppercase mb-1">Response Target</p>
+                <p className="text-sm text-muted-foreground">Applications should be reviewed within 72 hours for high platform trust.</p>
+              </div>
+              <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+                <p className="text-xs font-bold text-emerald-500 uppercase mb-1">SLA Auto-Flag</p>
+                <p className="text-sm text-muted-foreground">Critical alerts (2x threshold) are automatically highlighted for admin priority.</p>
+              </div>
+              <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+                <p className="text-xs font-bold text-purple-500 uppercase mb-1">Compliance Rate</p>
+                <p className="text-sm text-muted-foreground">Current platform-wide SLA compliance is at <span className="font-bold text-foreground">92%</span>.</p>
+              </div>
             </div>
           </motion.div>
         </TabsContent>
@@ -152,7 +152,7 @@ export default function SystemHealthPage() {
               <h3 className="font-semibold">System Audit Trail</h3>
               <p className="text-xs text-muted-foreground">Immutable history of administrative actions</p>
             </div>
-            
+
             <div className="divide-y divide-border/50">
               {isLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
@@ -164,15 +164,15 @@ export default function SystemHealthPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
                         <div className="mt-1">
-                           <Badge variant="outline" className="px-1 py-0.5 text-[9px] uppercase tracking-tighter bg-accent/5 text-accent border-accent/20">
-                             {log.action}
-                           </Badge>
+                          <Badge variant="outline" className="px-1 py-0.5 text-[9px] uppercase tracking-tighter bg-accent/5 text-accent border-accent/20">
+                            {log.action}
+                          </Badge>
                         </div>
                         <div>
                           <p className="text-sm font-medium mb-0.5">{log.description}</p>
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
-                              <User className="w-3 h-3" /> 
+                              <User className="w-3 h-3" />
                               {log.user?.profile?.firstName ? `${log.user.profile.firstName} ${log.user.profile.lastName}` : log.user?.email || "System"}
                             </span>
                             <span>•</span>
@@ -196,9 +196,9 @@ export default function SystemHealthPage() {
                 ))
               )}
             </div>
-            
+
             <div className="p-4 bg-muted/50 text-center">
-               <Button variant="link" className="text-xs text-muted-foreground">Download Complete Compliance PDF Report</Button>
+              <Button variant="link" className="text-xs text-muted-foreground">Download Complete Compliance PDF Report</Button>
             </div>
           </motion.div>
         </TabsContent>

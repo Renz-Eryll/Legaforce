@@ -16,4 +16,5 @@ export { default as JobOrdersListPage } from "./JobOrdersListPage";
 export { default as JobOrderDetailPage } from "./JobOrderDetailPage";
 export { default as ReportsPage } from "./ReportsPage";
 export { default as SettingsPage } from "./SettingsPage";
+export { default as SystemHealthPage } from "./SystemHealthPage";
 export { default as VerificationPage } from "./VerificationPage";

@@ -21,6 +21,7 @@ export const {
   ARCJET_ENV,
   FRONTEND_URL,
   SENDGRID_API_KEY,
+  SENDGRID_FROM_EMAIL,
   EMAIL_USER,
   EMAIL_PASSWORD,
 } = process.env;

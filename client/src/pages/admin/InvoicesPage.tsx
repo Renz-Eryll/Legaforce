@@ -141,9 +141,16 @@ function InvoicesPage() {
           <p className="text-muted-foreground">Track invoices and payments</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={async () => {
+            try {
+              await adminService.exportInvoicesCSV(statusFilter === "all" ? undefined : statusFilter);
+              toast.success("Invoice CSV downloaded");
+            } catch {
+              toast.error("Failed to export invoices");
+            }
+          }}>
             <Download className="w-4 h-4 mr-2" />
-            Export
+            Export CSV
           </Button>
           <Button className="gradient-bg-accent text-accent-foreground">
             <Plus className="w-4 h-4 mr-2" />

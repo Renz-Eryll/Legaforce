@@ -28,6 +28,8 @@ model User {
 
   profile   Profile?
   employer  Employer?
+  notifications Notification[]
+  notificationPrefs NotificationPreference?
   auditLogs AuditLog[]
 
   @@index([email])
@@ -46,6 +48,8 @@ model Profile {
   trustScore   Int       @default(50)
   rewardPoints Int       @default(0)
   profileViews Int       @default(0)
+  emergencyContact String?
+  emergencyPhone   String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -54,10 +58,27 @@ model Profile {
   complaints        Complaint[]
   employerRatings   EmployerRating[]
   applicantRatings  ApplicantRating[]
-  notifications     Notification[]
-  notificationPrefs NotificationPreference?
+  documents         ProfileDocument[]
 
   @@index([userId])
+}
+
+model ProfileDocument {
+  id           String           @id @default(cuid())
+  profileId    String
+  category     DocumentCategory
+  fileName     String
+  fileUrl      String
+  fileKey      String?
+  fileSize     Int?
+  mimeType     String?
+  uploadedBy   String?
+  createdAt    DateTime         @default(now())
+
+  profile      Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([category])
 }
 
 model Employer {
@@ -221,7 +242,7 @@ enum NotificationType {
 
 model Notification {
   id          String           @id @default(cuid())
-  profileId   String
+  userId      String
   type        NotificationType
   title       String
   message     String           @db.Text
@@ -232,16 +253,16 @@ model Notification {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([profileId])
+  @@index([userId])
   @@index([read])
   @@index([createdAt])
 }
 
 model NotificationPreference {
   id                String    @id @default(cuid())
-  profileId         String    @unique
+  userId            String    @unique
   emailNotif        Boolean   @default(true)
   pushNotif         Boolean   @default(true)
   smsNotif          Boolean   @default(false)
@@ -252,9 +273,9 @@ model NotificationPreference {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([profileId])
+  @@index([userId])
 }
 
 
@@ -328,6 +349,8 @@ model PlatformSetting {
 // ==================== Deployment Documents ====================
 
 enum DocumentCategory {
+  PASSPORT
+  CLEARANCE
   MEDICAL
   VISA
   OEC

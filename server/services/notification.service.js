@@ -2,16 +2,16 @@ import prisma from "../config/database.js";
 import { sendToUser } from "./sse.service.js";
 
 /**
- * Create a notification for an applicant
+ * Create a notification for a user
  */
 export async function createNotification(
-  profileId,
+  userId,
   { type, title, message, link, relatedId, metadata },
 ) {
   try {
     const notification = await prisma.notification.create({
       data: {
-        profileId,
+        userId,
         type,
         title,
         message,
@@ -20,27 +20,20 @@ export async function createNotification(
         metadata,
         read: false,
       },
-      include: {
-        profile: { select: { userId: true } },
-      },
     });
 
     // Send real-time SSE notification
-    // Note: SSE clients are keyed by userId, NOT profileId
-    const userId = notification.profile?.userId;
-    if (userId) {
-      sendToUser(userId, "notification", {
-        id: notification.id,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        date: notification.createdAt.toISOString(),
-        read: false,
-        link: notification.link,
-        relatedId: notification.relatedId,
-        metadata: notification.metadata,
-      });
-    }
+    sendToUser(userId, "notification", {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      date: notification.createdAt.toISOString(),
+      read: false,
+      link: notification.link,
+      relatedId: notification.relatedId,
+      metadata: notification.metadata,
+    });
 
     return notification;
   } catch (err) {
@@ -50,10 +43,10 @@ export async function createNotification(
 }
 
 /**
- * Notify applicant of application status change
+ * Notify user of application status change
  */
 export async function notifyApplicationStatusChange(
-  profileId,
+  userId,
   { status, jobTitle, companyName, applicationId },
 ) {
   const statusMessages = {
@@ -92,7 +85,7 @@ export async function notifyApplicationStatusChange(
   const config = statusMessages[status];
   if (!config) return null;
 
-  return createNotification(profileId, {
+  return createNotification(userId, {
     type: config.type,
     title: config.title,
     message: config.message,
@@ -103,13 +96,13 @@ export async function notifyApplicationStatusChange(
 }
 
 /**
- * Notify applicant of job recommendation
+ * Notify user of job recommendation
  */
 export async function notifyJobRecommendation(
-  profileId,
+  userId,
   { jobTitle, companyName, matchScore, jobId },
 ) {
-  return createNotification(profileId, {
+  return createNotification(userId, {
     type: "JOB_RECOMMENDATION",
     title: `📧 New Job Match: ${jobTitle}`,
     message: `We found a job that matches your skills (${matchScore}% match) at ${companyName}. Apply now!`,
@@ -120,13 +113,13 @@ export async function notifyJobRecommendation(
 }
 
 /**
- * Notify applicant of offer
+ * Notify user of offer
  */
 export async function notifyJobOffer(
-  profileId,
+  userId,
   { jobTitle, companyName, jobId },
 ) {
-  return createNotification(profileId, {
+  return createNotification(userId, {
     type: "OFFER",
     title: `🎯 Job Offer: ${jobTitle}`,
     message: `You have received an offer from ${companyName} for the position of ${jobTitle}.`,
@@ -137,11 +130,34 @@ export async function notifyJobOffer(
 }
 
 /**
- * Mark all notifications as read for a profile
+ * Broadcast notification to all users with specific roles
  */
-export async function markAllNotificationsAsRead(profileId) {
+export async function broadcastToRoles(
+  roles,
+  { type, title, message, link, metadata }
+) {
+  try {
+    const users = await prisma.user.findMany({
+      where: { role: { in: roles }, isActive: true },
+      select: { id: true }
+    });
+
+    const notifications = await Promise.all(
+      users.map(user => createNotification(user.id, { type, title, message, link, metadata }))
+    );
+
+    return notifications;
+  } catch (err) {
+    console.error("Failed to broadcast notifications:", err);
+  }
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export async function markAllNotificationsAsRead(userId) {
   return prisma.notification.updateMany({
-    where: { profileId, read: false },
+    where: { userId, read: false },
     data: { read: true },
   });
 }
@@ -149,11 +165,11 @@ export async function markAllNotificationsAsRead(profileId) {
 /**
  * Delete old notifications (older than specified days)
  */
-export async function deleteOldNotifications(profileId, daysOld = 30) {
+export async function deleteOldNotifications(userId, daysOld = 30) {
   const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
   return prisma.notification.deleteMany({
     where: {
-      profileId,
+      userId,
       createdAt: { lt: cutoffDate },
       read: true,
     },
@@ -161,15 +177,15 @@ export async function deleteOldNotifications(profileId, daysOld = 30) {
 }
 
 /**
- * Get notification stats for a profile
+ * Get notification stats for a user
  */
-export async function getNotificationStats(profileId) {
+export async function getNotificationStats(userId) {
   const [total, unread, byType] = await Promise.all([
-    prisma.notification.count({ where: { profileId } }),
-    prisma.notification.count({ where: { profileId, read: false } }),
+    prisma.notification.count({ where: { userId } }),
+    prisma.notification.count({ where: { userId, read: false } }),
     prisma.notification.groupBy({
       by: ["type"],
-      where: { profileId },
+      where: { userId },
       _count: { type: true },
       orderBy: { _count: { type: "desc" } },
     }),

@@ -282,28 +282,26 @@ function CandidatesListPage() {
                     <TableCell>{candidate.position || "—"}</TableCell>
                     <TableCell>
                       {candidate.matchScore !== null &&
-                      candidate.matchScore !== undefined ? (
+                        candidate.matchScore !== undefined ? (
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all ${
-                                candidate.matchScore >= 80
+                              className={`h-full rounded-full transition-all ${candidate.matchScore >= 80
                                   ? "bg-emerald-500"
                                   : candidate.matchScore >= 50
                                     ? "bg-amber-500"
                                     : "bg-red-400"
-                              }`}
+                                }`}
                               style={{ width: `${candidate.matchScore}%` }}
                             />
                           </div>
                           <span
-                            className={`text-xs font-semibold ${
-                              candidate.matchScore >= 80
+                            className={`text-xs font-semibold ${candidate.matchScore >= 80
                                 ? "text-emerald-600 dark:text-emerald-400"
                                 : candidate.matchScore >= 50
                                   ? "text-amber-600 dark:text-amber-400"
                                   : "text-red-500"
-                            }`}
+                              }`}
                           >
                             {candidate.matchScore}%
                           </span>
@@ -319,13 +317,12 @@ function CandidatesListPage() {
                         </span>
                         <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all ${
-                              (candidate.trustScore || 50) >= 70
+                            className={`h-full rounded-full transition-all ${(candidate.trustScore || 50) >= 70
                                 ? "bg-emerald-500"
                                 : (candidate.trustScore || 50) >= 50
                                   ? "bg-amber-500"
                                   : "bg-red-400"
-                            }`}
+                              }`}
                             style={{ width: `${candidate.trustScore || 50}%` }}
                           />
                         </div>
@@ -341,9 +338,19 @@ function CandidatesListPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          title="Message Candidate"
+                        >
+                          <a href={`mailto:${candidate.email || ''}?subject=Job Inquiry - Legaforce`}>
+                            <MessageSquare className="w-4 h-4 text-accent" />
+                          </a>
+                        </Button>
                         <Link to={`/employer/candidates/${candidate.id}`}>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="View Details">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </Link>

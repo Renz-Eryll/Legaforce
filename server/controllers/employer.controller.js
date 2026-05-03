@@ -98,9 +98,15 @@ export const getJobOrders = async (req, res, next) => {
 export const getCandidates = async (req, res, next) => {
   try {
     const employer = getEmployerFromReq(req);
+    // Smart Candidate Search — filter params from query string
+    const { search, skills: skillsFilter, experience: expFilter, nationality: natFilter, availability: availFilter, status: statusFilter, aiOnly } = req.query;
+
     // Use relational filter — no sub-query for jobOrderIds
+    const appWhere = { jobOrder: { employerId: employer.id } };
+    if (statusFilter) appWhere.status = statusFilter.toUpperCase();
+
     const applications = await prisma.application.findMany({
-      where: { jobOrder: { employerId: employer.id } },
+      where: appWhere,
       include: {
         applicant: {
           select: {
@@ -189,7 +195,43 @@ export const getCandidates = async (req, res, next) => {
         });
       }
     }
-    const data = Array.from(byApplicant.values());
+    let data = Array.from(byApplicant.values());
+
+    // ── Smart Candidate Search Filters ──
+    // Text search (name, position, skills)
+    if (search) {
+      const q = search.toLowerCase();
+      data = data.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        (c.position || "").toLowerCase().includes(q) ||
+        c.skills.some(s => s.toLowerCase().includes(q))
+      );
+    }
+    // Skills filter (comma-separated)
+    if (skillsFilter) {
+      const wanted = skillsFilter.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (wanted.length > 0) {
+        data = data.filter(c =>
+          wanted.some(w => c.skills.some(s => s.toLowerCase().includes(w)))
+        );
+      }
+    }
+    // Experience filter (e.g. "3" means >=3 years)
+    if (expFilter) {
+      const minYears = parseInt(expFilter, 10);
+      if (!isNaN(minYears)) {
+        data = data.filter(c => (c.experienceYears || 0) >= minYears);
+      }
+    }
+    // Nationality filter
+    if (natFilter) {
+      const nat = natFilter.toLowerCase();
+      data = data.filter(c => (c.nationality || "").toLowerCase().includes(nat));
+    }
+    // AI-only filter
+    if (aiOnly === "true") {
+      data = data.filter(c => c.aiRecommended);
+    }
 
     // Sort by match score descending, then by trust score descending
     data.sort((a, b) => {
@@ -214,7 +256,12 @@ export const getCandidateById = async (req, res, next) => {
         jobOrder: { employerId: employer.id },
       },
       include: {
-        applicant: true,
+        applicant: {
+          include: {
+            documents: true,
+            user: { select: { email: true } }
+          }
+        },
         jobOrder: true,
       },
     });
@@ -246,7 +293,7 @@ export const getCandidateById = async (req, res, next) => {
         name:
           [a.firstName, a.lastName].filter(Boolean).join(" ") || "Applicant",
         position: application.jobOrder?.title,
-        email: null,
+        email: a.user?.email || null,
         phone: a.phone,
         location: a.nationality,
         experience: cv.experience?.length
@@ -254,8 +301,9 @@ export const getCandidateById = async (req, res, next) => {
           : "—",
         skills: cv.skills || cv.skillTags || [],
         certifications: cv.certifications || [],
+        documents: a.documents || [],
         matchScore: application.aiMatchScore || 0,
-        rating: 4,
+        rating: application.applicantRating || 0,
         trustScore: a.trustScore || 50,
         interviewNotes: application.interviewNotes,
       },
@@ -886,7 +934,7 @@ export const updateApplicationStatus = async (req, res, next) => {
 
     // ── Real-time & Persistent Notification ──
     try {
-      await notifyApplicationStatusChange(updated.applicant.id, {
+      await notifyApplicationStatusChange(updated.applicant.userId, {
         status,
         jobTitle: updated.jobOrder?.title || "Job",
         companyName: employer.companyName || "Employer",

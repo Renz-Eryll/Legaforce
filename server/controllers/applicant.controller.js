@@ -49,6 +49,8 @@ export const updateProfile = async (req, res, next) => {
       phone,
       nationality,
       dateOfBirth,
+      emergencyContact,
+      emergencyPhone,
       // CV-related fields stored in aiGeneratedCV JSON
       bio,
       skills,
@@ -65,6 +67,8 @@ export const updateProfile = async (req, res, next) => {
     if (nationality !== undefined) updateData.nationality = nationality;
     if (dateOfBirth !== undefined)
       updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (emergencyContact !== undefined) updateData.emergencyContact = emergencyContact;
+    if (emergencyPhone !== undefined) updateData.emergencyPhone = emergencyPhone;
 
     // Merge CV-related fields into aiGeneratedCV JSON
     const existingCV =
@@ -561,26 +565,6 @@ export const getProfileCompletion = async (req, res, next) => {
   }
 };
 
-export const getNotifications = async (req, res, next) => {
-  try {
-    const profile = getProfileFromReq(req);
-
-    // Fetch persisted notifications from database
-    const notifications = await prisma.notification.findMany({
-      where: { profileId: profile.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-
-    res.json({
-      success: true,
-      data: notifications,
-      unreadCount: notifications.filter((n) => !n.read).length,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 export const getRecommendedJobs = async (req, res, next) => {
   try {
@@ -1476,7 +1460,7 @@ export const markNotificationAsRead = async (req, res, next) => {
     const { id } = req.params;
 
     const notification = await prisma.notification.findFirst({
-      where: { id, profileId: profile.id },
+      where: { id, userId: req.user.id },
     });
 
     if (!notification) {
@@ -1505,7 +1489,7 @@ export const deleteNotification = async (req, res, next) => {
     const { id } = req.params;
 
     const notification = await prisma.notification.findFirst({
-      where: { id, profileId: profile.id },
+      where: { id, userId: req.user.id },
     });
 
     if (!notification) {
