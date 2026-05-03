@@ -44,33 +44,31 @@ export const authorize = async (req, res, next) => {
 
     // DB lookup — retry once on transient connection errors
     let user;
-    try {
-      user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        include: {
-          profile: true,
-          employer: true,
-        },
-      });
-    } catch (dbError) {
-      // Transient DB errors (pool disconnect, Neon cold start, etc.)
-      // Retry once after a short delay
-      console.error("⚠️  Auth DB lookup failed, retrying:", dbError.message);
+    const dbQuery = () => prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        profile: true,
+        employer: true,
+      },
+    });
+
+    // Retry up to 2 times with escalating delays for Neon cold starts
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        await new Promise((r) => setTimeout(r, 500));
-        user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          include: {
-            profile: true,
-            employer: true,
-          },
-        });
-      } catch (retryError) {
-        console.error("❌ Auth DB retry also failed:", retryError.message);
-        return res.status(503).json({
-          success: false,
-          message: "Service temporarily unavailable. Please try again.",
-        });
+        user = await dbQuery();
+        break; // success — exit loop
+      } catch (dbError) {
+        if (attempt < 2) {
+          const delay = attempt === 0 ? 1500 : 3000; // 1.5s, then 3s
+          console.error(`⚠️  Auth DB lookup failed (attempt ${attempt + 1}/3), retrying in ${delay}ms:`, dbError.message);
+          await new Promise((r) => setTimeout(r, delay));
+        } else {
+          console.error("❌ Auth DB failed after 3 attempts:", dbError.message);
+          return res.status(503).json({
+            success: false,
+            message: "Service temporarily unavailable. Please try again.",
+          });
+        }
       }
     }
 
