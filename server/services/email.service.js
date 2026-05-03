@@ -33,7 +33,7 @@ async function sendEmail(to, subject, html) {
     return true;
   }
 
-  // ── Production: send via SendGrid ──
+  // ── Production: try SendGrid first ──
   try {
     await sgMail.send({
       to,
@@ -44,8 +44,26 @@ async function sendEmail(to, subject, html) {
     return true;
   } catch (err) {
     console.error("SendGrid email failed:", err.response?.body || err.message);
-    return false;
+    console.log("🔄 Falling back to Gmail transport...");
   }
+
+  // ── Fallback: try Gmail/nodemailer ──
+  if (devMailer) {
+    try {
+      await devMailer.sendMail({
+        from: `"${FROM_NAME}" <${EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log(`✅ Email sent to ${to} via Gmail fallback`);
+      return true;
+    } catch (gmailErr) {
+      console.error("Gmail fallback also failed:", gmailErr.message);
+    }
+  }
+
+  return false;
 }
 
 // ── Application Status Change Notification ─────

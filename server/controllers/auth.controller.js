@@ -61,7 +61,7 @@ const buildOtpEmailHtml = (firstName, otp) => `
   </div>
 `;
 
-// Send OTP email — uses Gmail/nodemailer in dev, SendGrid in production
+// Send OTP email — uses Gmail/nodemailer in dev, SendGrid (with Gmail fallback) in production
 const sendOtpEmail = async (email, otp, firstName) => {
   const subject = "Verify Your Email - Legaforce";
   const html = buildOtpEmailHtml(firstName, otp);
@@ -90,21 +90,40 @@ const sendOtpEmail = async (email, otp, firstName) => {
     return;
   }
 
-  // ── Production: send via SendGrid ──
+  // ── Production: try SendGrid first, fall back to Gmail ──
   const msg = {
     to: email,
-    from: "renzeryll09@gmail.com",
+    from: EMAIL_USER || "renzeryll09@gmail.com",
     subject,
     html,
   };
 
   try {
     await sgMail.send(msg);
-    console.log(`✅ OTP email sent to ${email}`);
+    console.log(`✅ OTP email sent to ${email} via SendGrid`);
+    return;
   } catch (error) {
     console.error("❌ SendGrid error:", error.response?.body || error.message);
-    throw new Error("Failed to send verification email");
+    console.log("🔄 Falling back to Gmail transport...");
   }
+
+  // ── Fallback: try Gmail/nodemailer ──
+  if (devMailer) {
+    try {
+      await devMailer.sendMail({
+        from: `"Legaforce" <${EMAIL_USER}>`,
+        to: email,
+        subject,
+        html,
+      });
+      console.log(`✅ OTP email sent to ${email} via Gmail fallback`);
+      return;
+    } catch (gmailError) {
+      console.error("❌ Gmail fallback also failed:", gmailError.message);
+    }
+  }
+
+  throw new Error("Failed to send verification email");
 };
 
 export const signUp = async (req, res, next) => {
