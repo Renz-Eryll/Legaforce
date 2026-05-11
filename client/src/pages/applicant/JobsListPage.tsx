@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
+import { CardGridSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -179,6 +180,9 @@ function JobsListPage() {
 
   const totalPositions = jobs.reduce((sum, j) => sum + (j.positions || 0), 0);
 
+
+  if (loading) return <ListPageSkeleton statCount={3} tableCols={4} />;
+
   return (
     <motion.div
       initial="initial"
@@ -273,15 +277,8 @@ function JobsListPage() {
       </motion.div>
 
       {/* Loading State */}
-      {loading && (
-        <motion.div
-          variants={fadeInUp}
-          className="flex items-center justify-center py-16"
-        >
-          <Loader2 className="w-8 h-8 animate-spin text-accent" />
-          <span className="ml-3 text-muted-foreground">Loading jobs...</span>
-        </motion.div>
-      )}
+      {loading && <CardGridSkeleton count={4} />}
+
 
       {/* Jobs Grid */}
       {!loading && (

@@ -77,13 +77,12 @@ const EmployerReportsPage = lazy(() => import("./pages/employer/ReportsPage"));
 const EmployerSettingsPage = lazy(() => import("./pages/employer/SettingsPage"));
 const EmployerSupportPage = lazy(() => import("./pages/employer/SupportPage"));
 
-// Loading fallback
+import { PageContentSkeleton } from "@/components/ui/page-skeletons";
+
+// Loading fallback — minimal skeleton for top-level Suspense (public pages)
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-3 border-accent/30 border-t-accent rounded-full animate-spin" />
-      <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
-    </div>
+    <PageContentSkeleton />
   </div>
 );
 

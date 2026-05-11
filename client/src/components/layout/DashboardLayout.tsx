@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { PageContentSkeleton } from "@/components/ui/page-skeletons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -822,7 +823,9 @@ export function DashboardLayout({
 
         {/* Page Content */}
         <main className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Suspense fallback={<PageContentSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

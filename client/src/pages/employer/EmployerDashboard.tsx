@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { employerService } from "@/services/employerService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 const staggerContainer = { animate: { transition: { staggerChildren: 0.08 } } };
@@ -84,6 +85,8 @@ export default function EmployerDashboard() {
     fetchAll();
   }, []);
 
+  if (isLoading) return <DashboardPageSkeleton />;
+
   const companyName = employer?.companyName || (user as any)?.employer?.companyName || "Company";
 
   const kpiCards = [
@@ -123,7 +126,7 @@ export default function EmployerDashboard() {
               </div>
               <TrendingUp className="h-4 w-4 text-emerald-500" />
             </div>
-            <p className="text-3xl font-display font-bold mb-1">{isLoading ? "—" : card.value.toLocaleString()}</p>
+            <p className="text-3xl font-display font-bold mb-1">{card.value.toLocaleString()}</p>
             <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
           </motion.div>
         ))}

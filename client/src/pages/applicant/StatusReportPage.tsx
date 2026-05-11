@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -115,16 +116,7 @@ function StatusReportPage() {
     return idx >= 0 ? idx : 0;
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading status report...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardPageSkeleton />;
 
   return (
     <motion.div

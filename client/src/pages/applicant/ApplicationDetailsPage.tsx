@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -127,16 +128,7 @@ function ApplicationDetailsPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-          <p className="text-muted-foreground">Loading application details...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!application) {
     return (

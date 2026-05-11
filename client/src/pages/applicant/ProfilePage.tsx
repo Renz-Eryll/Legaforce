@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { applicantService } from "@/services/applicantService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ProfilePageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -237,14 +238,7 @@ function ProfilePage() {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-        <span className="ml-3 text-muted-foreground">Loading profile...</span>
-      </div>
-    );
-  }
+  if (loading) return <ProfilePageSkeleton />;
 
   return (
     <motion.div

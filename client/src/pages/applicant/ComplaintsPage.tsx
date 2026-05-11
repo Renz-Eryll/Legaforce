@@ -26,6 +26,7 @@ import { COMPLAINT_CATEGORIES } from "@/utils/constants";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ListPageSkeleton, CardGridSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -325,9 +326,7 @@ function ComplaintsPage() {
 
       {/* Complaints List */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-        </div>
+<CardGridSkeleton count={3} />
       ) : (
         <motion.div variants={fadeInUp} className="space-y-4">
           {filteredComplaints.map((complaint: any) => {

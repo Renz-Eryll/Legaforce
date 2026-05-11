@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ListPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -168,6 +169,9 @@ function ApplicationsListPage() {
         return null;
     }
   };
+
+
+  if (loading) return <ListPageSkeleton statCount={4} tableCols={8} />;
 
   return (
     <motion.div

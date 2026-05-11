@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 const staggerContainer = { animate: { transition: { staggerChildren: 0.08 } } };
@@ -74,6 +75,8 @@ export default function AdminDashboard() {
     })();
   }, []);
 
+  if (isLoading) return <DashboardPageSkeleton />;
+
   const conversionRate = stats.totalApplications > 0 
     ? Math.round((stats.totalDeployments / stats.totalApplications) * 100) 
     : 0;
@@ -125,7 +128,7 @@ export default function AdminDashboard() {
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
             </div>
             <p className="text-3xl font-display font-bold">
-              {isLoading ? "—" : card.value}
+              {card.value}
             </p>
           </motion.div>
         ))}

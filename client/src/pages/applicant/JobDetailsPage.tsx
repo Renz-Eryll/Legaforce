@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -181,14 +182,7 @@ function JobDetailsPage() {
     return `${Math.floor(days / 30)} months ago`;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-        <span className="ml-3 text-muted-foreground">Loading job details...</span>
-      </div>
-    );
-  }
+  if (loading) return <DetailPageSkeleton />;
 
   if (!job) {
     return (

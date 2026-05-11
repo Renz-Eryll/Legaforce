@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DashboardPageSkeleton, SkeletonTable } from "@/components/ui/page-skeletons";
 
 const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 const staggerContainer = { animate: { transition: { staggerChildren: 0.1 } } };
@@ -87,7 +88,7 @@ export default function SystemHealthPage() {
               </h3>
 
               {isLoading ? (
-                <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
+                <SkeletonTable rows={4} cols={4} />
               ) : slaAlerts.length === 0 ? (
                 <div className="text-center py-12 bg-secondary/20 rounded-xl border border-dashed">
                   <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3 opacity-20" />
@@ -155,7 +156,7 @@ export default function SystemHealthPage() {
 
             <div className="divide-y divide-border/50">
               {isLoading ? (
-                <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
+                <SkeletonTable rows={4} cols={4} />
               ) : logs.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">No logs available.</div>
               ) : (

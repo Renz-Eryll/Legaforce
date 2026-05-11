@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { employerService } from "@/services/employerService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -73,16 +74,7 @@ function CandidateDetailsPage() {
     fetchCandidate();
   }, [id]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-accent mx-auto mb-3" />
-          <p className="text-muted-foreground">Loading candidate profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!candidate) {
     return (

@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { employerService } from "@/services/employerService";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -59,16 +60,7 @@ function ReportsPage() {
     toast.success("Report export will be available in a future update.");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-          <p className="text-muted-foreground">Loading reports...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardPageSkeleton />;
 
   const totalApplications = stats?.candidateCount || 0;
   const deployedCount = stats?.deployedCount || 0;

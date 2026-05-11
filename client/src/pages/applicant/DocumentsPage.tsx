@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { applicantService } from "@/services/applicantService";
+import { ListPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -157,16 +158,7 @@ function DocumentsPage() {
     expired: documents.filter((d) => d.status === "expired").length,
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-          <p className="text-muted-foreground">Loading documents...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <ListPageSkeleton />;
 
   return (
     <motion.div
