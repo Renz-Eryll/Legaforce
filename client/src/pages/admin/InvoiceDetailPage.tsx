@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -99,13 +100,7 @@ function InvoiceDetailPage() {
     window.print();
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!invoice) {
     return (

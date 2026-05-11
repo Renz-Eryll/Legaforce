@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },

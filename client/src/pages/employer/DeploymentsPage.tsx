@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { employerService } from "@/services/employerService";
+import { ListPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -90,16 +91,7 @@ function DeploymentsPage() {
     selected: deployments.filter((d) => d.status === "SELECTED").length,
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-          <p className="text-muted-foreground">Loading deployments...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <ListPageSkeleton />;
 
   return (
     <motion.div

@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -58,13 +59,7 @@ function UserDetailsPage() {
     fetchUserDetail();
   }, [id]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!user) {
     return (

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { applicantService } from "@/services/applicantService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 const staggerContainer = { animate: { transition: { staggerChildren: 0.08 } } };
@@ -96,6 +97,8 @@ export default function ApplicantDashboard() {
     fetchAll();
   }, []);
 
+  if (isLoading) return <DashboardPageSkeleton />;
+
   const firstName = profile?.firstName || user?.profile?.firstName || "User";
 
   return (
@@ -149,7 +152,7 @@ export default function ApplicantDashboard() {
                 <s.icon className={cn("h-5 w-5", s.color)} />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold mb-1">{isLoading ? "—" : s.value.toLocaleString()}</p>
+            <p className="text-3xl font-display font-bold mb-1">{s.value.toLocaleString()}</p>
             <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
           </motion.div>
         ))}

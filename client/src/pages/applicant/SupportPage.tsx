@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SettingsPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },

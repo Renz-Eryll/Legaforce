@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { employerService } from "@/services/employerService";
 import { toast } from "sonner";
+import { DetailPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -116,16 +117,7 @@ function JobOrderDetailsPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-accent mx-auto mb-3" />
-          <p className="text-muted-foreground">Loading job order...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DetailPageSkeleton />;
 
   if (!jobOrder) {
     return (

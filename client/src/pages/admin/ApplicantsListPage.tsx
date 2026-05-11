@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
+import { SkeletonTable } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -189,9 +190,7 @@ function ApplicantsListPage() {
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
+          <SkeletonTable rows={6} cols={6} />
         ) : filteredApplicants.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mb-4" />

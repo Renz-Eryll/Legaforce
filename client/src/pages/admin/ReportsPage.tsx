@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
+import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -151,16 +152,7 @@ function ReportsPage() {
     toast.success("Master report bundle exported");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-          <p className="text-muted-foreground font-medium">Synthesizing platform data...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardPageSkeleton />;
 
   return (
     <motion.div initial="initial" animate="animate" variants={staggerContainer} className="space-y-6">
