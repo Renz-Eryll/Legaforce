@@ -36,7 +36,6 @@ import { toast } from "sonner";
 import api from "@/services/api";
 import { applicantService } from "@/services/applicantService";
 import { notificationService } from "@/services/notificationService";
-import { SettingsPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },

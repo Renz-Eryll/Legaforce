@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
-import { CardGridSkeleton } from "@/components/ui/page-skeletons";
+import { CardGridSkeleton, ListPageSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },

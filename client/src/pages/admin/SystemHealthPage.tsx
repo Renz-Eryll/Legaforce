@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { DashboardPageSkeleton, SkeletonTable } from "@/components/ui/page-skeletons";
+import { SkeletonTable } from "@/components/ui/page-skeletons";
 
 const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 const staggerContainer = { animate: { transition: { staggerChildren: 0.1 } } };

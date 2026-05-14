@@ -26,7 +26,7 @@ import { COMPLAINT_CATEGORIES } from "@/utils/constants";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ListPageSkeleton, CardGridSkeleton } from "@/components/ui/page-skeletons";
+import { CardGridSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },

@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/table";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
-import { ListPageSkeleton } from "@/components/ui/page-skeletons";
+import { SkeletonTable } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -217,9 +217,7 @@ function ApplicationsPage() {
       {/* Table */}
       <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
+          <SkeletonTable rows={6} cols={7} />
         ) : (
           <div className="overflow-x-auto">
             <Table>
