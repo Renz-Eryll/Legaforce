@@ -27,7 +27,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { applicantService } from "@/services/applicantService";
 import { toast } from "sonner";
-import { SettingsPageSkeleton } from "@/components/ui/page-skeletons";
 
 /* ── Animations ──────────────────────────────────── */
 const fadeInUp = {

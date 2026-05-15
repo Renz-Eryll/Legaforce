@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/table";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
-import { DashboardPageSkeleton } from "@/components/ui/page-skeletons";
+import { CardGridSkeleton } from "@/components/ui/page-skeletons";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -221,12 +221,7 @@ function CompliancePage() {
 
       {/* Compliance Items */}
       {isLoading ? (
-        <motion.div
-          variants={fadeInUp}
-          className="flex items-center justify-center py-12"
-        >
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </motion.div>
+        <CardGridSkeleton count={3} />
       ) : filteredCompliance.length === 0 ? (
         <motion.div variants={fadeInUp} className="text-center py-12">
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
