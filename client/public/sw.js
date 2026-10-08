@@ -3,12 +3,12 @@
  *
  * Strategy:
  *  - Static assets (JS/CSS/fonts): Cache-first (fast loads on repeat visits)
- *  - API calls: Network-first with cache fallback (always fresh when online)
+ *  - API calls / cross-origin requests: never intercepted (private data must not be cached)
  *  - Navigation: Network-first (SPA routing handled by index.html fallback)
  *  - Images: Cache-first with network fallback (reduce bandwidth)
  */
 
-const CACHE_VERSION = "legaforce-v1";
+const CACHE_VERSION = "legaforce-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -57,11 +57,11 @@ self.addEventListener("fetch", (event) => {
   // Skip chrome-extension and other non-http
   if (!url.protocol.startsWith("http")) return;
 
-  // API calls: Network-first with cache fallback
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirstStrategy(request, DYNAMIC_CACHE));
-    return;
-  }
+  // Leave the API (a different origin) alone: authenticated responses must not be
+  // cached on shared devices, and the SSE stream never ends so it can't be cached
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
+  if (request.headers.get("accept")?.includes("text/event-stream")) return;
 
   // Images: Cache-first
   if (
@@ -88,11 +88,18 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+          }
           return response;
         })
-        .catch(() => caches.match("/") || caches.match(request))
+        .catch(
+          async () =>
+            (await caches.match(request)) ||
+            (await caches.match("/")) ||
+            Response.error()
+        )
     );
     return;
   }
