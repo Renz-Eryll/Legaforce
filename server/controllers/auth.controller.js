@@ -8,6 +8,7 @@ import {
   FRONTEND_URL,
   NODE_ENV,
   EMAIL_USER,
+  SENDGRID_FROM_EMAIL,
 } from "../config/env.js";
 import sgMail from "../config/sendgrid.js";
 import devMailer from "../config/mailer.js";
@@ -93,7 +94,7 @@ const sendOtpEmail = async (email, otp, firstName) => {
   // ── Production: try SendGrid first, fall back to Gmail ──
   const msg = {
     to: email,
-    from: EMAIL_USER || "renzeryll09@gmail.com",
+    from: SENDGRID_FROM_EMAIL || EMAIL_USER || "noreply@legaforce.com",
     subject,
     html,
   };
@@ -128,7 +129,9 @@ const sendOtpEmail = async (email, otp, firstName) => {
 
 export const signUp = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, password, role } = req.body;
+    const { firstName, lastName, phone, password, role } = req.body;
+    // Store emails lowercased so lookups and uniqueness aren't case-sensitive
+    const email = req.body.email.trim().toLowerCase();
 
     if (!["APPLICANT", "EMPLOYER"].includes(role)) {
       const error = new Error("Invalid role. Must be APPLICANT or EMPLOYER");
@@ -136,8 +139,8 @@ export const signUp = async (req, res, next) => {
       throw error;
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
     });
 
     if (existingUser) {
@@ -150,7 +153,7 @@ export const signUp = async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         await prisma.user.update({
-          where: { email },
+          where: { id: existingUser.id },
           data: {
             password: hashedPassword,
             emailVerificationOtp: otp,
@@ -287,8 +290,8 @@ export const verifyEmail = async (req, res, next) => {
       throw error;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
       include: {
         profile: true,
         employer: true,
@@ -328,7 +331,7 @@ export const verifyEmail = async (req, res, next) => {
 
     // Mark email as verified & clear OTP fields
     const updatedUser = await prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: {
         isEmailVerified: true,
         emailVerificationOtp: null,
@@ -375,8 +378,8 @@ export const resendOtp = async (req, res, next) => {
       throw error;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
       include: {
         profile: true,
         employer: true,
@@ -399,7 +402,7 @@ export const resendOtp = async (req, res, next) => {
     const otpExpiry = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
     await prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: {
         emailVerificationOtp: otp,
         emailVerificationExpiry: otpExpiry,
@@ -439,8 +442,8 @@ export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
       include: {
         profile: true,
         employer: true,
@@ -474,7 +477,7 @@ export const signIn = async (req, res, next) => {
       const otpExpiry = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
       await prisma.user.update({
-        where: { email },
+        where: { id: user.id },
         data: {
           emailVerificationOtp: otp,
           emailVerificationExpiry: otpExpiry,
