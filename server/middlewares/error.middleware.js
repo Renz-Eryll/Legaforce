@@ -16,12 +16,21 @@ const errorMiddleware = (err, req, res, next) => {
       error.statusCode = 404;
     }
 
-    // Validation errors
-    if (err.name === "ValidationError") {
-      error.message = Object.values(err.errors)
-        .map((val) => val.message)
-        .join(", ");
+    // Upload errors (file too large, too many files, etc.)
+    if (err.name === "MulterError") {
+      error.message =
+        err.code === "LIMIT_FILE_SIZE" ? "File is too large (max 10 MB)" : err.message;
       error.statusCode = 400;
+    }
+
+    // Rejected by the upload fileFilter
+    if (/^File type .* is not allowed$/.test(err.message || "")) {
+      error.statusCode = 400;
+    }
+
+    // Malformed JSON / oversized body from express.json()
+    if (err.type === "entity.parse.failed") {
+      error.message = "Malformed JSON in request body";
     }
 
     // JWT errors
@@ -35,9 +44,18 @@ const errorMiddleware = (err, req, res, next) => {
       error.statusCode = 401;
     }
 
-    res.status(error.statusCode || 500).json({
+    // Body-parser and http-errors set `status` instead of `statusCode`
+    const statusCode = error.statusCode || err.status || 500;
+
+    // Don't leak internal error details (e.g. Prisma query info) in production
+    const message =
+      statusCode >= 500 && process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : error.message || "Server Error";
+
+    res.status(statusCode).json({
       success: false,
-      message: error.message || "Server Error",
+      message,
       ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
     });
   } catch (error) {
