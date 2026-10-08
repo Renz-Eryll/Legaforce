@@ -5,6 +5,7 @@
  * job orders, applications, deployments, invoices, and complaints.
  */
 import prisma from "../config/database.js";
+import { getPagination } from "../utils/pagination.js";
 import { uploadFile, deleteFile } from "../services/upload.service.js";
 import { checkAndNotifySlaBreaches } from "../services/sla.service.js";
 import { notifyStatusChange as sseNotifyStatusChange } from "../services/sse.service.js";
@@ -98,7 +99,7 @@ export const getDashboardStats = async (req, res, next) => {
 
 export const getRecentActivity = async (req, res, next) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
 
     const [recentApps, recentComplaints, recentJobs] = await Promise.all([
       prisma.application.findMany({
@@ -188,8 +189,8 @@ export const getPendingApprovals = async (req, res, next) => {
 
 export const getApplicants = async (req, res, next) => {
   try {
-    const { search, page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { search } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
 
     const where = search
       ? {
@@ -205,7 +206,7 @@ export const getApplicants = async (req, res, next) => {
       prisma.profile.findMany({
         where,
         skip,
-        take: parseInt(limit),
+        take: limit,
         orderBy: { createdAt: "desc" },
         include: {
           user: {
@@ -226,8 +227,8 @@ export const getApplicants = async (req, res, next) => {
       success: true,
       data: applicants,
       total,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
     });
   } catch (err) {
     next(err);
@@ -299,8 +300,8 @@ export const getApplicantDetail = async (req, res, next) => {
 
 export const getEmployers = async (req, res, next) => {
   try {
-    const { search, page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { search } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
 
     const where = search
       ? {
@@ -315,7 +316,7 @@ export const getEmployers = async (req, res, next) => {
       prisma.employer.findMany({
         where,
         skip,
-        take: parseInt(limit),
+        take: limit,
         orderBy: { createdAt: "desc" },
         include: {
           user: { select: { email: true, isActive: true, createdAt: true } },
@@ -329,8 +330,8 @@ export const getEmployers = async (req, res, next) => {
       success: true,
       data: employers,
       total,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
     });
   } catch (err) {
     next(err);
@@ -474,15 +475,15 @@ export const toggleUserActive = async (req, res, next) => {
 
 export const getJobOrders = async (req, res, next) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { status } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
     const where = status ? { status } : {};
 
     const [jobs, total] = await Promise.all([
       prisma.jobOrder.findMany({
         where,
         skip,
-        take: parseInt(limit),
+        take: limit,
         orderBy: { createdAt: "desc" },
         include: {
           employer: { select: { companyName: true, country: true } },
@@ -539,15 +540,15 @@ export const updateJobOrderStatus = async (req, res, next) => {
 
 export const getApplications = async (req, res, next) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { status } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
     const where = status ? { status } : {};
 
     const [applications, total] = await Promise.all([
       prisma.application.findMany({
         where,
         skip,
-        take: parseInt(limit),
+        take: limit,
         orderBy: { updatedAt: "desc" },
         include: {
           applicant: {
