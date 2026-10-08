@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { useAuthStore } from "./stores/authStore";
 
 // Layouts — loaded eagerly (used on every page)
@@ -99,10 +101,16 @@ const queryClient = new QueryClient({
 
 const App = () => {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Drop cached queries on logout so the next user on this device never sees them
+  useEffect(() => {
+    if (!isAuthenticated) queryClient.clear();
+  }, [isAuthenticated]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -110,6 +118,8 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
+          <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}
@@ -221,6 +231,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

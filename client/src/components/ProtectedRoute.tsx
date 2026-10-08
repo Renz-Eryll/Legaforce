@@ -41,6 +41,8 @@ export function ProtectedRoute({
     } else if (user.role === "ADMIN") {
       return <Navigate to="/admin/dashboard" replace />;
     }
+    // Unknown role — never render a page the user isn't allowed to see
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
