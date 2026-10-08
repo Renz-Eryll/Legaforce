@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 
-cat > .gitignore << 'EOF'
 # Dependencies
 node_modules/
 
@@ -50,6 +49,5 @@ Thumbs.db
 # Misc
 *.pem
 *.key
-EOF
 /generated/prisma
 
