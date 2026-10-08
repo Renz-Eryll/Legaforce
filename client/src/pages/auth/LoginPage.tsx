@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/authStore";
-import { usePreventNavigation, getDashboardRoute } from "@/hooks/useNavigation";
+import { getDashboardRoute } from "@/hooks/useNavigation";
 import {
   Mail,
   Lock,
@@ -14,10 +14,6 @@ import {
   EyeOff,
   ArrowRight,
   AlertCircle,
-  Globe2,
-  ShieldCheck,
-  Users2,
-  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +23,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import api from "@/services/api";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -36,28 +31,29 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const stats = [
-  { icon: Users2, value: "50,000+", label: "OFWs Deployed" },
-  { icon: Globe2, value: "25+", label: "Countries" },
-  { icon: ShieldCheck, value: "POEA", label: "Licensed Agency" },
-  { icon: Zap, value: "21–30", label: "Days Deployment" },
-];
-
 export default function LoginPage() {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, user } = useAuthStore();
 
-  usePreventNavigation();
-
+  // Already signed in (e.g. visiting /login directly) — send to the right dashboard for the role
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/app/dashboard");
+    if (isAuthenticated && user) {
+      navigate(getDashboardRoute(user.role), { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
+
+  // Message left by the API client after a 401 redirect (e.g. session expired)
+  useEffect(() => {
+    const authMessage = sessionStorage.getItem("auth_message");
+    if (authMessage) {
+      sessionStorage.removeItem("auth_message");
+      toast.error(authMessage);
+    }
+  }, []);
 
   const {
     register,
@@ -74,15 +70,13 @@ export default function LoginPage() {
       const response = await login(data.email, data.password);
       if (response?.data?.requiresVerification) {
         toast.info(response.message || "Please verify your email");
+        sessionStorage.setItem("pending_verify_email", response.data.email);
         navigate("/verify-email", { state: { email: response.data.email } });
         return;
       }
       toast.success("Login successful!");
       const userRole = response?.data?.user?.role || "APPLICANT";
-      const dashboardRoute = getDashboardRoute(userRole);
-      setTimeout(() => {
-        navigate(dashboardRoute, { replace: true });
-      }, 500);
+      navigate(getDashboardRoute(userRole), { replace: true });
     } catch (error: any) {
       let errorMessage = "Login failed. Please check your credentials and try again.";
       if (error.response?.data?.message) errorMessage = error.response.data.message;
@@ -233,6 +227,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="your@email.com"
+                  autoComplete="email"
                   className={cn(
                     "pl-12 h-14 rounded-2xl border-transparent bg-muted/40 hover:bg-muted/60 focus:bg-background focus:border-[#005085] focus:ring-4 focus:ring-[#005085]/10 text-base transition-all duration-300 shadow-sm",
                     errors.email && "border-destructive/50 bg-destructive/5 focus:ring-destructive/10"
@@ -251,9 +246,6 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-sm font-bold text-foreground/80">
                   Password
                 </Label>
-                <Link to="/forgot-password" className="text-sm font-bold text-muted-foreground hover:text-[#005085] transition-colors">
-                  Forgot password?
-                </Link>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#005085] transition-colors" />
@@ -261,6 +253,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   className={cn(
                     "pl-12 pr-12 h-14 rounded-2xl border-transparent bg-muted/40 hover:bg-muted/60 focus:bg-background focus:border-[#005085] focus:ring-4 focus:ring-[#005085]/10 text-base transition-all duration-300 shadow-sm",
                     errors.password && "border-destructive/50 bg-destructive/5 focus:ring-destructive/10"
@@ -270,6 +263,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

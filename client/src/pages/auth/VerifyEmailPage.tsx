@@ -7,6 +7,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/authStore";
+import { getDashboardRoute } from "@/hooks/useNavigation";
 import {
   ArrowRight,
   Mail,
@@ -39,8 +40,9 @@ export default function VerifyEmailPage() {
   const location = useLocation();
   const { checkAuth } = useAuthStore();
   
-  // Get email from router state or local storage (if preserved)
-  const email = location.state?.email;
+  // Router state is lost on refresh, so fall back to the copy saved by Login/Register
+  const email: string | undefined =
+    location.state?.email ?? sessionStorage.getItem("pending_verify_email") ?? undefined;
 
   useEffect(() => {
     if (!email) {
@@ -83,18 +85,12 @@ export default function VerifyEmailPage() {
         // Update auth store
         await checkAuth();
 
-        // Navigate based on role (which we can get from the response or just default to dashboard and let the protected route handle it)
-        const user = response.data.user;
-        if (user?.role === "EMPLOYER") {
-          navigate("/employer/dashboard");
-        } else {
-          navigate("/app/dashboard");
-        }
+        sessionStorage.removeItem("pending_verify_email");
+        navigate(getDashboardRoute(response.data.user?.role ?? "APPLICANT"), { replace: true });
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Verification failed";
       setError(errorMessage);
-      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -111,13 +107,12 @@ export default function VerifyEmailPage() {
     setError(null);
     
     try {
-      const response = await authService.resendOtp(email);
-      console.log("Resend OTP Response:", response);
+      await authService.resendOtp(email);
       toast.success("New verification code sent!");
       setCountdown(60); // 60 seconds cooldown
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || "Failed to resend code";
-      toast.error(errorMessage);
+      // Errors with a response are already toasted by the API interceptor
+      if (!err.response) toast.error(err.message || "Failed to resend code");
     } finally {
       setIsResending(false);
     }

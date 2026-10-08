@@ -105,6 +105,7 @@ export default function RegisterPage() {
 
       if (response?.data?.requiresVerification) {
         toast.info(response.message || "Please verify your email");
+        sessionStorage.setItem("pending_verify_email", data.email);
         navigate("/verify-email", { state: { email: data.email } });
       } else if (response?.data?.token) {
         toast.success("Account created successfully!");
@@ -117,7 +118,8 @@ export default function RegisterPage() {
       else if (error.response?.data?.error) errorMessage = error.response.data.error;
       else if (error.message) errorMessage = error.message;
       setRegisterError(errorMessage);
-      toast.error(errorMessage);
+      // Errors with a response are already toasted by the API interceptor
+      if (!error.response) toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
