@@ -80,7 +80,7 @@ app.use("/uploads", express.static("uploads", { maxAge: "7d" }));
 app.use("/api", arcjetMiddleware);
 
 import { addClient, getClientCount } from "./services/sse.service.js";
-import { authorize } from "./middlewares/auth.middleware.js";
+import { authorize, authorizeRoles } from "./middlewares/auth.middleware.js";
 
 // ── SSE (Server-Sent Events) endpoint for real-time notifications ──
 app.get("/api/v1/notifications/stream", authorize, (req, res) => {
@@ -112,7 +112,7 @@ app.get("/api/v1/notifications/stream", authorize, (req, res) => {
 });
 
 // SSE health check (admin monitoring)
-app.get("/api/v1/notifications/connections", (req, res) => {
+app.get("/api/v1/notifications/connections", authorize, authorizeRoles("ADMIN"), (req, res) => {
   res.json({ success: true, data: { activeConnections: getClientCount() } });
 });
 

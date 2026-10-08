@@ -1,9 +1,10 @@
 import app from "./app.js";
-import { PORT, NODE_ENV } from "./config/env.js";
+import { PORT, NODE_ENV, validateEnv } from "./config/env.js";
 import { connectToDatabase, disconnectDatabase } from "./config/database.js";
 
 const startServer = async () => {
   try {
+    validateEnv();
     await connectToDatabase();
 
     const server = app.listen(PORT, () => {
