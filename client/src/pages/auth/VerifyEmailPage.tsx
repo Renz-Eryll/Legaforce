@@ -6,15 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { authService } from "@/services/authService";
+import { getErrorMessage, hasResponse } from "@/lib/errors";
 import { useAuthStore } from "@/stores/authStore";
 import { getDashboardRoute } from "@/hooks/useNavigation";
-import {
-  ArrowRight,
-  Mail,
-  AlertCircle,
-  RefreshCw,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   InputOTP,
@@ -22,7 +17,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AuthHeading, AuthShell, ButtonSpinner } from "@/components/auth/AuthShell";
 
 const verifySchema = z.object({
   otp: z.string().length(6, "Please enter the 6-digit code"),
@@ -88,9 +83,8 @@ export default function VerifyEmailPage() {
         sessionStorage.removeItem("pending_verify_email");
         navigate(getDashboardRoute(response.data.user?.role ?? "APPLICANT"), { replace: true });
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || "Verification failed";
-      setError(errorMessage);
+    } catch (err) {
+      setError(getErrorMessage(err, "Verification failed"));
     } finally {
       setIsLoading(false);
     }
@@ -110,177 +104,109 @@ export default function VerifyEmailPage() {
       await authService.resendOtp(email);
       toast.success("New verification code sent!");
       setCountdown(60); // 60 seconds cooldown
-    } catch (err: any) {
-      // Errors with a response are already toasted by the API interceptor
-      if (!err.response) toast.error(err.message || "Failed to resend code");
+    } catch (err) {
+      if (!hasResponse(err)) toast.error(getErrorMessage(err, "Failed to resend code"));
     } finally {
       setIsResending(false);
     }
   };
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
-      {/* Left Side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:flex-col lg:justify-between lg:p-8 bg-gradient-to-br from-primary/95 to-primary text-primary-foreground relative overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-b from-accent/10 to-transparent rounded-full blur-3xl" />
-          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-t from-accent/5 to-transparent rounded-full blur-3xl" />
-        </div>
+    <AuthShell
+      eyebrow="One last step"
+      title={
+        <>
+          Check your <span className="text-accent">email.</span>
+        </>
+      }
+      description="We've sent a 6-digit verification code to"
+      panelExtra={
+        <p className="inline-flex max-w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent px-3 py-2 font-mono text-sm">
+          <Mail className="h-4 w-4 shrink-0 text-accent" />
+          <span className="truncate">{email}</span>
+        </p>
+      }
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-sm"
+      >
+        <AuthHeading title="Verify account">
+          Enter the code sent to <span className="font-semibold text-foreground lg:hidden">{email}</span>
+          <span className="hidden lg:inline">your email address.</span>
+        </AuthHeading>
 
-        <div className="relative z-10 space-y-8">
-          <Link to="/" className="flex items-center gap-3 group w-fit">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors">
-              <span className="text-2xl font-bold text-white">L</span>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">Legaforce</h2>
-              <p className="text-xs text-primary-foreground/60">
-                Global Recruitment
-              </p>
-            </div>
-          </Link>
+        {error && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="font-medium">{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
 
-          <div className="max-w-sm space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold leading-tight">
-                Check Your Email
-              </h1>
-              <p className="text-primary-foreground/70 text-lg">
-                We've sent a 6-digit verification code to
-              </p>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 inline-flex items-center gap-2 mt-2 border border-white/20">
-                <Mail className="w-4 h-4" />
-                <span className="font-medium">{email}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative z-10 text-xs text-primary-foreground/50">
-          © 2026 Legaforce. POEA Licensed Platform.
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="flex flex-col items-center justify-center p-6 sm:p-8">
-        <div className="lg:hidden w-full flex items-center justify-between mb-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-              L
-            </div>
-            <span className="font-bold">Legaforce</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-
-        <div className="hidden lg:flex absolute top-8 right-8">
-          <ThemeToggle />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="w-full max-w-sm"
-        >
-          <div className="mb-8 space-y-2 text-center lg:text-left">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto lg:mx-0">
-              <CheckCircle2 className="w-6 h-6 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold">Verify Account</h1>
-            <p className="text-muted-foreground">
-              Enter the code sent to your email address.
-            </p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <InputOTP
+              maxLength={6}
+              value={otpValue}
+              onChange={(val) => setValue("otp", val)}
+              onComplete={onComplete}
+              disabled={isLoading}
+              containerClassName="justify-between"
+            >
+              <InputOTPGroup className="w-full justify-between gap-2">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <InputOTPSlot
+                    key={index}
+                    index={index}
+                    className="h-14 w-full rounded-md border border-input bg-card font-mono text-xl first:rounded-md last:rounded-md"
+                  />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+            {errors.otp && <p className="text-sm font-medium text-destructive">{errors.otp.message}</p>}
           </div>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Alert
-                variant="destructive"
-                className="mb-6 border-destructive/50 bg-destructive/5"
-              >
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
+          <Button type="submit" size="xl" className="w-full" disabled={isLoading || !otpValue || otpValue.length < 6}>
+            {isLoading ? (
+              <>
+                <ButtonSpinner />
+                Verifying…
+              </>
+            ) : (
+              <>
+                Verify email
+                <ArrowRight />
+              </>
+            )}
+          </Button>
+        </form>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2 flex flex-col items-center lg:items-start">
-              <InputOTP
-                maxLength={6}
-                value={otpValue}
-                onChange={(val) => setValue("otp", val)}
-                onComplete={onComplete}
-                disabled={isLoading}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-              {errors.otp && (
-                <p className="text-xs text-destructive font-medium mt-2">
-                  {errors.otp.message}
-                </p>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-11"
-              disabled={isLoading || !otpValue || otpValue.length < 6}
+        <div className="mt-8 flex flex-col gap-4 border-t pt-6 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground">
+            Didn't get it?{" "}
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={isResending || countdown > 0}
+              className="font-semibold text-primary underline-offset-4 hover:underline disabled:text-muted-foreground disabled:no-underline dark:text-accent"
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Verifying...
-                </div>
+              {isResending ? "Sending…" : countdown > 0 ? (
+                <span className="font-mono">Resend in {countdown}s</span>
               ) : (
-                <>
-                  Verify Email
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+                "Resend code"
               )}
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center space-y-4">
-            <div className="text-sm text-muted-foreground">
-              Didn't receive the code?{" "}
-              <button
-                onClick={handleResendOtp}
-                disabled={isResending || countdown > 0}
-                className="text-primary hover:underline font-medium disabled:opacity-50 disabled:no-underline"
-              >
-                {isResending ? (
-                  "Sending..."
-                ) : countdown > 0 ? (
-                  `Resend in ${countdown}s`
-                ) : (
-                  "Resend Code"
-                )}
-              </button>
-            </div>
-
-            <Link
-              to="/login"
-              className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors"
-            >
-              <ArrowRight className="w-3 h-3 rotate-180" />
-              Back to Sign In
-            </Link>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+            </button>
+          </p>
+          <Link to="/login" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to sign in
+          </Link>
+        </div>
+      </motion.div>
+    </AuthShell>
   );
 }
