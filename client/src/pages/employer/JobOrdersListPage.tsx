@@ -123,7 +123,7 @@ function JobOrdersListPage() {
           </p>
         </div>
         <Link to="/employer/create-job-order">
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="w-4 h-4 mr-2" />
             New Job Order
           </Button>
@@ -132,17 +132,17 @@ function JobOrdersListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total</p>
           <p className="text-2xl font-display font-bold">{jobOrders.length}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Active</p>
           <p className="text-2xl font-display font-bold text-emerald-600">
             {activeCount}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Filled</p>
           <p className="text-2xl font-display font-bold text-blue-600">
             {filledCount}
@@ -153,7 +153,7 @@ function JobOrdersListPage() {
       {/* Search & Filter */}
       <motion.div
         variants={fadeInUp}
-        className="card-premium p-5 flex flex-col sm:flex-row gap-4"
+        className="panel p-5 flex flex-col sm:flex-row gap-4"
       >
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -179,7 +179,7 @@ function JobOrdersListPage() {
       </motion.div>
 
       {/* Job Orders Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {filteredJobOrders.length === 0 ? (
           <div className="p-12 text-center">
             <Briefcase className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
@@ -190,7 +190,7 @@ function JobOrdersListPage() {
                 : "Start by creating your first job order"}
             </p>
             <Link to="/employer/create-job-order">
-              <Button className="gradient-bg-accent text-accent-foreground">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Job Order
               </Button>
@@ -220,7 +220,7 @@ function JobOrdersListPage() {
                     <TableCell className="font-medium">
                       <Link
                         to={`/employer/job-orders/${job.id}`}
-                        className="hover:text-accent transition-colors"
+                        className="hover:text-accent-text transition-colors"
                       >
                         {job.title}
                       </Link>

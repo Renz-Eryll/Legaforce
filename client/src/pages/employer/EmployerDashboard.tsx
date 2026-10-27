@@ -109,7 +109,7 @@ export default function EmployerDashboard() {
             <Button variant="outline" size="sm"><Wallet className="w-4 h-4 mr-2" />Pricing</Button>
           </Link>
           <Link to="/employer/create-job-order">
-            <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg">
               <Plus className="w-4 h-4 mr-2" />Post New Job
             </Button>
           </Link>
@@ -119,7 +119,7 @@ export default function EmployerDashboard() {
       {/* KPI Cards */}
       <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card, i) => (
-          <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="card-premium p-5 hover:scale-[1.02] transition-transform">
+          <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="panel p-5 hover:scale-[1.02] transition-transform">
             <div className="flex items-start justify-between mb-4">
               <div className={cn("p-2.5 rounded-xl", card.bg)}>
                 <card.icon className={cn("h-5 w-5", card.color)} />
@@ -135,7 +135,7 @@ export default function EmployerDashboard() {
       {/* Row 2: Hiring Trend + Candidate Pipeline (REAL DATA) */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Hiring Trend Area Chart */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2 card-premium p-6">
+        <motion.div variants={fadeInUp} className="lg:col-span-2 panel p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-lg font-display font-semibold">Hiring Trend</h2>
@@ -171,7 +171,7 @@ export default function EmployerDashboard() {
         </motion.div>
 
         {/* Candidate Pipeline Bar */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h2 className="text-lg font-display font-semibold mb-1">Candidate Pipeline</h2>
           <p className="text-xs text-muted-foreground mb-5">Current hiring funnel across all jobs</p>
           {analytics.pipeline?.length > 0 ? (
@@ -198,27 +198,27 @@ export default function EmployerDashboard() {
         <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-display font-semibold">Active Job Orders</h2>
-            <Link to="/employer/job-orders" className="text-sm text-accent hover:underline flex items-center gap-1">
+            <Link to="/employer/job-orders" className="text-sm text-accent-text hover:underline flex items-center gap-1">
               View all <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
           {jobOrders.length === 0 ? (
-            <div className="card-premium p-10 text-center">
+            <div className="panel p-10 text-center">
               <Briefcase className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
               <p className="text-muted-foreground mb-4">No job orders yet</p>
               <Link to="/employer/create-job-order">
-                <Button className="gradient-bg-accent text-accent-foreground"><Plus className="w-4 h-4 mr-2" />Post Your First Job</Button>
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground"><Plus className="w-4 h-4 mr-2" />Post Your First Job</Button>
               </Link>
             </div>
           ) : (
             <div className="space-y-3">
               {jobOrders.slice(0, 5).map((job, i) => (
-                <motion.div key={job.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }} className="card-premium p-4 group">
+                <motion.div key={job.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }} className="panel p-4 group">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm group-hover:text-accent transition-colors truncate">{job.title}</h3>
+                        <h3 className="font-semibold text-sm group-hover:text-accent-text transition-colors truncate">{job.title}</h3>
                         <Badge className={cn("text-xs shrink-0", statusConfig[job.status?.toUpperCase() || "ACTIVE"]?.className)}>
                           {statusConfig[job.status?.toUpperCase() || "ACTIVE"]?.label || job.status}
                         </Badge>
@@ -244,10 +244,10 @@ export default function EmployerDashboard() {
         {/* Right Sidebar */}
         <motion.div variants={fadeInUp} className="space-y-4">
           {/* Upcoming Interviews */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm flex items-center gap-2">
-                <UserCheck className="h-4 w-4 text-accent" />Upcoming Interviews
+                <UserCheck className="h-4 w-4 text-accent-text" />Upcoming Interviews
               </h3>
               <Badge variant="secondary">{interviews.length}</Badge>
             </div>
@@ -256,14 +256,14 @@ export default function EmployerDashboard() {
                 <p className="text-xs text-muted-foreground text-center py-4">No upcoming interviews</p>
               ) : interviews.slice(0, 3).map((iv, i) => (
                 <div key={iv.id || i} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/40">
-                  <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent font-semibold text-xs flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent-text font-semibold text-xs flex items-center justify-center shrink-0">
                     {(iv.candidateName || "?").split(" ").map((n: string) => n[0]).join("")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{iv.candidateName}</p>
                     <p className="text-xs text-muted-foreground truncate">{iv.position}</p>
                   </div>
-                  <p className="text-xs text-accent font-medium shrink-0">
+                  <p className="text-xs text-accent-text font-medium shrink-0">
                     {iv.date ? new Date(iv.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "TBD"}
                   </p>
                 </div>
@@ -275,10 +275,10 @@ export default function EmployerDashboard() {
           </div>
 
           {/* Recent Candidates */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm flex items-center gap-2">
-                <Users className="h-4 w-4 text-accent" />Recent Candidates
+                <Users className="h-4 w-4 text-accent-text" />Recent Candidates
               </h3>
             </div>
             <div className="space-y-2">
@@ -302,7 +302,7 @@ export default function EmployerDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
             <div className="space-y-1.5">
               {[
@@ -324,9 +324,9 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Optimization callout */}
-      <motion.div variants={fadeInUp} className="card-premium p-4 bg-muted/20 flex flex-wrap items-center gap-4">
+      <motion.div variants={fadeInUp} className="panel p-4 bg-muted/20 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-accent/10"><TrendingUp className="w-4 h-4 text-accent" /></div>
+          <div className="p-1.5 rounded-lg bg-accent/10"><TrendingUp className="w-4 h-4 text-accent-text" /></div>
           <span className="text-sm font-medium">Cost Optimization Active</span>
         </div>
         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">

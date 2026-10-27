@@ -127,17 +127,17 @@ function InterviewsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Interviews</p>
           <p className="text-2xl font-display font-bold">{interviews.length}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Scheduled</p>
           <p className="text-2xl font-display font-bold text-blue-600">
             {interviews.filter((i) => i.status === "scheduled").length}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Completed</p>
           <p className="text-2xl font-display font-bold text-emerald-600">
             {interviews.filter((i) => i.status === "completed").length}
@@ -146,7 +146,7 @@ function InterviewsListPage() {
       </motion.div>
 
       {/* Filter */}
-      <motion.div variants={fadeInUp} className="card-premium p-4">
+      <motion.div variants={fadeInUp} className="panel p-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
@@ -162,7 +162,7 @@ function InterviewsListPage() {
       {/* Interviews List */}
       <motion.div variants={fadeInUp} className="space-y-4">
         {filteredInterviews.length === 0 ? (
-          <div className="card-premium p-12 text-center">
+          <div className="panel p-12 text-center">
             <UserCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
             <h3 className="font-semibold mb-1">No interviews yet</h3>
             <p className="text-sm text-muted-foreground">
@@ -173,7 +173,7 @@ function InterviewsListPage() {
           filteredInterviews.map((interview) => (
             <div
               key={interview.id}
-              className="card-premium p-5 hover:shadow-lg transition-shadow"
+              className="panel p-5 hover:shadow-lg transition-shadow"
             >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div className="flex-1">
@@ -216,7 +216,7 @@ function InterviewsListPage() {
                   {interview.status === "scheduled" && interview.videoLink && (
                     <Button
                       size="sm"
-                      className="gradient-bg-accent text-accent-foreground"
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
                       asChild
                     >
                       <a
@@ -284,7 +284,7 @@ function InterviewsListPage() {
       {ratingEdit && (
         <motion.div
           variants={fadeInUp}
-          className="card-premium p-6 border-2 border-accent/30"
+          className="panel p-6 border-2 border-accent/30"
         >
           <h3 className="font-semibold mb-3">Record & rate candidate</h3>
           <div className="flex gap-2 mb-3">

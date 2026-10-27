@@ -144,25 +144,25 @@ function ComplaintsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Complaints</p>
           <p className="text-2xl font-display font-bold">
             {complaintStats.total}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Open</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             {complaintStats.open}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Escalated</p>
           <p className="text-2xl font-display font-bold text-red-500">
             {complaintStats.escalated}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Resolved</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {complaintStats.resolved}
@@ -171,7 +171,7 @@ function ComplaintsListPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -200,7 +200,7 @@ function ComplaintsListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={6} />
         ) : filteredComplaints.length === 0 ? (

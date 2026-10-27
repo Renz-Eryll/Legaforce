@@ -112,7 +112,7 @@ function CreateJobOrderPage() {
       <motion.button
         variants={fadeInUp}
         onClick={() => navigate("/employer/job-orders")}
-        className="flex items-center gap-2 text-accent hover:underline"
+        className="flex items-center gap-2 text-accent-text hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Job Orders
@@ -127,7 +127,7 @@ function CreateJobOrderPage() {
       </motion.div>
 
       {/* Form */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <Tabs defaultValue="basic" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -272,7 +272,7 @@ function CreateJobOrderPage() {
         {/* Submit Buttons */}
         <div className="flex gap-2 mt-6 pt-6 border-t">
           <Button
-            className="gradient-bg-accent text-accent-foreground"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
             onClick={() => handleSubmit("ACTIVE")}
             disabled={isSubmitting}
           >

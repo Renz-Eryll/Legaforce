@@ -141,25 +141,25 @@ function VerificationPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Pending</p>
           <p className="text-2xl font-display font-bold">
             {verificationStats.pending}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">High Priority</p>
           <p className="text-2xl font-display font-bold text-red-500">
             {verificationStats.highPriority}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Approved</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {verificationStats.approved}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Avg. Time to Review
           </p>
@@ -170,7 +170,7 @@ function VerificationPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-end">
           <div className="flex-1">
             <div className="relative">
@@ -210,7 +210,7 @@ function VerificationPage() {
       </motion.div>
 
       {/* Quick Actions */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline">
             <Zap className="w-4 h-4 mr-1" />
@@ -228,7 +228,7 @@ function VerificationPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={5} />
         ) : filteredVerifications.length === 0 ? (

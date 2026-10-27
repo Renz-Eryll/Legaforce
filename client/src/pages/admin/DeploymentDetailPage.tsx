@@ -299,7 +299,7 @@ function DeploymentDetailPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="gradient-bg-accent text-accent-foreground"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             {isSaving ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -313,7 +313,7 @@ function DeploymentDetailPage() {
 
       {/* Worker & Job Summary */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-blue-500" />
             Worker Information
@@ -340,7 +340,7 @@ function DeploymentDetailPage() {
           </div>
         </motion.div>
 
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-purple-500" />
             Job & Employer
@@ -370,10 +370,10 @@ function DeploymentDetailPage() {
       </div>
 
       {/* Compliance Status Overview */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Shield className="w-5 h-5 text-accent" />
+            <Shield className="w-5 h-5 text-accent-text" />
             Compliance Status Overview
           </h3>
           {allApproved && (
@@ -505,9 +505,9 @@ function DeploymentDetailPage() {
       </motion.div>
 
       {/* Flight Information */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-          <Plane className="w-5 h-5 text-accent" />
+          <Plane className="w-5 h-5 text-accent-text" />
           Flight Information
         </h3>
         <div className="grid sm:grid-cols-2 gap-6">
@@ -535,10 +535,10 @@ function DeploymentDetailPage() {
       </motion.div>
 
       {/* Deployment Documents */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <FileText className="w-5 h-5 text-accent" />
+            <FileText className="w-5 h-5 text-accent-text" />
             Deployment Documents
           </h3>
           <Badge variant="secondary">{documents.length} file(s)</Badge>
@@ -612,7 +612,7 @@ function DeploymentDetailPage() {
                   className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-accent/30 transition-colors"
                 >
                   <div className="p-2.5 rounded-lg bg-accent/10 shrink-0">
-                    <FileText className="w-5 h-5 text-accent" />
+                    <FileText className="w-5 h-5 text-accent-text" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
@@ -647,7 +647,7 @@ function DeploymentDetailPage() {
 
       {/* Post-Deployment Monitoring */}
       {allApproved && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <CheckCircle className="w-5 h-5 text-emerald-500" />
             Post-Deployment Monitoring
@@ -749,7 +749,7 @@ function DeploymentDetailPage() {
       )}
 
       {/* Created / Updated */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-muted-foreground" />
           Record Info

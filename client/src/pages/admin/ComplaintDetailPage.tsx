@@ -186,7 +186,7 @@ function ComplaintDetailPage() {
       </motion.div>
 
       {/* Quick Actions */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <h3 className="font-display font-semibold mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
           {complaint.status === "SUBMITTED" && (
@@ -243,9 +243,9 @@ function ComplaintDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Complaint Description */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-              <MessageCircle className="w-5 h-5 text-accent" />
+              <MessageCircle className="w-5 h-5 text-accent-text" />
               Complaint Details
             </h3>
             <div className="space-y-4">
@@ -297,7 +297,7 @@ function ComplaintDetailPage() {
           </motion.div>
 
           {/* Resolution */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
               <CheckCircle className="w-5 h-5 text-emerald-500" />
               Resolution
@@ -340,7 +340,7 @@ function ComplaintDetailPage() {
               <Button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="gradient-bg-accent text-accent-foreground"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -356,7 +356,7 @@ function ComplaintDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Complainant Info */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
               <User className="w-5 h-5 text-blue-500" />
               Complainant
@@ -410,9 +410,9 @@ function ComplaintDetailPage() {
           </motion.div>
 
           {/* Status Timeline */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-accent" />
+              <Clock className="w-5 h-5 text-accent-text" />
               Timeline
             </h3>
             <div className="space-y-3">

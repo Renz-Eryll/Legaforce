@@ -236,7 +236,7 @@ function ApplicantDetailPage() {
       </motion.div>
 
       {/* Profile Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Avatar */}
           <div className="flex-shrink-0">
@@ -344,7 +344,7 @@ function ApplicantDetailPage() {
       {/* Tabs */}
       <motion.div variants={fadeInUp}>
         <Tabs defaultValue="applications" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="applications">
               <Briefcase className="w-4 h-4 mr-2" />
               Applications ({applicant.applications?.length || 0})
@@ -364,7 +364,7 @@ function ApplicantDetailPage() {
           </TabsList>
 
           {/* Applications Tab */}
-          <TabsContent value="applications" className="card-premium mt-4">
+          <TabsContent value="applications" className="panel mt-4">
             {applicant.applications?.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
@@ -416,10 +416,10 @@ function ApplicantDetailPage() {
           </TabsContent>
 
           {/* Documents Tab */}
-          <TabsContent value="documents" className="card-premium mt-4 p-6">
+          <TabsContent value="documents" className="panel mt-4 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-display font-semibold flex items-center gap-2">
-                <FileText className="w-5 h-5 text-accent" />
+                <FileText className="w-5 h-5 text-accent-text" />
                 Applicant Documents
               </h3>
               <div className="flex items-center gap-3">
@@ -473,7 +473,7 @@ function ApplicantDetailPage() {
                   const cat = DOCUMENT_CATEGORIES.find(c => c.value === doc.category);
                   return (
                     <div key={doc.id} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 group hover:border-accent/30 transition-all">
-                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text shrink-0">
                         <FileText className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -504,7 +504,7 @@ function ApplicantDetailPage() {
           </TabsContent>
 
           {/* Complaints Tab */}
-          <TabsContent value="complaints" className="card-premium mt-4">
+          <TabsContent value="complaints" className="panel mt-4">
             {applicant.complaints?.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
@@ -553,7 +553,7 @@ function ApplicantDetailPage() {
           </TabsContent>
 
           {/* Actions Tab */}
-          <TabsContent value="actions" className="card-premium mt-4 p-6">
+          <TabsContent value="actions" className="panel mt-4 p-6">
             <h3 className="text-lg font-semibold mb-4">Admin Actions</h3>
             <div className="space-y-6">
               <Button

@@ -82,9 +82,9 @@ export default function PricingDashboardPage() {
         {costSavings.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="card-premium p-5 flex items-start gap-4">
+            <div key={item.label} className="panel p-5 flex items-start gap-4">
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                <Icon className="w-5 h-5 text-accent" />
+                <Icon className="w-5 h-5 text-accent-text" />
               </div>
               <div>
                 <p className="font-semibold mb-1">{item.label}</p>
@@ -96,9 +96,9 @@ export default function PricingDashboardPage() {
       </motion.div>
 
       {/* Transparent pricing table */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-accent" />
+          <DollarSign className="w-5 h-5 text-accent-text" />
           Transparent Pricing Dashboard
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
@@ -135,7 +135,7 @@ export default function PricingDashboardPage() {
       </motion.div>
 
       {/* Cost Optimization Summary */}
-      <motion.div variants={fadeInUp} className="card-premium p-6 bg-muted/30">
+      <motion.div variants={fadeInUp} className="panel p-6 bg-muted/30">
         <div className="flex items-center gap-2 mb-3">
           <TrendingDown className="w-5 h-5 text-emerald-600" />
           <h3 className="font-display font-semibold">Cost Optimization</h3>

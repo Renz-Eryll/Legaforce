@@ -490,7 +490,7 @@ function CVBuilderPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+          <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
           <p className="text-muted-foreground">Loading your CV data...</p>
         </div>
       </div>
@@ -518,7 +518,7 @@ function CVBuilderPage() {
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1 flex items-center gap-2">
-            <LayoutTemplate className="w-7 h-7 text-accent" />
+            <LayoutTemplate className="w-7 h-7 text-accent-text" />
             AI CV Builder
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -562,7 +562,7 @@ function CVBuilderPage() {
       </motion.div>
 
       {/* ── Step indicator ────────────────────────── */}
-      <motion.div variants={fadeInUp} className="card-premium p-3">
+      <motion.div variants={fadeInUp} className="panel p-3">
         <div className="flex gap-1.5 sm:gap-2 justify-between items-center">
           {STEPS.map((step, idx) => {
             const Icon = step.icon;
@@ -606,7 +606,7 @@ function CVBuilderPage() {
           )}
         >
           {/* Form card */}
-          <div className="card-premium p-5 sm:p-6">
+          <div className="panel p-5 sm:p-6">
             <AnimatePresence mode="wait">
               {/* ── Personal Info ────────────── */}
               {stepId === "personal" && (
@@ -616,7 +616,7 @@ function CVBuilderPage() {
                   className="space-y-4"
                 >
                   <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-                    <User className="w-5 h-5 text-accent" />
+                    <User className="w-5 h-5 text-accent-text" />
                     Personal Information
                   </h2>
                   <div>
@@ -695,7 +695,7 @@ function CVBuilderPage() {
                 >
                   <div className="flex justify-between items-center">
                     <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-                      <Briefcase className="w-5 h-5 text-accent" />
+                      <Briefcase className="w-5 h-5 text-accent-text" />
                       Employment History
                     </h2>
                     <Button
@@ -730,7 +730,7 @@ function CVBuilderPage() {
                           className="p-4 border border-border rounded-xl space-y-3 bg-muted/20"
                         >
                           <div className="flex justify-between items-start">
-                            <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                            <span className="text-xs font-semibold text-accent-text uppercase tracking-wider">
                               Experience #{idx + 1}
                             </span>
                             <Button
@@ -811,7 +811,7 @@ function CVBuilderPage() {
                   className="space-y-5"
                 >
                   <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-                    <Award className="w-5 h-5 text-accent" />
+                    <Award className="w-5 h-5 text-accent-text" />
                     Skills & Certifications
                   </h2>
 
@@ -826,7 +826,7 @@ function CVBuilderPage() {
                           <Badge
                             key={skill}
                             variant="secondary"
-                            className="px-3 py-1.5 gap-1 bg-accent/10 text-accent border-accent/20"
+                            className="px-3 py-1.5 gap-1 bg-accent/10 text-accent-text border-accent/20"
                           >
                             {skill}
                             <button
@@ -973,7 +973,7 @@ function CVBuilderPage() {
                 >
                   <div className="flex justify-between items-center">
                     <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5 text-accent" />
+                      <GraduationCap className="w-5 h-5 text-accent-text" />
                       Education
                     </h2>
                     <Button
@@ -1008,7 +1008,7 @@ function CVBuilderPage() {
                           className="p-4 border border-border rounded-xl space-y-3 bg-muted/20"
                         >
                           <div className="flex justify-between items-start">
-                            <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                            <span className="text-xs font-semibold text-accent-text uppercase tracking-wider">
                               Education #{idx + 1}
                             </span>
                             <Button
@@ -1090,7 +1090,7 @@ function CVBuilderPage() {
                 )}
                 {!isLastStep ? (
                   <Button
-                    className="gradient-bg-accent text-accent-foreground"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                     size="sm"
                     onClick={handleNext}
                   >
@@ -1103,10 +1103,10 @@ function CVBuilderPage() {
           </div>
 
           {/* ── AI Generate Card ──────────────── */}
-          <div className="card-premium p-5 sm:p-6 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+          <div className="panel p-5 sm:p-6 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-accent" />
+                <Sparkles className="w-5 h-5 text-accent-text" />
               </div>
               <div>
                 <h3 className="font-display font-semibold text-sm">
@@ -1121,7 +1121,7 @@ function CVBuilderPage() {
             <Button
               onClick={generateWithAI}
               disabled={isGenerating || !cvData.personalInfo.fullName}
-              className="w-full gradient-bg-accent text-accent-foreground"
+              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               {isGenerating ? (
                 <>
@@ -1138,7 +1138,7 @@ function CVBuilderPage() {
             {aiGenerated?.generatedBy && (
               <p className="text-xs text-muted-foreground mt-2 text-center">
                 Powered by{" "}
-                <span className="text-accent font-medium">
+                <span className="text-accent-text font-medium">
                   {aiGenerated.generatedBy === "local-fallback"
                     ? "Smart Templates"
                     : "Google Gemini AI"}
@@ -1191,8 +1191,8 @@ function CVBuilderPage() {
                   aiGenerated.keyStrengths.length > 0 && (
                     <div className="px-3 py-2 rounded-lg bg-accent/5 border border-accent/15">
                       <div className="flex items-center gap-1.5 mb-1.5">
-                        <Star className="w-3.5 h-3.5 text-accent" />
-                        <span className="text-xs font-semibold text-accent">
+                        <Star className="w-3.5 h-3.5 text-accent-text" />
+                        <span className="text-xs font-semibold text-accent-text">
                           Key Strengths
                         </span>
                       </div>
@@ -1200,7 +1200,7 @@ function CVBuilderPage() {
                         {aiGenerated.keyStrengths.map((s, i) => (
                           <span
                             key={i}
-                            className="text-[11px] bg-accent/10 text-accent px-2 py-0.5 rounded-full"
+                            className="text-[11px] bg-accent/10 text-accent-text px-2 py-0.5 rounded-full"
                           >
                             {s}
                           </span>

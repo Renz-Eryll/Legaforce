@@ -147,7 +147,7 @@ function CompanyProfilePage() {
         ) : (
           <div className="flex gap-2">
             <Button
-              className="gradient-bg-accent text-accent-foreground"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
               onClick={handleSave}
               disabled={isSaving}
             >
@@ -191,10 +191,10 @@ function CompanyProfilePage() {
             {/* Main Info */}
             <motion.div
               variants={fadeInUp}
-              className="lg:col-span-2 card-premium p-6"
+              className="lg:col-span-2 panel p-6"
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-accent" />
+                <Building2 className="w-5 h-5 text-accent-text" />
                 Company Information
               </h2>
               <div className="space-y-4">
@@ -293,13 +293,13 @@ function CompanyProfilePage() {
             {/* Sidebar */}
             <motion.div variants={fadeInUp} className="space-y-4">
               {/* Trust Score */}
-              <div className="card-premium p-6">
+              <div className="panel p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-accent" />
+                  <Shield className="w-4 h-4 text-accent-text" />
                   Trust Score
                 </h3>
                 <div className="text-center mb-4">
-                  <p className="text-4xl font-display font-bold text-accent">
+                  <p className="text-4xl font-display font-bold text-accent-text">
                     {trustScore}
                   </p>
                   <p className="text-sm text-muted-foreground">out of 100</p>
@@ -308,7 +308,7 @@ function CompanyProfilePage() {
               </div>
 
               {/* Verification Status */}
-              <div className="card-premium p-6">
+              <div className="panel p-6">
                 <h3 className="font-semibold mb-4">Verification Status</h3>
                 <div className="flex items-center gap-3">
                   {isVerified ? (
@@ -338,7 +338,7 @@ function CompanyProfilePage() {
               </div>
 
               {/* Stats */}
-              <div className="card-premium p-6">
+              <div className="panel p-6">
                 <h3 className="font-semibold mb-4">Company Stats</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -361,7 +361,7 @@ function CompanyProfilePage() {
 
         {/* Verification Tab */}
         <TabsContent value="verification" className="space-y-6">
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-4">Verification Process</h2>
             <div className="space-y-4">
               <div className="p-4 bg-secondary rounded-lg">
@@ -407,7 +407,7 @@ function CompanyProfilePage() {
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-6">
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Documents</h2>
               <label>
@@ -443,7 +443,7 @@ function CompanyProfilePage() {
                     className="flex items-center justify-between p-4 bg-secondary rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-accent" />
+                      <FileText className="w-5 h-5 text-accent-text" />
                       <div>
                         <p className="font-medium text-sm">{doc.name}</p>
                         <p className="text-xs text-muted-foreground">

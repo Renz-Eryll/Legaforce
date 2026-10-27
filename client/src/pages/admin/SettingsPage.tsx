@@ -119,7 +119,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* General Settings */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-500">
             <Settings className="w-5 h-5" />
@@ -192,7 +192,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* Notification Settings */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500">
             <Bell className="w-5 h-5" />
@@ -258,7 +258,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* Security Settings */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-red-500/10 text-red-500">
             <Lock className="w-5 h-5" />
@@ -307,7 +307,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* API Settings */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-500">
             <Globe className="w-5 h-5" />
@@ -340,7 +340,7 @@ function SettingsPage() {
       {/* Danger Zone */}
       <motion.div
         variants={fadeInUp}
-        className="card-premium p-6 border-red-500/20"
+        className="panel p-6 border-red-500/20"
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-red-500/10 text-red-500">
@@ -368,7 +368,7 @@ function SettingsPage() {
           Reset
         </Button>
         <Button
-          className="gradient-bg-accent text-accent-foreground"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground"
           onClick={handleSave}
           disabled={isSaving}
         >

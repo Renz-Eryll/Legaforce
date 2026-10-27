@@ -102,14 +102,14 @@ function CandidateDetailsPage() {
       <motion.button
         variants={fadeInUp}
         onClick={() => navigate("/employer/candidates")}
-        className="flex items-center gap-2 text-accent hover:underline"
+        className="flex items-center gap-2 text-accent-text hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Candidates
       </motion.button>
 
       {/* Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
           <div className="flex-1">
             <h1 className="text-3xl font-display font-bold mb-2">
@@ -126,7 +126,7 @@ function CandidateDetailsPage() {
               </div>
               {candidate.trustScore && (
                 <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-accent" />
+                  <Award className="w-4 h-4 text-accent-text" />
                   Trust Score: {candidate.trustScore}/100
                 </div>
               )}
@@ -207,12 +207,12 @@ function CandidateDetailsPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Contact Info */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
             <div className="space-y-3">
               {candidate.phone && (
                 <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-accent" />
+                  <Phone className="w-5 h-5 text-accent-text" />
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
                     <p className="font-medium">{candidate.phone}</p>
@@ -221,7 +221,7 @@ function CandidateDetailsPage() {
               )}
               {candidate.email && (
                 <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-accent" />
+                  <Mail className="w-5 h-5 text-accent-text" />
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
                     <p className="font-medium">{candidate.email}</p>
@@ -237,7 +237,7 @@ function CandidateDetailsPage() {
           </motion.div>
 
           {/* Experience */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-4">Experience</h2>
             <p className="text-muted-foreground">
               {candidate.experience || "No experience details available"}
@@ -246,7 +246,7 @@ function CandidateDetailsPage() {
 
           {/* Skills */}
           {candidate.skills && candidate.skills.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Skills</h2>
               <div className="flex flex-wrap gap-2">
                 {candidate.skills.map((skill: string, idx: number) => (
@@ -260,7 +260,7 @@ function CandidateDetailsPage() {
 
           {/* Interview Notes */}
           {candidate.interviewNotes && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Interview Notes</h2>
               <p className="text-muted-foreground whitespace-pre-line">
                 {candidate.interviewNotes}
@@ -269,16 +269,16 @@ function CandidateDetailsPage() {
           )}
           {/* Documents Section */}
           {candidate.documents && candidate.documents.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6 mt-6">
+            <motion.div variants={fadeInUp} className="panel p-6 mt-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Download className="w-5 h-5 text-accent" />
+                <Download className="w-5 h-5 text-accent-text" />
                 Uploaded Documents
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {candidate.documents.map((doc: any) => (
                   <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-accent/10 flex items-center justify-center text-accent">
+                      <div className="w-10 h-10 rounded bg-accent/10 flex items-center justify-center text-accent-text">
                         {doc.category === 'PASSPORT' ? '🛂' : '📄'}
                       </div>
                       <div>
@@ -303,11 +303,11 @@ function CandidateDetailsPage() {
           {/* Action Card */}
           <motion.div
             variants={fadeInUp}
-            className="card-premium p-6 sticky top-20"
+            className="panel p-6 sticky top-20"
           >
             <div className="space-y-4">
               <Button
-                className="w-full gradient-bg-accent text-accent-foreground"
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                 asChild
               >
                 <a href={`mailto:${candidate.email}?subject=Application for ${candidate.position} - Legaforce`}>
@@ -408,7 +408,7 @@ function CandidateDetailsPage() {
           {["INTERVIEWED", "SELECTED", "PROCESSING", "DEPLOYED"].includes(
             candidate.status?.toUpperCase(),
           ) && (
-              <motion.div variants={fadeInUp} className="card-premium p-6">
+              <motion.div variants={fadeInUp} className="panel p-6">
                 <h3 className="font-semibold mb-4">Rate This Applicant</h3>
 
                 {ratingEdit ? (
@@ -549,12 +549,12 @@ function CandidateDetailsPage() {
 
           {/* Certifications */}
           {candidate.certifications && candidate.certifications.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h3 className="font-semibold mb-4">Certifications</h3>
               <div className="space-y-2">
                 {candidate.certifications.map((cert: string, idx: number) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <Award className="w-4 h-4 text-accent" />
+                    <Award className="w-4 h-4 text-accent-text" />
                     <span className="text-sm">{cert}</span>
                   </div>
                 ))}

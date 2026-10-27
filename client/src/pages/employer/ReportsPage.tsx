@@ -107,10 +107,10 @@ function ReportsPage() {
 
       {/* KPI Cards */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-2 rounded-xl bg-accent/10">
-              <Briefcase className="w-5 h-5 text-accent" />
+              <Briefcase className="w-5 h-5 text-accent-text" />
             </div>
             <p className="text-sm text-muted-foreground">Active Jobs</p>
           </div>
@@ -119,7 +119,7 @@ function ReportsPage() {
             {jobOrders.length} total job orders
           </p>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-2 rounded-xl bg-blue-500/10">
               <Users className="w-5 h-5 text-blue-500" />
@@ -131,7 +131,7 @@ function ReportsPage() {
             across all job orders
           </p>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-2 rounded-xl bg-amber-500/10">
               <Clock className="w-5 h-5 text-amber-500" />
@@ -143,7 +143,7 @@ function ReportsPage() {
             {interviewRate}% of total applicants
           </p>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-2 rounded-xl bg-emerald-500/10">
               <Globe className="w-5 h-5 text-emerald-500" />
@@ -158,9 +158,9 @@ function ReportsPage() {
       </motion.div>
 
       {/* Hiring Funnel */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-accent" />
+          <TrendingUp className="w-5 h-5 text-accent-text" />
           Hiring Funnel
         </h2>
         <div className="space-y-4">
@@ -196,9 +196,9 @@ function ReportsPage() {
       </motion.div>
 
       {/* Job Order Status Breakdown */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-accent" />
+          <BarChart3 className="w-5 h-5 text-accent-text" />
           Job Order Status Breakdown
         </h2>
         {jobOrders.length === 0 ? (
@@ -227,7 +227,7 @@ function ReportsPage() {
       </motion.div>
 
       {/* Key Metrics */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-emerald-500" />
           Key Metrics

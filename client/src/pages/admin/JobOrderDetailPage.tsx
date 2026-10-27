@@ -166,7 +166,7 @@ function JobOrderDetailPage() {
       </motion.div>
 
       {/* Admin Actions */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="text-sm font-medium">Admin Actions:</span>
           <div className="flex flex-wrap gap-2">
@@ -215,9 +215,9 @@ function JobOrderDetailPage() {
         {/* Main */}
         <div className="lg:col-span-2 space-y-6">
           {/* Job Description */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-              <Briefcase className="w-5 h-5 text-accent" />
+              <Briefcase className="w-5 h-5 text-accent-text" />
               Job Description
             </h3>
             <div className="text-sm whitespace-pre-wrap text-muted-foreground leading-relaxed">
@@ -229,7 +229,7 @@ function JobOrderDetailPage() {
           {(requirements.skills?.length > 0 ||
             requirements.experience ||
             requirements.education) && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h3 className="font-display font-semibold mb-4">Requirements</h3>
               <div className="space-y-3">
                 {requirements.skills?.length > 0 && (
@@ -265,7 +265,7 @@ function JobOrderDetailPage() {
           )}
 
           {/* Applications */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-semibold flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-500" />
@@ -330,7 +330,7 @@ function JobOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Job Details */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold mb-4">Job Details</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -364,7 +364,7 @@ function JobOrderDetailPage() {
           </motion.div>
 
           {/* Employer */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
               <Building2 className="w-5 h-5 text-purple-500" />
               Employer

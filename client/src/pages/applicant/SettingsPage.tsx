@@ -337,10 +337,10 @@ function SettingsPage() {
       </motion.div>
 
       {/* Account Info */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-accent/10">
-            <User className="w-5 h-5 text-accent" />
+            <User className="w-5 h-5 text-accent-text" />
           </div>
           <h2 className="text-lg font-display font-semibold">Account Information</h2>
         </div>
@@ -351,7 +351,7 @@ function SettingsPage() {
           </div>
           <div className="p-4 rounded-xl bg-muted/50">
             <p className="text-sm text-muted-foreground mb-1">Role</p>
-            <Badge className="bg-accent/10 text-accent border-accent/20">
+            <Badge className="bg-accent/10 text-accent-text border-accent/20">
               {user?.role || "Applicant"}
             </Badge>
           </div>
@@ -373,7 +373,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* ── Auto-Apply & Smart Features ─────────── */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-emerald-500/10">
             <Zap className="w-5 h-5 text-emerald-500" />
@@ -413,7 +413,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* ── Notification Preferences ────────────── */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-blue-500/10">
             <Bell className="w-5 h-5 text-blue-500" />
@@ -532,7 +532,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* Privacy */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-purple-500/10">
             <Eye className="w-5 h-5 text-purple-500" />
@@ -583,7 +583,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* Appearance */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-amber-500/10">
             <Palette className="w-5 h-5 text-amber-500" />
@@ -641,7 +641,7 @@ function SettingsPage() {
       </motion.div>
 
       {/* Change Password */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-red-500/10">
             <Lock className="w-5 h-5 text-red-500" />
@@ -690,7 +690,7 @@ function SettingsPage() {
         <Button
           onClick={handleSavePreferences}
           disabled={isSaving}
-          className="gradient-bg-accent text-accent-foreground"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground"
         >
           {isSaving ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />

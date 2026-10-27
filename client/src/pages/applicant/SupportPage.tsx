@@ -174,17 +174,17 @@ function SupportPage() {
 
       {/* Quick Contact */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-5 text-center">
+        <div className="panel p-5 text-center">
           <div className="p-3 rounded-xl bg-blue-500/10 w-fit mx-auto mb-3">
             <Mail className="w-6 h-6 text-blue-500" />
           </div>
           <h3 className="font-semibold mb-1">Email Support</h3>
           <p className="text-sm text-muted-foreground mb-2">Get a response within 24 hours</p>
-          <a href="mailto:support@legaforce.com" className="text-sm text-accent hover:underline">
+          <a href="mailto:support@legaforce.com" className="text-sm text-accent-text hover:underline">
             support@legaforce.com
           </a>
         </div>
-        <div className="card-premium p-5 text-center">
+        <div className="panel p-5 text-center">
           <div className="p-3 rounded-xl bg-emerald-500/10 w-fit mx-auto mb-3">
             <Phone className="w-6 h-6 text-emerald-500" />
           </div>
@@ -192,7 +192,7 @@ function SupportPage() {
           <p className="text-sm text-muted-foreground mb-2">Mon–Fri, 8AM–6PM PHT</p>
           <p className="text-sm font-medium">+63 (2) 8123-4567</p>
         </div>
-        <div className="card-premium p-5 text-center">
+        <div className="panel p-5 text-center">
           <div className="p-3 rounded-xl bg-purple-500/10 w-fit mx-auto mb-3">
             <Shield className="w-6 h-6 text-purple-500" />
           </div>
@@ -203,9 +203,9 @@ function SupportPage() {
       </motion.div>
 
       {/* FAQ Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <HelpCircle className="w-5 h-5 text-accent" />
+          <HelpCircle className="w-5 h-5 text-accent-text" />
           Frequently Asked Questions
         </h2>
         <div className="relative mb-6">
@@ -224,7 +224,7 @@ function SupportPage() {
             return (
               <div key={category.category}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Icon className="w-4 h-4 text-accent" />
+                  <Icon className="w-4 h-4 text-accent-text" />
                   <h3 className="font-semibold text-sm">{category.category}</h3>
                   <Badge variant="secondary" className="text-xs">
                     {category.questions.length}
@@ -283,9 +283,9 @@ function SupportPage() {
       </motion.div>
 
       {/* Contact Form */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-accent" />
+          <MessageSquare className="w-5 h-5 text-accent-text" />
           Contact Support
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
@@ -315,7 +315,7 @@ function SupportPage() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="gradient-bg-accent text-accent-foreground"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             {isSubmitting ? (
               <>

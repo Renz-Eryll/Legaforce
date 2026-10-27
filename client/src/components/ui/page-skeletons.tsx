@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /** A single KPI stat card skeleton */
 export function SkeletonStatCard({ className }: { className?: string }) {
   return (
-    <div className={cn("card-premium p-5 space-y-3", className)}>
+    <div className={cn("panel p-5 space-y-3", className)}>
       <div className="flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-xl" />
         <Skeleton className="h-3 w-24 rounded" />
@@ -30,7 +30,7 @@ export function SkeletonStatsRow({ count = 4, className }: { count?: number; cla
 /** A chart placeholder skeleton */
 export function SkeletonChart({ height = "h-[300px]", className }: { height?: string; className?: string }) {
   return (
-    <div className={cn("card-premium p-6 space-y-4", className)}>
+    <div className={cn("panel p-6 space-y-4", className)}>
       <div className="space-y-2">
         <Skeleton className="h-5 w-48 rounded" />
         <Skeleton className="h-3 w-64 rounded" />
@@ -60,7 +60,7 @@ function SkeletonTableRow({ cols = 5 }: { cols?: number }) {
 /** A table skeleton with header + rows */
 export function SkeletonTable({ rows = 6, cols = 5, className }: { rows?: number; cols?: number; className?: string }) {
   return (
-    <div className={cn("card-premium overflow-hidden", className)}>
+    <div className={cn("panel overflow-hidden", className)}>
       {/* Header */}
       <div className="flex items-center gap-4 px-4 py-3 border-b border-border bg-muted/30">
         {Array.from({ length: cols }).map((_, i) => (
@@ -78,7 +78,7 @@ export function SkeletonTable({ rows = 6, cols = 5, className }: { rows?: number
 /** A search/filter bar skeleton */
 export function SkeletonFilterBar({ className }: { className?: string }) {
   return (
-    <div className={cn("card-premium p-5", className)}>
+    <div className={cn("panel p-5", className)}>
       <div className="flex flex-col sm:flex-row gap-4">
         <Skeleton className="h-10 flex-1 rounded-lg" />
         <Skeleton className="h-10 w-full sm:w-48 rounded-lg" />
@@ -90,7 +90,7 @@ export function SkeletonFilterBar({ className }: { className?: string }) {
 /** A single list item / card skeleton */
 export function SkeletonListCard({ className }: { className?: string }) {
   return (
-    <div className={cn("card-premium p-4 space-y-3", className)}>
+    <div className={cn("panel p-4 space-y-3", className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1">
           <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
@@ -111,7 +111,7 @@ export function SkeletonListCard({ className }: { className?: string }) {
 /** A detail page skeleton (for entity detail views) */
 export function SkeletonDetailSection({ className }: { className?: string }) {
   return (
-    <div className={cn("card-premium p-6 space-y-5", className)}>
+    <div className={cn("panel p-6 space-y-5", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2 flex-1">
           <Skeleton className="h-6 w-2/5 rounded" />
@@ -134,7 +134,7 @@ export function SkeletonDetailSection({ className }: { className?: string }) {
 /** A form section skeleton */
 export function SkeletonFormSection({ fields = 4, className }: { fields?: number; className?: string }) {
   return (
-    <div className={cn("card-premium p-6 space-y-6", className)}>
+    <div className={cn("panel p-6 space-y-6", className)}>
       <div className="space-y-2">
         <Skeleton className="h-5 w-40 rounded" />
         <Skeleton className="h-3 w-64 rounded" />
@@ -157,7 +157,7 @@ export function SkeletonFormSection({ fields = 4, className }: { fields?: number
 /** A sidebar widget skeleton */
 export function SkeletonSidebarWidget({ items = 3, className }: { items?: number; className?: string }) {
   return (
-    <div className={cn("card-premium p-5 space-y-3", className)}>
+    <div className={cn("panel p-5 space-y-3", className)}>
       <Skeleton className="h-4 w-32 rounded" />
       {Array.from({ length: items }).map((_, i) => (
         <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/30">
@@ -239,7 +239,7 @@ export function ListPageSkeleton({ statCount = 3, tableCols = 5 }: { statCount?:
       {/* Stats */}
       <div className={cn("grid gap-4", `grid-cols-${Math.min(statCount, 4)}`)}>
         {Array.from({ length: statCount }).map((_, i) => (
-          <div key={i} className="card-premium p-4 space-y-2">
+          <div key={i} className="panel p-4 space-y-2">
             <Skeleton className="h-3 w-24 rounded" />
             <Skeleton className="h-7 w-16 rounded" />
           </div>
@@ -287,7 +287,7 @@ export function DetailPageSkeleton() {
       </div>
 
       {/* Activity / Timeline */}
-      <div className="card-premium p-6 space-y-4">
+      <div className="panel p-6 space-y-4">
         <Skeleton className="h-5 w-32 rounded" />
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0">
@@ -333,7 +333,7 @@ export function CardGridSkeleton({ count = 4, className }: { count?: number; cla
   return (
     <div className={cn("grid gap-4", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card-premium p-5 space-y-4">
+        <div key={i} className="panel p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1 space-y-2">
               <Skeleton className="h-5 w-3/5 rounded" />
@@ -371,7 +371,7 @@ export function ProfilePageSkeleton() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Profile header */}
-      <div className="card-premium p-6">
+      <div className="panel p-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <Skeleton className="h-24 w-24 rounded-2xl shrink-0" />
           <div className="space-y-3 flex-1">

@@ -110,28 +110,28 @@ function DeploymentsPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Globe className="w-4 h-4 text-accent" />
+            <Globe className="w-4 h-4 text-accent-text" />
             <p className="text-sm text-muted-foreground">Total Workers</p>
           </div>
           <p className="text-2xl font-display font-bold">{stats.total}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-emerald-500" />
             <p className="text-sm text-muted-foreground">Active</p>
           </div>
           <p className="text-2xl font-display font-bold text-emerald-600">{stats.active}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-blue-500" />
             <p className="text-sm text-muted-foreground">Processing</p>
           </div>
           <p className="text-2xl font-display font-bold text-blue-600">{stats.processing}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-amber-500" />
             <p className="text-sm text-muted-foreground">Selected</p>
@@ -141,7 +141,7 @@ function DeploymentsPage() {
       </motion.div>
 
       {/* Filter */}
-      <motion.div variants={fadeInUp} className="card-premium p-4">
+      <motion.div variants={fadeInUp} className="panel p-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by status" />
@@ -156,7 +156,7 @@ function DeploymentsPage() {
       </motion.div>
 
       {/* Deployments Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {filteredDeployments.length === 0 ? (
           <div className="text-center py-12">
             <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-30" />

@@ -136,25 +136,25 @@ function DeploymentsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Deployed</p>
           <p className="text-2xl font-display font-bold">
             {deploymentStats.deployed}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">This Month</p>
           <p className="text-2xl font-display font-bold text-blue-500">
             {deploymentStats.thisMonth}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Processing</p>
           <p className="text-2xl font-display font-bold text-cyan-500">
             {deploymentStats.inTransit}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Success Rate</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {successRate}%
@@ -163,7 +163,7 @@ function DeploymentsListPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -193,7 +193,7 @@ function DeploymentsListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={9} />
         ) : (

@@ -152,14 +152,14 @@ function JobOrderDetailsPage() {
       <motion.button
         variants={fadeInUp}
         onClick={() => navigate("/employer/job-orders")}
-        className="flex items-center gap-2 text-accent hover:underline"
+        className="flex items-center gap-2 text-accent-text hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Job Orders
       </motion.button>
 
       {/* Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
           <div className="flex-1">
             <h1 className="text-3xl font-display font-bold mb-2">
@@ -198,7 +198,7 @@ function JobOrderDetailsPage() {
         <div className="grid sm:grid-cols-4 gap-4 p-4 bg-secondary rounded-lg">
           <div>
             <p className="text-xs text-muted-foreground mb-1">Salary</p>
-            <p className="font-semibold text-accent">
+            <p className="font-semibold text-accent-text">
               {jobOrder.salary ? `$${Number(jobOrder.salary).toLocaleString()}/mo` : "TBD"}
             </p>
           </div>
@@ -223,19 +223,19 @@ function JobOrderDetailsPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-3">Job Description</h2>
             <p className="text-muted-foreground whitespace-pre-line">{jobOrder.description}</p>
           </motion.div>
 
           {/* Requirements */}
           {reqList.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Requirements</h2>
               <ul className="space-y-2">
                 {reqList.map((req: string, idx: number) => (
                   <li key={idx} className="flex gap-3 text-muted-foreground">
-                    <span className="text-accent mt-1">•</span>
+                    <span className="text-accent-text mt-1">•</span>
                     {typeof req === "string" ? req : JSON.stringify(req)}
                   </li>
                 ))}
@@ -244,7 +244,7 @@ function JobOrderDetailsPage() {
           )}
 
           {/* Applications / Candidates */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-4">
               Applications ({jobOrder.candidates?.length || 0})
             </h2>
@@ -259,7 +259,7 @@ function JobOrderDetailsPage() {
                   return (
                     <div key={cand.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent font-semibold text-xs flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent-text font-semibold text-xs flex items-center justify-center">
                           {(cand.name || "?").split(" ").map((n: string) => n[0]).join("")}
                         </div>
                         <div>
@@ -301,7 +301,7 @@ function JobOrderDetailsPage() {
           {/* Positions */}
           <motion.div
             variants={fadeInUp}
-            className="card-premium p-6 sticky top-20"
+            className="panel p-6 sticky top-20"
           >
             <h3 className="font-semibold mb-4">Position Progress</h3>
             <div className="space-y-3">
@@ -323,7 +323,7 @@ function JobOrderDetailsPage() {
 
           {/* Application Status Breakdown */}
           {jobOrder.statusCounts && Object.keys(jobOrder.statusCounts).length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h3 className="font-semibold mb-4">Status Breakdown</h3>
               <div className="space-y-2">
                 {Object.entries(jobOrder.statusCounts).map(([status, count]) => (

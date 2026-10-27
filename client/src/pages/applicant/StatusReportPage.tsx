@@ -140,7 +140,7 @@ function StatusReportPage() {
         variants={fadeInUp}
         className="grid grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-blue-500/10">
               <ClipboardList className="w-5 h-5 text-blue-500" />
@@ -150,7 +150,7 @@ function StatusReportPage() {
           <p className="text-sm text-muted-foreground">Total Applications</p>
         </div>
 
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-amber-500/10">
               <Clock className="w-5 h-5 text-amber-500" />
@@ -160,7 +160,7 @@ function StatusReportPage() {
           <p className="text-sm text-muted-foreground">In Progress</p>
         </div>
 
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-emerald-500/10">
               <Globe className="w-5 h-5 text-emerald-500" />
@@ -170,7 +170,7 @@ function StatusReportPage() {
           <p className="text-sm text-muted-foreground">Deployed</p>
         </div>
 
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-purple-500/10">
               <TrendingUp className="w-5 h-5 text-purple-500" />
@@ -182,7 +182,7 @@ function StatusReportPage() {
       </motion.div>
 
       {/* Pipeline Overview */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-5">
           Application Pipeline
         </h2>
@@ -233,7 +233,7 @@ function StatusReportPage() {
         </h2>
 
         {applications.length === 0 ? (
-          <div className="card-premium p-12 text-center">
+          <div className="panel p-12 text-center">
             <ClipboardList className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-semibold mb-2">
               No Applications Yet
@@ -242,7 +242,7 @@ function StatusReportPage() {
               Start applying to jobs to track your progress here
             </p>
             <Link to="/app/jobs">
-              <Button className="gradient-bg-accent text-accent-foreground">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Briefcase className="w-4 h-4 mr-2" />
                 Browse Jobs
               </Button>
@@ -263,7 +263,7 @@ function StatusReportPage() {
                   key={app.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-premium p-5"
+                  className="panel p-5"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">

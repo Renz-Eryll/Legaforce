@@ -155,7 +155,7 @@ function ComplaintsPage() {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Shield className="w-8 h-8 text-accent" />
+            <Shield className="w-8 h-8 text-accent-text" />
             <h1 className="text-2xl sm:text-3xl font-display font-bold">
               Worker Safety & Protection
             </h1>
@@ -166,7 +166,7 @@ function ComplaintsPage() {
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
-          className="gradient-bg-accent text-accent-foreground"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground"
         >
           {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
           {showForm ? "Cancel" : "File Report"}
@@ -174,12 +174,12 @@ function ComplaintsPage() {
       </motion.div>
 
       {/* Escalation levels */}
-      <motion.div variants={fadeInUp} className="card-premium p-4">
+      <motion.div variants={fadeInUp} className="panel p-4">
         <h3 className="text-sm font-semibold mb-3">Escalation Process</h3>
         <div className="flex flex-wrap gap-4">
           {ESCALATION_LEVELS.map((e, idx) => (
             <div key={e.level} className="flex items-center gap-2 text-sm">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-bold">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent-text text-xs font-bold">
                 {e.level}
               </div>
               <span className="font-medium text-foreground">{e.name}</span>
@@ -194,15 +194,15 @@ function ComplaintsPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <p className="text-sm text-muted-foreground mb-1">Total Reports</p>
           <p className="text-2xl font-display font-bold">{stats.total}</p>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <p className="text-sm text-muted-foreground mb-1">Open / Under Review</p>
           <p className="text-2xl font-display font-bold text-amber-500">{stats.open}</p>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <p className="text-sm text-muted-foreground mb-1">Resolved</p>
           <p className="text-2xl font-display font-bold text-emerald-500">{stats.resolved}</p>
         </div>
@@ -217,9 +217,9 @@ function ComplaintsPage() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="card-premium p-6 border-accent/20">
+            <div className="panel p-6 border-accent/20">
               <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-5 h-5 text-accent" />
+                <Shield className="w-5 h-5 text-accent-text" />
                 <p className="text-sm text-muted-foreground">
                   Your report is confidential and will be handled according to our escalation process.
                 </p>
@@ -279,7 +279,7 @@ function ComplaintsPage() {
                   <Button
                     type="submit"
                     disabled={!confidentialAck || isSubmitting || !formData.description.trim()}
-                    className="gradient-bg-accent text-accent-foreground"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                   >
                     {isSubmitting ? (
                       <>
@@ -308,7 +308,7 @@ function ComplaintsPage() {
       </AnimatePresence>
 
       {/* Filter */}
-      <motion.div variants={fadeInUp} className="card-premium p-4">
+      <motion.div variants={fadeInUp} className="panel p-4">
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by status" />
@@ -339,7 +339,7 @@ function ComplaintsPage() {
                 key={complaint.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card-premium p-5 hover:shadow-lg transition-shadow"
+                className="panel p-5 hover:shadow-lg transition-shadow"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-3">
                   <div className="flex-1">

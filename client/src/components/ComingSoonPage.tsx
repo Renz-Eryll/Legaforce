@@ -97,7 +97,7 @@ export default function ComingSoonPage({
           animate="animate"
           className="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-br from-accent/20 via-accent/10 to-purple-500/10 border border-accent/20 flex items-center justify-center shadow-lg shadow-accent/10"
         >
-          <Icon className="w-11 h-11 text-accent" strokeWidth={1.5} />
+          <Icon className="w-11 h-11 text-accent-text" strokeWidth={1.5} />
         </motion.div>
 
         {/* Sparkle accents */}
@@ -121,7 +121,7 @@ export default function ComingSoonPage({
       <motion.div variants={fadeInUp}>
         <Badge
           variant="outline"
-          className="mb-4 px-4 py-1.5 text-sm font-medium border-accent/30 bg-accent/5 text-accent"
+          className="mb-4 px-4 py-1.5 text-sm font-medium border-accent/30 bg-accent/5 text-accent-text"
         >
           <Clock className="w-3.5 h-3.5 mr-1.5" />
           Coming Soon{eta ? ` — ${eta}` : ""}
@@ -150,9 +150,9 @@ export default function ComingSoonPage({
           variants={fadeInUp}
           className="w-full max-w-md mb-8"
         >
-          <div className="card-premium p-5 text-left">
+          <div className="panel p-5 text-left">
             <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-accent" />
+              <Sparkles className="w-4 h-4 text-accent-text" />
               What to expect
             </p>
             <ul className="space-y-2.5">
@@ -186,7 +186,7 @@ export default function ComingSoonPage({
           </Button>
         )}
         <Button
-          className="gradient-bg-accent text-accent-foreground gap-2"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
           onClick={() => {
             // In the future this could subscribe to notifications
             navigate(backTo || "/");

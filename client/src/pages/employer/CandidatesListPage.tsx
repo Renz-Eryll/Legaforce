@@ -148,17 +148,17 @@ function CandidatesListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Candidates</p>
           <p className="text-2xl font-display font-bold">{candidates.length}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">AI Matched</p>
           <p className="text-2xl font-display font-bold text-emerald-600">
             {candidates.filter((c) => c.aiRecommended).length}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Available</p>
           <p className="text-2xl font-display font-bold text-blue-600">
             {
@@ -176,7 +176,7 @@ function CandidatesListPage() {
           variants={fadeInUp}
           className="flex items-center gap-3 p-4 rounded-lg bg-accent/10 border border-accent/20"
         >
-          <Sparkles className="w-5 h-5 text-accent" />
+          <Sparkles className="w-5 h-5 text-accent-text" />
           <span className="font-medium">
             AI recommends {aiRecommendedCandidates.length} best-fit candidate
             {aiRecommendedCandidates.length !== 1 ? "s" : ""} for your job
@@ -193,7 +193,7 @@ function CandidatesListPage() {
       )}
 
       {/* Search & Filter */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -222,7 +222,7 @@ function CandidatesListPage() {
       </motion.div>
 
       {/* Candidates Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {filteredCandidates.length === 0 ? (
           <div className="p-12 text-center">
             <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
@@ -263,7 +263,7 @@ function CandidatesListPage() {
                         {candidate.aiRecommended && (
                           <Badge
                             variant="secondary"
-                            className="text-xs bg-accent/10 text-accent border-0"
+                            className="text-xs bg-accent/10 text-accent-text border-0"
                           >
                             <Sparkles className="w-3 h-3 mr-0.5" />
                             AI
@@ -338,7 +338,7 @@ function CandidatesListPage() {
                           title="Message Candidate"
                         >
                           <a href={`mailto:${candidate.email || ''}?subject=Job Inquiry - Legaforce`}>
-                            <MessageSquare className="w-4 h-4 text-accent" />
+                            <MessageSquare className="w-4 h-4 text-accent-text" />
                           </a>
                         </Button>
                         <Link to={`/employer/candidates/${candidate.id}`}>
