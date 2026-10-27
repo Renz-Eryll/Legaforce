@@ -1,103 +1,79 @@
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, LayoutDashboard, LogOut } from "lucide-react";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
-import { ArrowRight, Sparkles, LayoutDashboard, LogOut } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { getDashboardRoute } from "@/hooks/useNavigation";
+import { cn } from "@/lib/utils";
 
 interface AuthCTAProps {
   primaryText?: string;
   secondaryText?: string;
   primaryLink?: string;
   secondaryLink?: string;
-  primaryVariant?: "default" | "premium" | "hero" | "outline";
-  secondaryVariant?: "outline" | "default" | "hero-secondary";
-  size?: "sm" | "lg" | "xl";
+  size?: ButtonProps["size"];
   showSecondary?: boolean;
+  /** "dark" when placed on a navy band */
+  tone?: "light" | "dark";
+  className?: string;
 }
 
+/**
+ * Primary + secondary call to action. Signed-in visitors get
+ * "Go to dashboard" / "Log out" instead of the sign-up links.
+ */
 export function AuthCTA({
   primaryText = "Get Started",
   secondaryText = "Learn More",
   primaryLink = "/register",
   secondaryLink = "/about",
-  primaryVariant = "default",
-  secondaryVariant = "outline",
   size = "lg",
   showSecondary = true,
+  tone = "light",
+  className,
 }: AuthCTAProps) {
-  const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
-
-  const getDashboardPath = () => {
-    if (!user) return "/app/dashboard";
-    return user.role === "EMPLOYER" ? "/employer/dashboard" : "/app/dashboard";
-  };
+  const onDark = tone === "dark";
+  const primaryVariant = onDark ? "premium" : "default";
+  const secondaryVariant = onDark ? "on-dark" : "outline";
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  if (isAuthenticated && user) {
-    return (
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <Link to={getDashboardPath()}>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant={primaryVariant as any}
-              size={size}
-              className={size === "xl" ? "min-w-[200px]" : ""}
-            >
-              <LayoutDashboard className="w-5 h-5 mr-2" />
-              Go to Dashboard
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </motion.div>
-        </Link>
-        {showSecondary && (
-          <Button
-            onClick={handleLogout}
-            variant={secondaryVariant as any}
-            size={size}
-            className={size === "xl" ? "min-w-[200px]" : ""}
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Logout
-          </Button>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <Link to={primaryLink}>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            variant={primaryVariant as any}
-            size={size}
-            className={size === "xl" ? "min-w-[200px]" : ""}
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            {primaryText}
-            <ArrowRight className="ml-2 h-5 w-5" />
+    <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-center", className)}>
+      {isAuthenticated && user ? (
+        <>
+          <Button asChild variant={primaryVariant} size={size}>
+            <Link to={getDashboardRoute(user.role)}>
+              <LayoutDashboard />
+              Go to Dashboard
+              <ArrowRight />
+            </Link>
           </Button>
-        </motion.div>
-      </Link>
-      {showSecondary && (
-        <Link to={secondaryLink}>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant={secondaryVariant as any}
-              size={size}
-              className={size === "xl" ? "min-w-[200px]" : ""}
-            >
-              {secondaryText}
+          {showSecondary && (
+            <Button onClick={handleLogout} variant={secondaryVariant} size={size}>
+              <LogOut />
+              Logout
             </Button>
-          </motion.div>
-        </Link>
+          )}
+        </>
+      ) : (
+        <>
+          <Button asChild variant={primaryVariant} size={size}>
+            <Link to={primaryLink}>
+              {primaryText}
+              <ArrowRight />
+            </Link>
+          </Button>
+          {showSecondary && (
+            <Button asChild variant={secondaryVariant} size={size}>
+              <Link to={secondaryLink}>{secondaryText}</Link>
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
