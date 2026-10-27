@@ -65,9 +65,9 @@ function SettingsPage() {
       </motion.div>
 
       {/* Notifications */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Bell className="w-5 h-5 text-accent" />
+          <Bell className="w-5 h-5 text-accent-text" />
           <h2 className="text-xl font-semibold">Notifications</h2>
         </div>
         <div className="space-y-4">
@@ -123,9 +123,9 @@ function SettingsPage() {
       </motion.div>
 
       {/* Preferences */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Globe className="w-5 h-5 text-accent" />
+          <Globe className="w-5 h-5 text-accent-text" />
           <h2 className="text-xl font-semibold">Preferences</h2>
         </div>
         <div className="space-y-4">
@@ -166,9 +166,9 @@ function SettingsPage() {
       </motion.div>
 
       {/* Security */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Lock className="w-5 h-5 text-accent" />
+          <Lock className="w-5 h-5 text-accent-text" />
           <h2 className="text-xl font-semibold">Security</h2>
         </div>
         <div className="space-y-4">
@@ -190,7 +190,7 @@ function SettingsPage() {
             </label>
             <Input type="password" placeholder="Confirm new password" />
           </div>
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             Update Password
           </Button>
         </div>
@@ -198,7 +198,7 @@ function SettingsPage() {
 
       {/* Save Button */}
       <motion.div variants={fadeInUp} className="flex gap-2">
-        <Button className="gradient-bg-accent text-accent-foreground">
+        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Save className="w-4 h-4 mr-2" />
           Save Settings
         </Button>

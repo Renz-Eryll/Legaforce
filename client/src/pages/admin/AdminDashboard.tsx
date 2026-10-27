@@ -95,7 +95,7 @@ export default function AdminDashboard() {
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1 flex items-center gap-3">
-            Legaforce Intelligence <Badge className="bg-accent/10 text-accent border-accent/20">v1.2</Badge>
+            Legaforce Intelligence <Badge className="bg-accent/10 text-accent-text border-accent/20">v1.2</Badge>
           </h1>
           <p className="text-muted-foreground text-sm">Real-time platform performance and compliance tracking</p>
         </div>
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
             </Link>
           )}
           <Link to="/admin/reports">
-            <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg">
               <FileText className="w-4 h-4 mr-2" />Generate Analytics
             </Button>
           </Link>
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.07 }} className="card-premium p-5">
+            transition={{ delay: i * 0.07 }} className="panel p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className={cn("p-2 rounded-lg", card.bg)}>
                 <card.icon className={cn("h-4 w-4", card.color)} />
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       {/* Primary Analytics Row */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Trend Chart */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2 card-premium p-6">
+        <motion.div variants={fadeInUp} className="lg:col-span-2 panel p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-display font-semibold">Recruitment Velocity</h2>
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* Pipeline Pie Chart */}
-        <motion.div variants={fadeInUp} className="card-premium p-6 flex flex-col">
+        <motion.div variants={fadeInUp} className="panel p-6 flex flex-col">
           <div className="mb-4">
             <h2 className="text-lg font-display font-semibold mb-1">Status Distribution</h2>
             <p className="text-xs text-muted-foreground">Active application lifecycle</p>
@@ -203,13 +203,13 @@ export default function AdminDashboard() {
       {/* Secondary Analytics Row */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Compliance Radial Charts */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-display font-semibold">Compliance Checklist</h2>
               <p className="text-xs text-muted-foreground">Document completion rate across all deployments</p>
             </div>
-            <Shield className="w-5 h-5 text-accent opacity-50" />
+            <Shield className="w-5 h-5 text-accent-text opacity-50" />
           </div>
           
           <div className="grid grid-cols-3 gap-4">
@@ -234,13 +234,13 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* Top Destinations */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-display font-semibold">Top Destinations</h2>
               <p className="text-xs text-muted-foreground">Geographic demand for Filipino workers</p>
             </div>
-            <Globe className="w-5 h-5 text-accent opacity-50" />
+            <Globe className="w-5 h-5 text-accent-text opacity-50" />
           </div>
           
           <div className="space-y-4">
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
               <div key={dest.country} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium flex items-center gap-2">
-                    <Badge variant="outline" className="w-5 h-5 p-0 flex items-center justify-center text-[10px] border-accent/20 text-accent">{i + 1}</Badge>
+                    <Badge variant="outline" className="w-5 h-5 p-0 flex items-center justify-center text-[10px] border-accent/20 text-accent-text">{i + 1}</Badge>
                     {dest.country}
                   </span>
                   <span className="text-muted-foreground">{dest.count} Job Orders</span>
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Activity Log */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-lg font-display font-semibold">System Audit Stream</h2>
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
                        <FileText className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium group-hover:text-accent transition-colors">{log.description}</p>
+                      <p className="text-sm font-medium group-hover:text-accent-text transition-colors">{log.description}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{log.type.replace('_', ' ')}</p>
                     </div>
                   </div>

@@ -1,10 +1,11 @@
 import prisma from "../config/database.js";
+import { getPagination } from "../utils/pagination.js";
 import { markAllNotificationsAsRead, deleteOldNotifications, getNotificationStats } from "../services/notification.service.js";
 
 export const getNotifications = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, type, unreadOnly } = req.query;
-    const skip = (page - 1) * limit;
+    const { type, unreadOnly } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
 
     const where = {
       userId: req.user.id,
@@ -17,8 +18,8 @@ export const getNotifications = async (req, res, next) => {
       prisma.notification.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        skip: parseInt(skip),
-        take: parseInt(limit),
+        skip,
+        take: limit,
       }),
       prisma.notification.count({ where }),
     ]);
@@ -28,8 +29,8 @@ export const getNotifications = async (req, res, next) => {
       data: notifications,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         totalPages: Math.ceil(total / limit),
       },
     });

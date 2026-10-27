@@ -85,7 +85,7 @@ function SavedJobsPage() {
           </p>
         </div>
         <Link to="/app/jobs">
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Search className="w-4 h-4 mr-2" />
             Browse More Jobs
           </Button>
@@ -93,10 +93,10 @@ function SavedJobsPage() {
       </motion.div>
 
       {/* Stats */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-accent/10">
-            <Bookmark className="w-5 h-5 text-accent" />
+            <Bookmark className="w-5 h-5 text-accent-text" />
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Saved Jobs</p>
@@ -107,7 +107,7 @@ function SavedJobsPage() {
 
       {/* Saved Jobs List */}
       {savedJobs.length === 0 ? (
-        <motion.div variants={fadeInUp} className="text-center py-16 card-premium">
+        <motion.div variants={fadeInUp} className="text-center py-16 panel">
           <Bookmark className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-30" />
           <h2 className="text-xl font-display font-semibold mb-2">No Saved Jobs Yet</h2>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -115,7 +115,7 @@ function SavedJobsPage() {
             They'll appear here for easy access later.
           </p>
           <Link to="/app/jobs">
-            <Button className="gradient-bg-accent text-accent-foreground">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
               <Briefcase className="w-4 h-4 mr-2" />
               Start Browsing Jobs
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -130,14 +130,14 @@ function SavedJobsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="card-premium p-5 group hover:shadow-lg transition-all"
+              className="panel p-5 group hover:shadow-lg transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted font-display font-bold text-lg shrink-0">
                   {(job.employer || job.company || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg group-hover:text-accent transition-colors">
+                  <h3 className="font-semibold text-lg group-hover:text-accent-text transition-colors">
                     {job.title}
                   </h3>
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
@@ -175,7 +175,7 @@ function SavedJobsPage() {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                   <Link to={`/app/jobs/${job.id}`}>
-                    <Button size="sm" className="gradient-bg-accent text-accent-foreground">
+                    <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                       View & Apply
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>

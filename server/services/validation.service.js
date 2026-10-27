@@ -35,3 +35,30 @@ export const deploymentUpdateSchema = z.object({
   visaStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
   oecStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
 }).passthrough();
+
+// ── Auth ──
+
+const emailField = z.string().trim().email("Invalid email address");
+
+export const signUpSchema = z.object({
+  firstName: z.string().trim().min(1, "First name is required").max(100),
+  lastName: z.string().trim().min(1, "Last name is required").max(100),
+  email: emailField,
+  phone: z.string().trim().max(30).optional(),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128),
+  role: z.enum(["APPLICANT", "EMPLOYER"], { message: "Role must be APPLICANT or EMPLOYER" }),
+});
+
+export const signInSchema = z.object({
+  email: emailField,
+  password: z.string().min(1, "Password is required"),
+});
+
+export const verifyEmailSchema = z.object({
+  email: emailField,
+  otp: z.string().trim().regex(/^\d{6}$/, "Verification code must be 6 digits"),
+});
+
+export const resendOtpSchema = z.object({
+  email: emailField,
+});

@@ -248,7 +248,7 @@ function ProfilePage() {
       className="space-y-6"
     >
       {/* Profile Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row gap-6 mb-6">
           {/* Avatar */}
           <div className="relative">
@@ -389,7 +389,7 @@ function ProfilePage() {
                 <Button
                   onClick={handleSave}
                   disabled={saving}
-                  className="gradient-bg-accent text-accent-foreground"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   {saving ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -421,7 +421,7 @@ function ProfilePage() {
       </motion.div>
 
       {/* Tabs */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <Tabs defaultValue="skills" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="skills">Skills</TabsTrigger>
@@ -540,7 +540,7 @@ function ProfilePage() {
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <Briefcase className="w-4 h-4 text-accent" />
+                              <Briefcase className="w-4 h-4 text-accent-text" />
                               <h4 className="font-medium">{exp.position}</h4>
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">
@@ -627,7 +627,7 @@ function ProfilePage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <Award className="w-4 h-4 text-accent" />
+                            <Award className="w-4 h-4 text-accent-text" />
                             <h4 className="font-medium">
                               {edu.degree || "Degree"}
                             </h4>

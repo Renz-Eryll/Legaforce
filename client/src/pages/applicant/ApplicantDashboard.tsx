@@ -110,7 +110,7 @@ export default function ApplicantDashboard() {
           <p className="text-muted-foreground text-sm">Here's your job search overview</p>
         </div>
         <Link to="/app/jobs">
-          <Button className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg">
             <Sparkles className="w-4 h-4 mr-2" />Browse Jobs <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
@@ -118,19 +118,19 @@ export default function ApplicantDashboard() {
 
       {/* Profile Completion Banner */}
       {profileCompletion < 100 && (
-        <motion.div variants={fadeInUp} className="card-premium p-5 border-accent/20 bg-gradient-to-r from-accent/5 to-transparent">
+        <motion.div variants={fadeInUp} className="panel p-5 border-accent/20 bg-gradient-to-r from-accent/5 to-transparent">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-accent" />
+                <AlertCircle className="h-5 w-5 text-accent-text" />
                 <h3 className="font-semibold">Complete Your Profile</h3>
-                <Badge className="bg-accent/10 text-accent border-accent/20">{profileCompletion}%</Badge>
+                <Badge className="bg-accent/10 text-accent-text border-accent/20">{profileCompletion}%</Badge>
               </div>
               <p className="text-sm text-muted-foreground mb-3">A complete profile gets 3× more employer views</p>
               <Progress value={profileCompletion} className="h-2" />
             </div>
             <Link to="/app/profile">
-              <Button className="gradient-bg-accent text-accent-foreground font-semibold shrink-0">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shrink-0">
                 Complete Now <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -146,7 +146,7 @@ export default function ApplicantDashboard() {
           { label: "AI Match Score",       value: `${matchScore}%`,   icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           { label: "Reward Points",        value: rewardPoints,        icon: Star,      color: "text-amber-500", bg: "bg-amber-500/10" },
         ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="card-premium p-5">
+          <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="panel p-5">
             <div className="flex items-start justify-between mb-4">
               <div className={cn("p-2.5 rounded-xl", s.bg)}>
                 <s.icon className={cn("h-5 w-5", s.color)} />
@@ -161,7 +161,7 @@ export default function ApplicantDashboard() {
       {/* Row 2: Activity Chart + Application Status Pie (REAL DATA) */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Weekly Activity Area Chart */}
-        <motion.div variants={fadeInUp} className="lg:col-span-2 card-premium p-6">
+        <motion.div variants={fadeInUp} className="lg:col-span-2 panel p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-lg font-display font-semibold">Weekly Activity</h2>
@@ -191,7 +191,7 @@ export default function ApplicantDashboard() {
         </motion.div>
 
         {/* Application Status Pie */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h2 className="text-lg font-display font-semibold mb-1">Application Status</h2>
           <p className="text-xs text-muted-foreground mb-4">Your pipeline breakdown</p>
           {analytics.statusBreakdown?.length > 0 ? (
@@ -222,20 +222,20 @@ export default function ApplicantDashboard() {
         <motion.div variants={fadeInUp} className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-display font-semibold">Recent Applications</h2>
-            <Link to="/app/applications" className="text-sm text-accent hover:underline flex items-center gap-1">
+            <Link to="/app/applications" className="text-sm text-accent-text hover:underline flex items-center gap-1">
               View all <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="space-y-3">
             {applications.length > 0 ? applications.slice(0, 4).map((app, i) => (
-              <motion.div key={app.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} className="card-premium p-4 group">
+              <motion.div key={app.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} className="panel p-4 group">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center font-bold text-sm shrink-0">
                     {((app.employer?.companyName || app.company || "?").charAt(0))}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-semibold text-sm group-hover:text-accent transition-colors truncate">
+                      <h3 className="font-semibold text-sm group-hover:text-accent-text transition-colors truncate">
                         {app.position || app.jobTitle || app.jobOrder?.title || "Position"}
                       </h3>
                       <Badge className={cn("text-xs shrink-0", STATUS_CONFIG[app.status?.toUpperCase() || "APPLIED"]?.className)}>
@@ -254,7 +254,7 @@ export default function ApplicantDashboard() {
                 </div>
               </motion.div>
             )) : (
-              <div className="flex flex-col items-center justify-center py-12 card-premium border-dashed border-2 bg-muted/10 text-center">
+              <div className="flex flex-col items-center justify-center py-12 panel border-dashed border-2 bg-muted/10 text-center">
                 <Briefcase className="h-10 w-10 text-muted-foreground/30 mb-3" />
                 <h3 className="font-medium text-muted-foreground mb-1">No applications yet</h3>
                 <p className="text-xs text-muted-foreground/70 mb-4">Start by browsing jobs that match your skills</p>
@@ -267,11 +267,11 @@ export default function ApplicantDashboard() {
         {/* Right Sidebar */}
         <motion.div variants={fadeInUp} className="space-y-4">
           {/* Notifications */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm">Notifications</h3>
               {notifications.length > 0 && (
-                <button onClick={() => { setNotifications([]); toast.success("All read"); }} className="text-xs text-accent hover:underline">
+                <button onClick={() => { setNotifications([]); toast.success("All read"); }} className="text-xs text-accent-text hover:underline">
                   Mark all read
                 </button>
               )}
@@ -300,9 +300,9 @@ export default function ApplicantDashboard() {
           </div>
 
           {/* Recommended Jobs */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <h3 className="font-semibold text-sm flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-accent" />Recommended for You
+              <Sparkles className="h-4 w-4 text-accent-text" />Recommended for You
             </h3>
             <div className="space-y-2">
               {recommendedJobs.length > 0 ? recommendedJobs.slice(0, 3).map((job: any, i) => (
@@ -339,7 +339,7 @@ export default function ApplicantDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="card-premium p-5">
+          <div className="panel p-5">
             <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
             <div className="space-y-1.5">
               {[

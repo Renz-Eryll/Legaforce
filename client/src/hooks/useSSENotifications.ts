@@ -2,8 +2,10 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { notificationService } from "@/services/notificationService";
 import { toast } from "sonner";
+import { API_BASE_URL as API_BASE } from "@/utils/constants";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+// Stop retrying after this many consecutive failures (e.g. server down, token expired)
+const MAX_RETRIES = 8;
 
 export interface SSENotification {
   id: string;
@@ -37,6 +39,12 @@ export function useSSENotifications() {
     const token = localStorage.getItem("auth_token");
     if (!isAuthenticated || !token) return;
 
+    // Cancel any pending reconnect so we never open two connections
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     // Close existing connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
@@ -51,7 +59,6 @@ export function useSSENotifications() {
       es.addEventListener("connected", () => {
         setIsConnected(true);
         retriesRef.current = 0;
-        console.log("✅ SSE connected");
       });
 
       // Status change events (from employer/admin updating application status)
@@ -92,9 +99,6 @@ export function useSSENotifications() {
           const data: SSENotification = JSON.parse(event.data);
           setLiveNotifications((prev) => [data, ...prev].slice(0, 30));
 
-          // Map backend notification type to icon category
-          const type = data.type === "warning" ? "warning" : data.type === "success" ? "success" : "info";
-          
           toast(data.title, {
             description: data.message,
           });
@@ -107,6 +111,11 @@ export function useSSENotifications() {
         setIsConnected(false);
         es.close();
         eventSourceRef.current = null;
+
+        if (retriesRef.current >= MAX_RETRIES) {
+          console.warn("SSE: giving up after repeated failures");
+          return;
+        }
 
         // Exponential backoff reconnection (max 60s)
         const delay = Math.min(1000 * Math.pow(2, retriesRef.current), 60000);
@@ -132,9 +141,16 @@ export function useSSENotifications() {
       }
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
+      retriesRef.current = 0;
     };
   }, [connect]);
+
+  // Don't keep the previous user's live notifications around after logout
+  useEffect(() => {
+    if (!isAuthenticated) setLiveNotifications([]);
+  }, [isAuthenticated]);
 
   const clearLiveNotifications = useCallback(() => {
     setLiveNotifications([]);

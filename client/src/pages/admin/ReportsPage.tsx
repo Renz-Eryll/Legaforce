@@ -169,7 +169,7 @@ function ReportsPage() {
             <Calendar className="w-4 h-4 mr-2" /> Schedule Report
            </Button>
            <Button 
-            className="gradient-bg-accent text-accent-foreground font-semibold shadow-lg"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-lg"
             onClick={handleExportAll}
            >
             <Download className="w-4 h-4 mr-2" /> Export Bundle
@@ -178,7 +178,7 @@ function ReportsPage() {
       </motion.div>
 
       {/* Filter Options */}
-      <motion.div variants={fadeInUp} className="card-premium p-5 flex flex-wrap gap-4 items-center">
+      <motion.div variants={fadeInUp} className="panel p-5 flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 pr-4 border-r border-border/50">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Period</span>
           <Select value={reportType} onValueChange={setReportType}>
@@ -209,7 +209,7 @@ function ReportsPage() {
           </Select>
         </div>
 
-        <Badge variant="outline" className="ml-auto bg-accent/5 text-accent border-accent/20">
+        <Badge variant="outline" className="ml-auto bg-accent/5 text-accent-text border-accent/20">
           Last Updated: Just now
         </Badge>
       </motion.div>
@@ -219,7 +219,7 @@ function ReportsPage() {
         {reports.map((report) => {
           const Icon = report.icon;
           return (
-            <motion.div key={report.id} variants={fadeInUp} className="card-premium p-6">
+            <motion.div key={report.id} variants={fadeInUp} className="panel p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className={`p-2.5 rounded-xl ${report.color}`}>
@@ -272,9 +272,9 @@ function ReportsPage() {
 
       {/* Strategic Insights */}
       {!isLoading && reports.length > 0 && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <div className="flex items-center gap-3 mb-6">
-             <div className="p-2 bg-accent/10 rounded-lg"><Activity className="w-5 h-5 text-accent" /></div>
+             <div className="p-2 bg-accent/10 rounded-lg"><Activity className="w-5 h-5 text-accent-text" /></div>
              <h3 className="text-xl font-display font-semibold">AI-Generated Strategic Insights</h3>
           </div>
           <div className="grid md:grid-cols-2 gap-4">

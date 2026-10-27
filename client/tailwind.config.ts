@@ -1,25 +1,24 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
+        border: {
+          DEFAULT: "hsl(var(--border))",
+          strong: "hsl(var(--border-strong))",
+        },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -43,6 +42,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          text: "hsl(var(--accent-text))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -63,6 +63,7 @@ export default {
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
+          muted: "hsl(var(--sidebar-muted))",
           primary: "hsl(var(--sidebar-primary))",
           "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
           accent: "hsl(var(--sidebar-accent))",
@@ -78,37 +79,27 @@ export default {
           "5": "hsl(var(--chart-5))",
         },
       },
+      // One tight radius scale for the whole app; pages that ask for xl/2xl/3xl get it too.
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        "2xl": "1rem",
-        "3xl": "1.5rem",
+        md: "calc(var(--radius) - 2px)",
+        lg: "var(--radius)",
+        xl: "calc(var(--radius) + 2px)",
+        "2xl": "calc(var(--radius) + 4px)",
+        "3xl": "calc(var(--radius) + 6px)",
+      },
+      boxShadow: {
+        sm: "0 1px 2px 0 hsl(205 63% 12% / 0.06)",
+        DEFAULT: "0 1px 3px 0 hsl(205 63% 12% / 0.08)",
+        md: "0 4px 10px -4px hsl(205 63% 12% / 0.14)",
+        lg: "0 8px 20px -10px hsl(205 63% 12% / 0.2)",
+        xl: "0 14px 30px -14px hsl(205 63% 12% / 0.26)",
+        "2xl": "0 24px 48px -20px hsl(205 63% 12% / 0.34)",
       },
       fontFamily: {
-        sans: [
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "sans-serif",
-        ],
-        display: [
-          "Space Grotesk",
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "sans-serif",
-        ],
-      },
-      fontSize: {
-        "2xs": ["0.625rem", { lineHeight: "0.75rem" }],
-      },
-      spacing: {
-        "18": "4.5rem",
-        "88": "22rem",
-        "128": "32rem",
+        sans: ["Archivo", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Archivo", "Arial Narrow", "Segoe UI", "system-ui", "sans-serif"],
+        mono: ["IBM Plex Mono", "ui-monospace", "Cascadia Mono", "Consolas", "monospace"],
       },
       keyframes: {
         "accordion-down": {
@@ -119,97 +110,17 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(10px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-out": {
-          from: { opacity: "1", transform: "translateY(0)" },
-          to: { opacity: "0", transform: "translateY(10px)" },
-        },
-        "scale-in": {
-          from: { opacity: "0", transform: "scale(0.9)" },
-          to: { opacity: "1", transform: "scale(1)" },
-        },
-        "slide-up": {
-          from: { opacity: "0", transform: "translateY(30px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-down": {
-          from: { opacity: "0", transform: "translateY(-30px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-left": {
-          from: { opacity: "0", transform: "translateX(-20px)" },
-          to: { opacity: "1", transform: "translateX(0)" },
-        },
-        "slide-right": {
-          from: { opacity: "0", transform: "translateX(20px)" },
-          to: { opacity: "1", transform: "translateX(0)" },
-        },
-        "float": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
-        "shimmer": {
-          from: { backgroundPosition: "-200% 0" },
-          to: { backgroundPosition: "200% 0" },
-        },
-        "gradient-shift": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
-        "bounce-subtle": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-5px)" },
-        },
-        "pulse-gold": {
-          "0%, 100%": { boxShadow: "0 0 0 0 hsl(43 96% 56% / 0.4)" },
-          "50%": { boxShadow: "0 0 0 12px hsl(43 96% 56% / 0)" },
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.5s ease-out forwards",
-        "fade-out": "fade-out 0.3s ease-out forwards",
-        "scale-in": "scale-in 0.4s ease-out forwards",
-        "slide-up": "slide-up 0.6s ease-out forwards",
-        "slide-down": "slide-down 0.6s ease-out forwards",
-        "slide-left": "slide-left 0.5s ease-out forwards",
-        "slide-right": "slide-right 0.5s ease-out forwards",
-        "float": "float 3s ease-in-out infinite",
-        "shimmer": "shimmer 2s infinite",
-        "gradient-shift": "gradient-shift 5s ease infinite",
-        "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
-        "pulse-gold": "pulse-gold 2s ease-in-out infinite",
-      },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "hero-pattern":
-          "radial-gradient(ellipse 80% 80% at 50% -20%, hsl(var(--accent) / 0.12), transparent 70%)",
-        "hero-pattern-dark":
-          "radial-gradient(ellipse 80% 80% at 50% -20%, hsl(var(--accent) / 0.15), transparent 70%)",
-        "card-gradient":
-          "linear-gradient(135deg, hsl(var(--accent) / 0.02) 0%, transparent 50%)",
-        "accent-gradient":
-          "linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(38 92% 50%) 100%)",
-        "primary-gradient":
-          "linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(222 47% 20%) 100%)",
-      },
-      boxShadow: {
-        "glow-sm": "0 0 20px hsl(var(--accent) / 0.15)",
-        "glow-md": "0 0 40px hsl(var(--accent) / 0.2)",
-        "glow-lg": "0 0 60px hsl(var(--accent) / 0.25)",
-        "glow-gold": "0 4px 20px hsl(43 96% 56% / 0.3)",
-        "card-hover": "0 20px 40px hsl(222 47% 11% / 0.08)",
-        "card-dark-hover": "0 20px 40px hsl(0 0% 0% / 0.3), 0 0 40px hsl(var(--accent) / 0.1)",
-      },
-      transitionTimingFunction: {
-        "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-        "smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;

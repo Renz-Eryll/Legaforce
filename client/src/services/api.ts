@@ -1,8 +1,9 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/utils/constants";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+// Set when a 401 triggers a redirect so concurrent failing requests don't redirect/toast again
+let isRedirectingToLogin = false;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -29,20 +30,35 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const message = error.response?.data?.message || "An error occurred";
-    const status = error.response?.status;
+    // No response at all — offline, CORS failure, or request timeout
+    if (!error.response) {
+      if (!axios.isCancel(error)) {
+        toast.error(
+          error.code === "ECONNABORTED"
+            ? "Request timed out. Please try again."
+            : "Network error. Please check your connection.",
+        );
+      }
+      return Promise.reject(error);
+    }
+
+    const message =
+      error.response.data?.message || error.response.data?.error || "An error occurred";
+    const status = error.response.status;
     const currentPath = window.location.pathname;
 
     // 401 — Real auth failure (expired token, invalid token, deactivated user)
-    // Only redirect if NOT on login/register pages
-    if (
-      status === 401 &&
-      !currentPath.includes("/login") &&
-      !currentPath.includes("/register")
-    ) {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
-      toast.error("Session expired. Please login again.");
+    // Only redirect if NOT on an auth page
+    if (status === 401 && !/^\/(login|register|verify-email)/.test(currentPath)) {
+      if (!isRedirectingToLogin) {
+        isRedirectingToLogin = true;
+        localStorage.removeItem("auth_token");
+        // Also clear the persisted auth store, otherwise isAuthenticated survives the reload
+        localStorage.removeItem("auth-storage");
+        // The page reloads, so LoginPage shows this message instead of a toast here
+        sessionStorage.setItem("auth_message", "Session expired. Please login again.");
+        window.location.replace("/login");
+      }
     }
     // 503 — Transient server/DB issue. Do NOT log the user out.
     // Retry the request once automatically.

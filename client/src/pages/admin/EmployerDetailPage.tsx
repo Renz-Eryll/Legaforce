@@ -164,7 +164,7 @@ function EmployerDetailPage() {
       </motion.div>
 
       {/* Profile Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Avatar */}
           <div className="flex-shrink-0">
@@ -277,7 +277,7 @@ function EmployerDetailPage() {
       {/* Tabs */}
       <motion.div variants={fadeInUp}>
         <Tabs defaultValue="job-orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="job-orders">
               <Briefcase className="w-4 h-4 mr-2" />
               Job Orders ({employer.jobOrders?.length || 0})
@@ -293,7 +293,7 @@ function EmployerDetailPage() {
           </TabsList>
 
           {/* Job Orders Tab */}
-          <TabsContent value="job-orders" className="card-premium mt-4">
+          <TabsContent value="job-orders" className="panel mt-4">
             {employer.jobOrders?.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
@@ -353,7 +353,7 @@ function EmployerDetailPage() {
           </TabsContent>
 
           {/* Invoices Tab */}
-          <TabsContent value="invoices" className="card-premium mt-4">
+          <TabsContent value="invoices" className="panel mt-4">
             {employer.invoices?.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
@@ -406,7 +406,7 @@ function EmployerDetailPage() {
           </TabsContent>
 
           {/* Actions Tab */}
-          <TabsContent value="actions" className="card-premium mt-4 p-6">
+          <TabsContent value="actions" className="panel mt-4 p-6">
             <h3 className="text-lg font-semibold mb-4">Admin Actions</h3>
             <div className="space-y-3">
               {/* Verification */}

@@ -7,15 +7,20 @@ export const validateRequest = (schema) => {
       req.validatedData = validated;
       next();
     } catch (error) {
-      console.error("[Zod Validation Error]:", JSON.stringify(error.errors));
-      
-      const errorMessages = error.errors?.map((err) => `${err.path.join(".")}: ${err.message}`).join(", ");
-      
+      // Not a Zod error — let the error middleware handle it
+      if (error?.name !== "ZodError") return next(error);
+
+      // Zod v4 exposes `issues` (v3 also had the `errors` alias)
+      const issues = error.issues ?? error.errors ?? [];
+      const errorMessages = issues
+        .map((issue) => (issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message))
+        .join(", ");
+
       // Send 400 Bad Request if validation fails
       return res.status(400).json({
         success: false,
         message: errorMessages || "Validation failed",
-        errors: error.errors,
+        errors: issues,
       });
     }
   };

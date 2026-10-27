@@ -81,7 +81,7 @@ export default function SystemHealthPage() {
 
         <TabsContent value="sla">
           <motion.div variants={fadeInUp} className="space-y-4">
-            <div className="card-premium p-6">
+            <div className="panel p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-amber-500" />
                 Pipeline Bottlenecks
@@ -148,7 +148,7 @@ export default function SystemHealthPage() {
         </TabsContent>
 
         <TabsContent value="audit">
-          <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+          <motion.div variants={fadeInUp} className="panel overflow-hidden">
             <div className="p-6 border-b border-border/50 bg-secondary/30">
               <h3 className="font-semibold">System Audit Trail</h3>
               <p className="text-xs text-muted-foreground">Immutable history of administrative actions</p>
@@ -165,7 +165,7 @@ export default function SystemHealthPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
                         <div className="mt-1">
-                          <Badge variant="outline" className="px-1 py-0.5 text-[9px] uppercase tracking-tighter bg-accent/5 text-accent border-accent/20">
+                          <Badge variant="outline" className="px-1 py-0.5 text-[9px] uppercase tracking-tighter bg-accent/5 text-accent-text border-accent/20">
                             {log.action}
                           </Badge>
                         </div>

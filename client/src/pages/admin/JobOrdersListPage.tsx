@@ -125,7 +125,7 @@ function JobOrdersListPage() {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="w-4 h-4 mr-2" />
             New Job Order
           </Button>
@@ -134,17 +134,17 @@ function JobOrdersListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Job Orders</p>
           <p className="text-2xl font-display font-bold">{stats.total}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Active Positions</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {stats.active}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
@@ -152,7 +152,7 @@ function JobOrdersListPage() {
             {stats.totalApplications}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Fill Rate</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             {stats.fillRate}%
@@ -161,7 +161,7 @@ function JobOrdersListPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -196,7 +196,7 @@ function JobOrdersListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={8} />
         ) : (

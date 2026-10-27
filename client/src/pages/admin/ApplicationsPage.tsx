@@ -150,25 +150,25 @@ function ApplicationsPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
           <p className="text-2xl font-display font-bold">{statusStats.total}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             {statusStats.pending}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Deployed</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {statusStats.deployed}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Match Score</p>
           <p className="text-2xl font-display font-bold flex items-center gap-1">
             <TrendingUp className="w-5 h-5 text-blue-500" />
@@ -178,7 +178,7 @@ function ApplicationsPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -215,7 +215,7 @@ function ApplicationsPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={7} />
         ) : (

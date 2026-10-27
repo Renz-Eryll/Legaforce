@@ -85,7 +85,7 @@ function UserDetailsPage() {
       </motion.div>
 
       {/* Profile Card */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar */}
           <div className="flex flex-col sm:flex-row sm:items-start gap-6 flex-1">
@@ -162,9 +162,9 @@ function UserDetailsPage() {
       </motion.div>
 
       {/* Tabs */}
-      <motion.div variants={fadeInUp} className="card-premium">
+      <motion.div variants={fadeInUp} className="panel">
         <Tabs defaultValue="applications" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="actions">Actions</TabsTrigger>

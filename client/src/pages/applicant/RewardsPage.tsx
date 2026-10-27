@@ -39,7 +39,7 @@ const WAYS_TO_EARN = [
   { action: "Upload all required documents", points: 150, icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10" },
   { action: "Generate AI CV", points: 200, icon: Zap, color: "text-purple-500", bg: "bg-purple-500/10" },
   { action: "Apply to a job", points: 50, icon: Target, color: "text-amber-500", bg: "bg-amber-500/10" },
-  { action: "Get shortlisted", points: 100, icon: Star, color: "text-accent", bg: "bg-accent/10" },
+  { action: "Get shortlisted", points: 100, icon: Star, color: "text-accent-text", bg: "bg-accent/10" },
   { action: "Successfully deployed", points: 500, icon: Trophy, color: "text-emerald-500", bg: "bg-emerald-500/10" },
 ];
 
@@ -133,10 +133,10 @@ function RewardsPage() {
 
       {/* Points Balance & Trust Score */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-2 gap-4">
-        <div className="card-premium p-6">
+        <div className="panel p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-accent/10">
-              <Star className="w-6 h-6 text-accent" />
+              <Star className="w-6 h-6 text-accent-text" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Points</p>
@@ -151,7 +151,7 @@ function RewardsPage() {
           </div>
         </div>
 
-        <div className="card-premium p-6">
+        <div className="panel p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-amber-500/10">
               <Trophy className={cn("w-6 h-6", trustTier.color)} />
@@ -174,9 +174,9 @@ function RewardsPage() {
       </motion.div>
 
       {/* Ways to Earn */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-accent" />
+          <Zap className="w-5 h-5 text-accent-text" />
           Ways to Earn Points
         </h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -206,9 +206,9 @@ function RewardsPage() {
       </motion.div>
 
       {/* Redeem Catalog */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
-          <Gift className="w-5 h-5 text-accent" />
+          <Gift className="w-5 h-5 text-accent-text" />
           Redeem Rewards
         </h2>
         {catalog.length === 0 ? (
@@ -240,7 +240,7 @@ function RewardsPage() {
                   </div>
                   <h3 className="font-semibold mb-1">{reward.name}</h3>
                   <div className="flex items-center gap-2 mb-4">
-                    <Star className="w-4 h-4 text-accent" />
+                    <Star className="w-4 h-4 text-accent-text" />
                     <span className="text-sm font-medium">{reward.cost} points</span>
                   </div>
                   <Button
@@ -248,7 +248,7 @@ function RewardsPage() {
                     className={cn(
                       "w-full",
                       canAfford
-                        ? "gradient-bg-accent text-accent-foreground"
+                        ? "bg-accent hover:bg-accent/90 text-accent-foreground"
                         : ""
                     )}
                     variant={canAfford ? "default" : "outline"}
@@ -268,7 +268,7 @@ function RewardsPage() {
       </motion.div>
 
       {/* History */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5 text-muted-foreground" />
           Earning History

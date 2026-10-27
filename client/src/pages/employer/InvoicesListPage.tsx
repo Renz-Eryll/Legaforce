@@ -109,9 +109,9 @@ function InvoicesListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-4 h-4 text-accent" />
+            <DollarSign className="w-4 h-4 text-accent-text" />
             <p className="text-sm text-muted-foreground">Total Billed</p>
           </div>
           <p className="text-2xl font-display font-bold">
@@ -119,7 +119,7 @@ function InvoicesListPage() {
             {totalAmount.toLocaleString()}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-emerald-500" />
             <p className="text-sm text-muted-foreground">Paid</p>
@@ -128,7 +128,7 @@ function InvoicesListPage() {
             {paidAmount.toLocaleString()}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-amber-500" />
             <p className="text-sm text-muted-foreground">Outstanding</p>
@@ -140,7 +140,7 @@ function InvoicesListPage() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={fadeInUp} className="card-premium p-4 flex flex-col sm:flex-row gap-4">
+      <motion.div variants={fadeInUp} className="panel p-4 flex flex-col sm:flex-row gap-4">
         <Input
           placeholder="Search invoices..."
           value={searchTerm}
@@ -161,7 +161,7 @@ function InvoicesListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {filteredInvoices.length === 0 ? (
           <div className="text-center py-12">
             <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-30" />
@@ -197,7 +197,7 @@ function InvoicesListPage() {
                     <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                       {invoice.description || "Recruitment services"}
                     </TableCell>
-                    <TableCell className="font-semibold text-accent">
+                    <TableCell className="font-semibold text-accent-text">
                       {invoice.currency || "PHP"} {(invoice.amount || 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">

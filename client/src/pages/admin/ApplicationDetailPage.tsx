@@ -149,7 +149,7 @@ function ApplicationDetailPage() {
       </motion.div>
 
       {/* Status Pipeline */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4">
           Application Pipeline
         </h2>
@@ -213,7 +213,7 @@ function ApplicationDetailPage() {
       {/* Info Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Applicant Info */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-blue-500" />
             Applicant Information
@@ -243,7 +243,7 @@ function ApplicationDetailPage() {
                 <span className="text-sm text-muted-foreground">
                   AI Match Score
                 </span>
-                <Badge className="bg-accent/10 text-accent border-accent/20">
+                <Badge className="bg-accent/10 text-accent-text border-accent/20">
                   <Star className="w-3 h-3 mr-1" />
                   {application.aiMatchScore}%
                 </Badge>
@@ -262,7 +262,7 @@ function ApplicationDetailPage() {
         </motion.div>
 
         {/* Job Order Info */}
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <Briefcase className="w-5 h-5 text-emerald-500" />
             Job Order
@@ -300,9 +300,9 @@ function ApplicationDetailPage() {
       </div>
 
       {/* Timeline */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-accent" />
+          <Clock className="w-5 h-5 text-accent-text" />
           Application Timeline
         </h3>
         <div className="space-y-4">
@@ -362,7 +362,7 @@ function ApplicationDetailPage() {
 
       {/* Deployment Info (if exists) */}
       {application.deployment && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
             <Globe className="w-5 h-5 text-blue-500" />
             Deployment Record
@@ -403,7 +403,7 @@ function ApplicationDetailPage() {
 
       {/* Interview Notes */}
       {application.interviewNotes && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold mb-3">Interview Notes</h3>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {application.interviewNotes}
@@ -413,7 +413,7 @@ function ApplicationDetailPage() {
 
       {/* Video Interview Link */}
       {application.videoInterviewUrl && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h3 className="font-display font-semibold mb-3">Video Interview</h3>
           <a
             href={application.videoInterviewUrl}

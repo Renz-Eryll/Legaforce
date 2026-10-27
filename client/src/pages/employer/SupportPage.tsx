@@ -119,9 +119,9 @@ function SupportPage() {
 
       {/* Contact Cards */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-3 gap-4">
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
-            <Mail className="w-5 h-5 text-accent" />
+            <Mail className="w-5 h-5 text-accent-text" />
             <h3 className="font-semibold">Email Support</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-3">
@@ -131,9 +131,9 @@ function SupportPage() {
             Send Email
           </Button>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
-            <Phone className="w-5 h-5 text-accent" />
+            <Phone className="w-5 h-5 text-accent-text" />
             <h3 className="font-semibold">Phone Support</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-3">+966 11 123 4567</p>
@@ -141,9 +141,9 @@ function SupportPage() {
             Call Now
           </Button>
         </div>
-        <div className="card-premium p-5">
+        <div className="panel p-5">
           <div className="flex items-center gap-3 mb-3">
-            <MessageSquare className="w-5 h-5 text-accent" />
+            <MessageSquare className="w-5 h-5 text-accent-text" />
             <h3 className="font-semibold">Live Chat</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-3">Available 24/7</p>
@@ -154,7 +154,7 @@ function SupportPage() {
       </motion.div>
 
       {/* Contact Form */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-xl font-semibold mb-4">Send us a Message</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
@@ -169,7 +169,7 @@ function SupportPage() {
             className="w-full p-3 border rounded-lg border-input"
             rows={4}
           />
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Send className="w-4 h-4 mr-2" />
             Send Message
           </Button>
@@ -177,7 +177,7 @@ function SupportPage() {
       </motion.div>
 
       {/* FAQs */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-xl font-semibold mb-4">
           Frequently Asked Questions
         </h2>
@@ -197,7 +197,7 @@ function SupportPage() {
           <Accordion type="single" collapsible className="w-full">
             {filteredFaqs.map((faq) => (
               <AccordionItem key={faq.id} value={faq.id}>
-                <AccordionTrigger className="hover:text-accent">
+                <AccordionTrigger className="hover:text-accent-text">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
@@ -215,7 +215,7 @@ function SupportPage() {
       </motion.div>
 
       {/* Resources */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-xl font-semibold mb-4">Helpful Resources</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {resources.map((resource, idx) => (

@@ -10,7 +10,8 @@ export const {
   SERVER_URL,
   DATABASE_URL,
   JWT_SECRET,
-  JWT_EXPIRES_IN,
+  // Without a default, jwt.sign() issues tokens that never expire
+  JWT_EXPIRES_IN = "7d",
   GEMINI_API_KEY,
   OPENAI_API_KEY,
   AWS_ACCESS_KEY_ID,
@@ -25,3 +26,13 @@ export const {
   EMAIL_USER,
   EMAIL_PASSWORD,
 } = process.env;
+
+const REQUIRED_ENV_VARS = ["DATABASE_URL", "JWT_SECRET"];
+
+// Fail fast on startup instead of erroring on the first login/request
+export const validateEnv = () => {
+  const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+  }
+};

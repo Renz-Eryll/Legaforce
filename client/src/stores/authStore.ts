@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import axios from "axios";
 import { authService } from "@/services/authService";
 
 interface User {
@@ -103,11 +104,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        try {
-          authService.logout();
-        } catch (error) {
-          console.error("Logout error:", error);
-        }
+        // Fire-and-forget: the token is removed locally even if the request fails
+        authService.logout().catch(() => {});
         set({
           user: null,
           isAuthenticated: false,
@@ -149,15 +147,21 @@ export const useAuthStore = create<AuthState>()(
             throw new Error("Failed to get user");
           }
         } catch (error) {
-          console.error("Auth check failed:", error);
-          localStorage.removeItem("auth_token");
-          set({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            lastChecked: null,
-          });
+          // Only a 401 means the session is invalid. Network errors, timeouts and 503s
+          // (e.g. DB cold start) shouldn't log the user out — keep the persisted user.
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            localStorage.removeItem("auth_token");
+            set({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: null,
+              lastChecked: null,
+            });
+          } else {
+            console.error("Auth check failed:", error);
+            set({ isLoading: false });
+          }
         }
       },
 

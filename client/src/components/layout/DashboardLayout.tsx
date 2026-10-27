@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Suspense } from "react";
+import type React from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { PageContentSkeleton } from "@/components/ui/page-skeletons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +29,6 @@ import {
   AlertTriangle,
   Wallet,
   Search,
-  CheckCircle,
   Activity,
   History,
 } from "lucide-react";
@@ -40,7 +40,7 @@ import { adminService } from "@/services/adminService";
 import { notificationApiService } from "@/services/notificationApiService";
 import { useSSENotifications } from "@/hooks/useSSENotifications";
 
-import { Badge } from "@/components/ui/badge";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { cn } from "@/lib/utils";
 
 
@@ -56,8 +56,23 @@ interface NavSection {
   items: NavItem[];
 }
 
+type Badges = Record<string, string | number>;
+
+/** A notification from either the REST list or the live SSE stream */
+interface NotificationItem {
+  id?: string;
+  _id?: string;
+  type: string;
+  title?: string;
+  message?: string;
+  read?: boolean;
+  link?: string;
+  date?: string;
+  createdAt?: string;
+}
+
 // Applicant Navigation - will be translated in component
-const getApplicantNavigation = (badges: any = {}): NavSection[] => [
+const getApplicantNavigation = (badges: Badges = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -101,7 +116,7 @@ const getApplicantNavigation = (badges: any = {}): NavSection[] => [
 ];
 
 // Employer Navigation - will be translated in component
-const getEmployerNavigation = (badges: any = {}): NavSection[] => [
+const getEmployerNavigation = (badges: Badges = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/employer/dashboard", icon: LayoutDashboard },
@@ -144,7 +159,7 @@ const getEmployerNavigation = (badges: any = {}): NavSection[] => [
 ];
 
 // Admin Navigation - will be translated in component
-const getAdminNavigation = (badges: any = {}): NavSection[] => [
+const getAdminNavigation = (badges: Badges = {}): NavSection[] => [
   {
     items: [
       { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -222,48 +237,35 @@ function timeAgo(date: string | Date): string {
   return d.toLocaleDateString();
 }
 
-// ── Notification type colors ────────────────────
+// ── Notification marker colour ──────────────────
 // Handles both SSE types (success/warning/info) and DB enum types (APPLICATION_STATUS, DEPLOYMENT, etc.)
-function getNotifColor(type: string): string {
+function getNotifTone(type: string): string {
   switch (type) {
     case "success":
     case "DEPLOYMENT":
     case "OFFER":
-      return "text-emerald-500";
+      return "bg-success";
     case "warning":
-      return "text-amber-500";
-    case "info":
-    case "APPLICATION_STATUS":
-    case "JOB_RECOMMENDATION":
-    case "MESSAGE":
-    case "SYSTEM":
-      return "text-blue-500";
+      return "bg-warning";
     default:
-      return "text-muted-foreground";
+      return "bg-primary dark:bg-accent";
   }
 }
 
-// ── Map DB notification types to icon category ──
-function getNotifIconType(type: string): "success" | "warning" | "info" {
-  switch (type) {
-    case "success":
-    case "DEPLOYMENT":
-    case "OFFER":
-      return "success";
-    case "warning":
-      return "warning";
-    default:
-      return "info";
-  }
-}
+// ── Role presentation ───────────────────────────
+const ROLE_META: Record<NonNullable<DashboardLayoutProps["userRole"]>, { label: string; color: string }> = {
+  applicant: { label: "Applicant portal", color: "hsl(var(--accent))" },
+  employer: { label: "Employer console", color: "#4FA8DE" },
+  admin: { label: "Admin console", color: "#F2C14E" },
+};
 
 export function DashboardLayout({
   userRole = "applicant",
 }: DashboardLayoutProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [badges, setBadges] = useState<any>({});
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [badges, setBadges] = useState<Badges>({});
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -276,7 +278,7 @@ export function DashboardLayout({
   // Merge live SSE notifications with polled notifications (dedup by id)
   const allNotifications = (() => {
     const seen = new Set<string>();
-    const merged: any[] = [];
+    const merged: NotificationItem[] = [];
     // Live SSE notifications first (newest)
     for (const n of liveNotifications) {
       const nid = n.id;
@@ -289,7 +291,7 @@ export function DashboardLayout({
     }
     // Then polled notifications
     for (const n of notifications) {
-      const nid = n.id || (n as any)._id;
+      const nid = n.id || n._id;
       if (nid && !seen.has(nid)) {
         seen.add(nid);
         merged.push(n);
@@ -311,9 +313,8 @@ export function DashboardLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Scroll to top when route changes
+  // Close the notification dropdown on route change (ScrollToTop handles scrolling)
   useEffect(() => {
-    window.scrollTo(0, 0);
     setShowNotifDropdown(false);
   }, [location.pathname]);
 
@@ -335,10 +336,10 @@ export function DashboardLayout({
           ]);
 
           setBadges({
-            applications: apps.status === 'fulfilled' ? (apps.value as any[]).length : 0,
-            savedJobs: saved.status === 'fulfilled' ? (saved.value as any[]).length : 0,
+            applications: apps.status === 'fulfilled' ? (apps.value as unknown[]).length : 0,
+            savedJobs: saved.status === 'fulfilled' ? (saved.value as unknown[]).length : 0,
             rewards: points.status === 'fulfilled' ? `${points.value} pts` : "0 pts",
-            complaints: complaints.status === 'fulfilled' ? (complaints.value as any[]).length : 0,
+            complaints: complaints.status === 'fulfilled' ? (complaints.value as unknown[]).length : 0,
           });
         } else if (userRole === "employer") {
           const [jobs, candidates, interviews] = await Promise.allSettled([
@@ -472,7 +473,8 @@ export function DashboardLayout({
   const userInfo = getUserInfo();
   const settingsPath = getSettingsPath();
 
-  const isActive = (path: string) => location.pathname === path;
+  // Detail pages (e.g. /app/jobs/123) keep their parent item highlighted
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const handleLogout = () => {
     const { logout } = useAuthStore.getState();
@@ -480,349 +482,278 @@ export function DashboardLayout({
     navigate("/login", { replace: true });
   };
 
-  // Get role badge color
-  const getRoleBadge = () => {
-    switch (userRole) {
-      case "employer":
-        return {
-          label: "Employer",
-          className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-        };
-      case "admin":
-        return {
-          label: "Admin",
-          className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-        };
-      default:
-        return {
-          label: "Applicant",
-          className: "bg-accent/10 text-accent border-accent/20",
-        };
+  const role = ROLE_META[userRole];
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
+
+  const currentPage = navigation.flatMap((s) => s.items).find((n) => isActive(n.href))?.name ?? "Dashboard";
+
+  const handleBellClick = async () => {
+    const willOpen = !showNotifDropdown;
+    setShowNotifDropdown(willOpen);
+
+    if (willOpen && unreadCount > 0) {
+      try {
+        await notificationApiService.markAllRead();
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      } catch (err) {
+        console.error("Failed to mark notifications as read:", err);
+      }
     }
   };
 
-  const roleBadge = getRoleBadge();
-  const unreadCount = allNotifications.filter((n) => !n.read).length;
+  const handleNotificationClick = async (notif: NotificationItem) => {
+    setShowNotifDropdown(false);
+
+    // Mark as read locally and on server
+    if (!notif.read) {
+      try {
+        const nid = notif.id;
+        if (nid && !String(nid).startsWith("sse-")) {
+          await notificationApiService.markRead(nid);
+        }
+        setNotifications((prev) => prev.map((n) => (n.id === nid ? { ...n, read: true } : n)));
+      } catch (e) {
+        console.error("Failed to mark as read", e);
+      }
+    }
+
+    // Dynamic navigation based on notification link or role
+    if (notif.link) {
+      navigate(notif.link);
+    } else if (userRole === "applicant") navigate("/app/applications");
+    else if (userRole === "employer") navigate("/employer/dashboard");
+    else navigate("/admin/dashboard");
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen bg-background" style={{ "--role": role.color } as React.CSSProperties}>
+      {/* Mobile sidebar overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 bg-sidebar/60 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Rail */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-border">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="relative flex items-center justify-center p-1 w-10 h-10 rounded-md overflow-hidden shine-effect">
-                {/* Navy Background with Gold Accent */}
-                <div className="absolute inset-0 " />
-                {/* Logo Text */}
-                <span className="relative font-bold text-lg ">
-                  <img src="/legaforce-logo.png" alt="Logo" />
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-xl tracking-tight">
-                  Legaforce
-                </span>
-              </div>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+        <div className="flex items-start justify-between gap-2 border-b border-sidebar-border px-5 pb-4 pt-5">
+          <div>
+            <BrandMark tone="dark" />
+            <p className="mt-2 pl-[46px] font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--role)]">
+              {role.label}
+            </p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            <X />
+          </Button>
+        </div>
 
-          {/* User Info */}
-          <div className="px-4 py-4 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-accent text-accent-foreground font-semibold">
-                {userInfo.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">
-                  {userInfo.name}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {userInfo.email}
-                </p>
-              </div>
+        <nav className="scrollbar-thin flex-1 overflow-y-auto px-3 py-4" aria-label="Dashboard">
+          {navigation.map((section, sectionIndex) => (
+            <div key={section.title ?? sectionIndex} className={cn(sectionIndex > 0 && "mt-5")}>
+              {section.title && (
+                <h3 className="mb-1.5 px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-muted">
+                  {section.title}
+                </h3>
+              )}
+              <ul className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        to={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:-left-3 before:inset-y-1.5 before:w-1 before:rounded-r-sm before:bg-[var(--role)]"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                        )}
+                      >
+                        <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-[var(--role)]")} strokeWidth={1.8} />
+                        <span className="flex-1 truncate">{item.name}</span>
+                        {item.badge ? (
+                          <span
+                            className={cn(
+                              "rounded-sm px-1.5 py-px font-mono text-[11px] tabular",
+                              active ? "bg-[var(--role)] text-sidebar" : "bg-sidebar-border text-sidebar-muted",
+                            )}
+                          >
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-            <div className="mt-3">
-              <Badge className={cn("text-xs", roleBadge.className)}>
-                {roleBadge.label}
-              </Badge>
-            </div>
-          </div>
+          ))}
+        </nav>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
-            {navigation.map((section, sectionIndex) => (
-              <div
-                key={sectionIndex}
-                className={cn(sectionIndex > 0 && "mt-6")}
-              >
-                {section.title && (
-                  <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {section.title}
-                  </h3>
-                )}
-                <div className="space-y-1">
-                  {section.items.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                        isActive(item.href)
-                          ? "bg-accent/10 text-accent"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span className="flex-1">{item.name}</span>
-                      {item.badge && (
-                        <Badge
-                          variant={
-                            isActive(item.href) ? "default" : "secondary"
-                          }
-                          className={cn(
-                            "h-5 min-w-5 flex items-center justify-center text-xs",
-                            isActive(item.href) &&
-                            "bg-accent text-accent-foreground",
-                          )}
-                        >
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </nav>
-
-          {/* Sidebar Footer */}
-          <div className="p-3 border-t border-border space-y-1">
-            <Link
-              to={settingsPath}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <Settings className="h-5 w-5" />
-              Settings
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
-            >
-              <LogOut className="h-5 w-5" />
-              Sign Out
-            </button>
+        <div className="flex items-center gap-3 border-t border-sidebar-border px-4 py-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sidebar-accent font-mono text-xs font-semibold text-[var(--role)]">
+            {userInfo.initials}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-semibold leading-tight">{userInfo.name}</p>
+            <p className="truncate text-[11.5px] text-sidebar-muted">{userInfo.email}</p>
           </div>
+          <Link
+            to={settingsPath}
+            aria-label="Settings"
+            title="Settings"
+            className={cn(
+              "grid h-8 w-8 place-items-center rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              isActive(settingsPath) ? "text-[var(--role)]" : "text-sidebar-muted",
+            )}
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={handleLogout}
+            aria-label="Sign out"
+            title="Sign out"
+            className="grid h-8 w-8 place-items-center rounded-md text-sidebar-muted transition-colors hover:bg-destructive/15 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="lg:pl-72">
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border">
-          <div className="flex items-center justify-between h-full px-4 sm:px-6">
-            <div className="flex items-center gap-4">
+      {/* Work area */}
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+          <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 className="lg:hidden"
                 onClick={() => setSidebarOpen(true)}
+                aria-label="Open menu"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="!size-5" />
               </Button>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-display font-semibold">
-                  {navigation
-                    .flatMap((s) => s.items)
-                    .find((n) => isActive(n.href))?.name || "Dashboard"}
-                </h1>
-              </div>
+              <p className="flex min-w-0 items-center gap-2 text-sm">
+                <span className="hidden text-muted-foreground sm:inline">{role.label}</span>
+                <span className="hidden text-border-strong sm:inline" aria-hidden="true">/</span>
+                <span className="truncate font-semibold">{isActive(settingsPath) ? "Settings" : currentPage}</span>
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-
+            <div className="flex items-center gap-1">
               <ThemeToggle />
 
-              {/* ── Notification Bell with Dropdown ── */}
               <div className="relative" ref={notifRef}>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="relative"
-                  onClick={async () => {
-                    const willOpen = !showNotifDropdown;
-                    setShowNotifDropdown(willOpen);
-
-                    if (willOpen && unreadCount > 0) {
-                      try {
-                        await notificationApiService.markAllRead();
-                        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-                      } catch (err) {
-                        console.error("Failed to mark notifications as read:", err);
-                      }
-                    }
-                  }}
+                  onClick={handleBellClick}
                   id="notification-bell"
+                  aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+                  aria-expanded={showNotifDropdown}
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="!size-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-accent text-accent-foreground rounded-full px-1 animate-pulse">
+                    <span className="absolute right-1 top-1 grid h-[18px] min-w-[18px] place-items-center rounded-sm bg-accent px-1 font-mono text-[10px] font-semibold text-accent-foreground">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
-                  {unreadCount === 0 && notifications.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-muted-foreground/40 rounded-full" />
-                  )}
                 </Button>
 
-                {/* Notification Dropdown */}
                 <AnimatePresence>
                   {showNotifDropdown && (
                     <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-12 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.14 }}
+                      className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-lg border bg-popover shadow-xl"
                     >
-                      {/* Dropdown Header */}
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                      <div className="flex items-center justify-between border-b px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Bell className="w-4 h-4 text-accent" />
-                          <h3 className="font-semibold text-sm">Notifications</h3>
+                          <h3 className="font-display text-base font-bold uppercase tracking-wide">Notifications</h3>
                           {unreadCount > 0 && (
-                            <Badge className="bg-accent text-accent-foreground text-[10px] h-5">
+                            <span className="rounded-sm bg-accent px-1.5 py-px font-mono text-[10.5px] font-semibold text-accent-foreground">
                               {unreadCount} new
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         {sseConnected && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                            <span className="text-[10px] text-emerald-500 font-medium">Live</span>
-                          </div>
+                          <span className="flex items-center gap-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-wider text-success">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                            Live
+                          </span>
                         )}
                       </div>
 
-                      {/* Notification List */}
-                      <div className="max-h-[400px] overflow-y-auto scrollbar-thin">
+                      <div className="scrollbar-thin max-h-[400px] overflow-y-auto">
                         {allNotifications.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-                            <Bell className="w-8 h-8 mb-2 opacity-40" />
-                            <p className="text-sm">No notifications yet</p>
-                            <p className="text-xs mt-1">You'll see updates here</p>
+                          <div className="hatch m-3 flex flex-col items-center justify-center rounded-md border border-dashed border-border-strong px-4 py-8 text-center">
+                            <Bell className="mb-2 h-6 w-6 text-muted-foreground" />
+                            <p className="text-sm font-semibold">No notifications yet</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">You'll see updates here</p>
                           </div>
                         ) : (
-                          allNotifications.slice(0, 10).map((notif: any, idx: number) => (
-                            <div
-                              key={notif.id || notif._id || idx}
-                              className={cn(
-                                "px-4 py-3 border-b border-border/50 hover:bg-muted/50 cursor-pointer transition-colors",
-                                !notif.read && "bg-accent/5"
-                              )}
-                              onClick={async () => {
-                                setShowNotifDropdown(false);
-
-                                // Mark as read locally and on server
-                                if (!notif.read) {
-                                  try {
-                                    const nid = notif.id;
-                                    if (nid && !String(nid).startsWith('sse-')) {
-                                      await notificationApiService.markRead(nid);
-                                    }
-                                    // Update local state
-                                    setNotifications(prev => prev.map(n => n.id === nid ? { ...n, read: true } : n));
-                                  } catch (e) {
-                                    console.error("Failed to mark as read", e);
-                                  }
-                                }
-
-                                // Dynamic navigation based on notification link or role
-                                if (notif.link) {
-                                  navigate(notif.link);
-                                } else {
-                                  if (userRole === "applicant") navigate("/app/applications");
-                                  else if (userRole === "employer") navigate("/employer/dashboard");
-                                  else navigate("/admin/dashboard");
-                                }
-                              }}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className={cn("mt-0.5", getNotifColor(notif.type))}>
-                                  {getNotifIconType(notif.type) === "success" ? (
-                                    <CheckCircle className="w-4 h-4" />
-                                  ) : getNotifIconType(notif.type) === "warning" ? (
-                                    <AlertTriangle className="w-4 h-4" />
-                                  ) : (
-                                    <Bell className="w-4 h-4" />
+                          <ul className="divide-y">
+                            {allNotifications.slice(0, 10).map((notif, idx) => (
+                              <li key={notif.id || notif._id || idx}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleNotificationClick(notif)}
+                                  className={cn(
+                                    "grid w-full grid-cols-[14px_1fr_auto] gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/60",
+                                    !notif.read && "bg-accent/[0.06]",
                                   )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className={cn("text-sm font-medium truncate", !notif.read && "text-foreground")}>
-                                      {notif.title}
-                                    </p>
-                                    {!notif.read && (
-                                      <span className="w-2 h-2 bg-accent rounded-full flex-shrink-0" />
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                                    {notif.message}
-                                  </p>
-                                  <p className="text-[10px] text-muted-foreground/70 mt-1">
+                                >
+                                  <span className={cn("diamond mt-1.5", getNotifTone(notif.type))} aria-hidden="true" />
+                                  <span className="min-w-0">
+                                    <span className="block truncate text-sm font-semibold">{notif.title}</span>
+                                    <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{notif.message}</span>
+                                  </span>
+                                  <time className="whitespace-nowrap pt-0.5 font-mono text-[10.5px] text-muted-foreground">
                                     {timeAgo(notif.date || notif.createdAt)}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))
+                                  </time>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
-
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-border">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/10 text-accent font-semibold text-sm">
-                  {userInfo.initials}
-                </div>
-              </div>
+              <span className="ml-2 hidden h-8 w-8 place-items-center rounded-full bg-muted font-mono text-xs font-semibold text-primary sm:grid dark:text-accent">
+                {userInfo.initials}
+              </span>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <Suspense fallback={<PageContentSkeleton />}>
             <Outlet />
           </Suspense>

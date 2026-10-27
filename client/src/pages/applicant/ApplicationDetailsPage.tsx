@@ -191,7 +191,7 @@ function ApplicationDetailsPage() {
       </motion.div>
 
       {/* Main Card */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
@@ -226,7 +226,7 @@ function ApplicationDetailsPage() {
             <p className="text-sm text-muted-foreground mb-1">AI Match Score</p>
             <div className="flex items-center gap-2">
               <Progress value={matchScore} className="flex-1 h-2" />
-              <span className="font-bold text-accent">{matchScore}%</span>
+              <span className="font-bold text-accent-text">{matchScore}%</span>
             </div>
           </div>
           <div className="p-4 rounded-xl bg-muted/50">
@@ -254,14 +254,14 @@ function ApplicationDetailsPage() {
           <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-accent/10">
-                <Video className="w-5 h-5 text-accent" />
+                <Video className="w-5 h-5 text-accent-text" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm">Video Interview Scheduled</p>
                 <p className="text-xs text-muted-foreground">Click to join the interview session</p>
               </div>
               <a href={videoUrl} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" className="gradient-bg-accent text-accent-foreground">
+                <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   Join Meeting
                 </Button>
               </a>
@@ -280,7 +280,7 @@ function ApplicationDetailsPage() {
 
       {/* Requirements */}
       {reqList.length > 0 && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <h2 className="text-lg font-display font-semibold mb-4">Job Requirements</h2>
           <ul className="space-y-3">
             {reqList.map((req, idx) => (
@@ -294,7 +294,7 @@ function ApplicationDetailsPage() {
       )}
 
       {/* Application Timeline */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-2">
           Application Timeline
         </h2>
@@ -314,7 +314,7 @@ function ApplicationDetailsPage() {
                     item.completed
                       ? "bg-emerald-500/10 text-emerald-500"
                       : item.isCurrent
-                        ? "bg-accent/10 text-accent ring-2 ring-accent/30"
+                        ? "bg-accent/10 text-accent-text ring-2 ring-accent/30"
                         : "bg-muted text-muted-foreground"
                   )}
                 >
@@ -334,11 +334,11 @@ function ApplicationDetailsPage() {
               <div className="pt-2 pb-4">
                 <p className={cn(
                   "font-medium",
-                  item.isCurrent && "text-accent"
+                  item.isCurrent && "text-accent-text"
                 )}>
                   {item.stage}
                   {item.isCurrent && (
-                    <Badge variant="outline" className="ml-2 text-xs bg-accent/10 text-accent border-accent/20">
+                    <Badge variant="outline" className="ml-2 text-xs bg-accent/10 text-accent-text border-accent/20">
                       Current
                     </Badge>
                   )}
@@ -352,7 +352,7 @@ function ApplicationDetailsPage() {
 
       {/* Employer Rating Section */}
       {["SELECTED", "PROCESSING", "DEPLOYED"].includes(status) && (
-        <motion.div variants={fadeInUp} className="card-premium p-6">
+        <motion.div variants={fadeInUp} className="panel p-6">
           <div className="flex items-center gap-2 mb-1">
             <Star className="w-5 h-5 text-amber-500" />
             <h2 className="text-lg font-display font-semibold">
@@ -409,7 +409,7 @@ function ApplicationDetailsPage() {
               <Button
                 onClick={handleSubmitRating}
                 disabled={isSubmittingRating}
-                className="gradient-bg-accent text-accent-foreground"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 {isSubmittingRating ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</>
@@ -430,7 +430,7 @@ function ApplicationDetailsPage() {
 
       {/* Rejected notice */}
       {status === "REJECTED" && (
-        <motion.div variants={fadeInUp} className="card-premium p-6 border-destructive/20">
+        <motion.div variants={fadeInUp} className="panel p-6 border-destructive/20">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-destructive shrink-0" />
             <div>

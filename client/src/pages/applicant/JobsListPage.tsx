@@ -196,7 +196,7 @@ function JobsListPage() {
         className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border text-sm text-muted-foreground"
       >
         <span className="flex items-center gap-2 font-medium text-foreground">
-          <Smartphone className="w-4 h-4 text-accent" />
+          <Smartphone className="w-4 h-4 text-accent-text" />
           Apply anywhere
         </span>
         <span>Works on mobile & web. Optimized for low-bandwidth.</span>
@@ -219,13 +219,13 @@ function JobsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Active Jobs</p>
           <p className="text-2xl font-display font-bold">
             {loading ? "—" : totalJobs}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Salary</p>
           <p className="text-2xl font-display font-bold">
             {loading
@@ -235,7 +235,7 @@ function JobsListPage() {
                 : "—"}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Positions</p>
           <p className="text-2xl font-display font-bold">
             {loading ? "—" : totalPositions}
@@ -244,7 +244,7 @@ function JobsListPage() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -286,7 +286,7 @@ function JobsListPage() {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="card-premium p-5 hover:shadow-lg transition-shadow"
+              className="panel p-5 hover:shadow-lg transition-shadow"
             >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div className="flex-1">
@@ -302,7 +302,7 @@ function JobsListPage() {
                     </div>
                     {job.employerTrustScore && (
                       <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-accent" />
+                        <Award className="w-4 h-4 text-accent-text" />
                         <span className="text-xs font-semibold">
                           Trust: {job.employerTrustScore}/100
                         </span>
@@ -329,7 +329,7 @@ function JobsListPage() {
                     )}
                   </Button>
                   <Link to={`/app/jobs/${job.id}`}>
-                    <Button className="gradient-bg-accent text-accent-foreground">
+                    <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
                     </Button>
@@ -340,7 +340,7 @@ function JobsListPage() {
               <div className="grid sm:grid-cols-4 gap-4 mb-4 pb-4 border-b">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Salary</p>
-                  <p className="font-semibold text-accent">
+                  <p className="font-semibold text-accent-text">
                     {formatSalary(job.salary)}
                   </p>
                 </div>

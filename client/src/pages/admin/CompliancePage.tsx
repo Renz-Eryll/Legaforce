@@ -162,13 +162,13 @@ function CompliancePage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">In Deployment</p>
           <p className="text-2xl font-display font-bold">
             {complianceStats.total}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Documentation Ready
           </p>
@@ -176,13 +176,13 @@ function CompliancePage() {
             {complianceStats.ready}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">In Progress</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             {complianceStats.inProgress}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Delayed</p>
           <p className="text-2xl font-display font-bold text-red-500">
             {complianceStats.delayed}
@@ -191,7 +191,7 @@ function CompliancePage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -230,7 +230,7 @@ function CompliancePage() {
       ) : (
         <motion.div variants={fadeInUp} className="space-y-4">
           {filteredCompliance.map((item) => (
-            <div key={item.id} className="card-premium p-5">
+            <div key={item.id} className="panel p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 pb-4 border-b">
                 <div>
                   <h3 className="text-lg font-semibold">
@@ -320,7 +320,7 @@ function CompliancePage() {
               <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
                 <p className="text-sm">
                   <span className="font-medium">Expected Deployment:</span>{" "}
-                  <span className="text-accent">
+                  <span className="text-accent-text">
                     {item.expectedDeploymentDate
                       ? new Date(
                           item.expectedDeploymentDate,

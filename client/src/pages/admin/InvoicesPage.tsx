@@ -153,7 +153,7 @@ function InvoicesPage() {
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="w-4 h-4 mr-2" />
             New Invoice
           </Button>
@@ -162,25 +162,25 @@ function InvoicesPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Invoiced</p>
           <p className="text-2xl font-display font-bold">
             ₱{(totalAmount / 1000).toFixed(1)}K
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Paid</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             ₱{(paidAmount / 1000).toFixed(1)}K
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             ₱{(pendingAmount / 1000).toFixed(1)}K
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Overdue</p>
           <p className="text-2xl font-display font-bold text-red-500">
             ₱{(overdueAmount / 1000).toFixed(1)}K
@@ -189,7 +189,7 @@ function InvoicesPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -219,7 +219,7 @@ function InvoicesPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={7} />
         ) : (

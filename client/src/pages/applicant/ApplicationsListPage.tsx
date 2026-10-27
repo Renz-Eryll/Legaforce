@@ -201,7 +201,7 @@ function ApplicationsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">
             Total Applications
           </p>
@@ -209,19 +209,19 @@ function ApplicationsListPage() {
             {loading ? "—" : applications.length}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Active</p>
           <p className="text-2xl font-display font-bold text-blue-500">
             {loading ? "—" : applications.filter((a) => !["rejected", "deployed"].includes(a.status)).length}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Selected</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {loading ? "—" : applications.filter((a) => ["selected", "processing", "deployed"].includes(a.status)).length}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Avg Match Score</p>
           <p className="text-2xl font-display font-bold">
             {loading ? "—" : applications.length ? Math.round(applications.reduce((s, a) => s + a.matchScore, 0) / applications.length) + "%" : "0%"}
@@ -230,7 +230,7 @@ function ApplicationsListPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -263,7 +263,7 @@ function ApplicationsListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -340,7 +340,7 @@ function ApplicationsListPage() {
               <p className="text-lg font-medium mb-1">No applications yet</p>
               <p className="text-muted-foreground mb-4">Browse available jobs and start applying!</p>
               <Link to="/app/jobs">
-                <Button className="gradient-bg-accent text-accent-foreground">
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   Browse Jobs
                 </Button>
               </Link>

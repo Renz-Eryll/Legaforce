@@ -157,7 +157,7 @@ function InvoiceDetailPage() {
       </motion.div>
 
       {/* Status Actions */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="text-sm font-medium">Update Status:</span>
           <div className="flex flex-wrap gap-2">
@@ -208,13 +208,13 @@ function InvoiceDetailPage() {
           {/* Invoice Details — Printable */}
           <motion.div
             variants={fadeInUp}
-            className="card-premium p-8"
+            className="panel p-8"
             id="invoice-printable"
           >
             {/* Invoice Header */}
             <div className="flex justify-between items-start mb-8 pb-6 border-b">
               <div>
-                <h2 className="text-2xl font-display font-bold text-accent">
+                <h2 className="text-2xl font-display font-bold text-accent-text">
                   LEGAFORCE
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -309,7 +309,7 @@ function InvoiceDetailPage() {
                     <td className="py-4 text-right font-semibold pr-4">
                       Total
                     </td>
-                    <td className="py-4 text-right text-xl font-display font-bold text-accent">
+                    <td className="py-4 text-right text-xl font-display font-bold text-accent-text">
                       ₱{(invoice.amount || 0).toLocaleString()}
                     </td>
                   </tr>
@@ -337,9 +337,9 @@ function InvoiceDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-              <DollarSign className="w-5 h-5 text-accent" />
+              <DollarSign className="w-5 h-5 text-accent-text" />
               Summary
             </h3>
             <div className="space-y-3">
@@ -375,7 +375,7 @@ function InvoiceDetailPage() {
           </motion.div>
 
           {/* Employer Info */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
               <Building2 className="w-5 h-5 text-purple-500" />
               Employer
@@ -403,7 +403,7 @@ function InvoiceDetailPage() {
           </motion.div>
 
           {/* Dates */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
               <Calendar className="w-5 h-5 text-muted-foreground" />
               Dates

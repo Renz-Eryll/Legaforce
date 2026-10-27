@@ -192,7 +192,7 @@ function JobDetailsPage() {
         <p className="text-muted-foreground mb-6">
           This job may have been removed or is no longer available.
         </p>
-        <Button onClick={() => navigate("/app/jobs")} className="gradient-bg-accent text-accent-foreground">
+        <Button onClick={() => navigate("/app/jobs")} className="bg-accent hover:bg-accent/90 text-accent-foreground">
           Browse Other Jobs
         </Button>
       </div>
@@ -214,14 +214,14 @@ function JobDetailsPage() {
       <motion.button
         variants={fadeInUp}
         onClick={() => navigate("/app/jobs")}
-        className="flex items-center gap-2 text-accent hover:underline"
+        className="flex items-center gap-2 text-accent-text hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Jobs
       </motion.button>
 
       {/* Header */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
           <div className="flex-1">
             <h1 className="text-3xl font-display font-bold mb-2">
@@ -269,7 +269,7 @@ function JobDetailsPage() {
         <div className="grid sm:grid-cols-3 gap-4 p-4 bg-secondary rounded-lg">
           <div>
             <p className="text-xs text-muted-foreground mb-1">Salary</p>
-            <p className="font-semibold text-accent">
+            <p className="font-semibold text-accent-text">
               {formatSalary(job.salary)}
             </p>
           </div>
@@ -290,7 +290,7 @@ function JobDetailsPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h2 className="text-xl font-semibold mb-3">About This Position</h2>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
               {job.description}
@@ -299,7 +299,7 @@ function JobDetailsPage() {
 
           {/* Responsibilities */}
           {responsibilities.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Responsibilities</h2>
               <ul className="space-y-3">
                 {responsibilities.map((resp, idx) => (
@@ -314,7 +314,7 @@ function JobDetailsPage() {
 
           {/* Requirements */}
           {requirements.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Requirements</h2>
               <ul className="space-y-3">
                 {requirements.map((req, idx) => (
@@ -329,7 +329,7 @@ function JobDetailsPage() {
 
           {/* Benefits */}
           {benefits.length > 0 && (
-            <motion.div variants={fadeInUp} className="card-premium p-6">
+            <motion.div variants={fadeInUp} className="panel p-6">
               <h2 className="text-xl font-semibold mb-4">Benefits</h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {benefits.map((benefit, idx) => (
@@ -350,12 +350,12 @@ function JobDetailsPage() {
           {/* Application Card */}
           <motion.div
             variants={fadeInUp}
-            className="card-premium p-6 sticky top-20"
+            className="panel p-6 sticky top-20"
           >
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-accent" />
+                  <DollarSign className="w-5 h-5 text-accent-text" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Monthly Salary</p>
@@ -379,7 +379,7 @@ function JobDetailsPage() {
                 className={`w-full ${
                   applied
                     ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "gradient-bg-accent"
+                    : "bg-accent hover:bg-accent/90"
                 } text-accent-foreground font-semibold`}
                 disabled={applied || applying}
                 onClick={handleApply}
@@ -428,11 +428,11 @@ function JobDetailsPage() {
           </motion.div>
 
           {/* Employer Info */}
-          <motion.div variants={fadeInUp} className="card-premium p-6">
+          <motion.div variants={fadeInUp} className="panel p-6">
             <h3 className="font-semibold mb-4">Employer Information</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <Building2 className="w-5 h-5 text-accent mt-0.5" />
+                <Building2 className="w-5 h-5 text-accent-text mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Company</p>
                   <p className="text-sm text-muted-foreground">
@@ -441,7 +441,7 @@ function JobDetailsPage() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-accent mt-0.5" />
+                <MapPin className="w-5 h-5 text-accent-text mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
                   <p className="text-sm text-muted-foreground">
@@ -450,7 +450,7 @@ function JobDetailsPage() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-accent mt-0.5" />
+                <Clock className="w-5 h-5 text-accent-text mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Posted</p>
                   <p className="text-sm text-muted-foreground">

@@ -219,7 +219,7 @@ function DocumentsPage() {
       </motion.div>
 
       {/* Document Categories - Upload Shortcuts */}
-      <motion.div variants={fadeInUp} className="card-premium p-6">
+      <motion.div variants={fadeInUp} className="panel p-6">
         <h2 className="text-lg font-display font-semibold mb-4">Required Documents</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {DOCUMENT_CATEGORIES.filter((c) => c.required).map((cat) => {
@@ -260,19 +260,19 @@ function DocumentsPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid sm:grid-cols-4 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Documents</p>
           <p className="text-2xl font-display font-bold">{stats.total}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Verified</p>
           <p className="text-2xl font-display font-bold text-emerald-500">{stats.verified}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Under Review</p>
           <p className="text-2xl font-display font-bold text-amber-500">{stats.pending}</p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Expired</p>
           <p className="text-2xl font-display font-bold text-red-500">{stats.expired}</p>
         </div>
@@ -301,7 +301,7 @@ function DocumentsPage() {
         </div>
 
         {filteredDocuments.length === 0 ? (
-          <div className="text-center py-12 card-premium">
+          <div className="text-center py-12 panel">
             <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium text-muted-foreground mb-2">No documents uploaded</p>
             <p className="text-sm text-muted-foreground">
@@ -318,7 +318,7 @@ function DocumentsPage() {
                   key={doc.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-premium p-4 flex items-center gap-4"
+                  className="panel p-4 flex items-center gap-4"
                 >
                   <div className="p-2 rounded-xl bg-muted">
                     {doc.type === "image" ? (

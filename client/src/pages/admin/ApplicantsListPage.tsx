@@ -129,7 +129,7 @@ function ApplicantsListPage() {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button className="gradient-bg-accent text-accent-foreground">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="w-4 h-4 mr-2" />
             New Applicant
           </Button>
@@ -138,19 +138,19 @@ function ApplicantsListPage() {
 
       {/* Stats */}
       <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Total Applicants</p>
           <p className="text-2xl font-display font-bold">
             {applicantStats.total}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Verified</p>
           <p className="text-2xl font-display font-bold text-emerald-500">
             {applicantStats.verified}
           </p>
         </div>
-        <div className="card-premium p-4">
+        <div className="panel p-4">
           <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
           <p className="text-2xl font-display font-bold text-amber-500">
             {applicantStats.pending}
@@ -159,7 +159,7 @@ function ApplicantsListPage() {
       </motion.div>
 
       {/* Filters & Search */}
-      <motion.div variants={fadeInUp} className="card-premium p-5">
+      <motion.div variants={fadeInUp} className="panel p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -188,7 +188,7 @@ function ApplicantsListPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={fadeInUp} className="card-premium overflow-hidden">
+      <motion.div variants={fadeInUp} className="panel overflow-hidden">
         {isLoading ? (
           <SkeletonTable rows={6} cols={6} />
         ) : filteredApplicants.length === 0 ? (
